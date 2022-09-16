@@ -7,7 +7,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ShipsComponent implements OnInit {
 
-  ship = "Black Pearl";
+  ship = "Flying Dutchman";
   
   constructor() { }
 
