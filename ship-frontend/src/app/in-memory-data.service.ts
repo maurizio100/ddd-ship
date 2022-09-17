@@ -5,17 +5,14 @@ import { Ship } from './ship'
 @Injectable({
   providedIn: 'root'
 })
-export class InMemoryDataService implements InMemoryDataService {
+export class InMemoryDataService implements InMemoryDbService {
 
   createDb() {
-    const ships = [
-      { id: 12, name: 'Black Pearl' },
-      { id: 13, name: 'Interceptor' },
-      { id: 14, name: 'Flying Dutchman' },
-      { id: 15, name: 'Magneta' },
-    ];
-
-    return ships;
+    const ships: Ship[] = [
+      { id: 12, name: 'Dr. Nice' }
+     ];
+    
+    return {ships};
   }
   
   constructor() { }

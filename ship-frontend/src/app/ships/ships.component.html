@@ -1,3 +1,15 @@
-<h2>{{ship.name | uppercase}} Details</h2>
-<div><span>id: </span>{{ship.id}}</div>
-<div><span>name:</span>{{ship.name}}</div>
+<div>
+    <label for="new-ship">Ship name: </label>
+    <input id="new-ship" #shipName />
+  
+    <!-- (click) passes input value to add() and then clears the input -->
+    <button type="button" class="add-button" (click)="add(shipName.value); shipName.value=''">
+      Add Ship
+    </button>
+</div>
+
+<ul class="ships">
+    <li *ngFor="let ship of ships">
+        <span class="badge">{{ship.id}}</span> {{ship.name}}
+    </li>
+</ul>
