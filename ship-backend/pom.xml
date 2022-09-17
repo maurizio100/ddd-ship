@@ -24,7 +24,8 @@
 
 	<properties>
 		<java.version>11</java.version>
-		<kotlin.version>1.7.20-RC</kotlin.version>
+		<kotlin.version>1.7.10</kotlin.version>
+		<spring-boot.version>2.7.3</spring-boot.version>
 	</properties>
 
 	<dependencies>
@@ -40,5 +41,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 </project>
+
