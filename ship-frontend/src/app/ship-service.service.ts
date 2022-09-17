@@ -12,7 +12,7 @@ import { tap } from 'rxjs/operators';
 })
 export class ShipServiceService {
 
-  private shipsUrl = 'api/ships';
+  private shipsUrl = 'http://localhost:8080/web/ships';
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -21,10 +21,6 @@ export class ShipServiceService {
   constructor(
     private http: HttpClient
   ) { }
-
-  getShips(): Observable<Ship[]> {
-    return this.http.get<Ship[]>(this.shipsUrl);
-  }
 
   addShip(ship: Ship): Observable<Ship> {
     return this.http.post<Ship>(this.shipsUrl, ship, this.httpOptions).pipe(
