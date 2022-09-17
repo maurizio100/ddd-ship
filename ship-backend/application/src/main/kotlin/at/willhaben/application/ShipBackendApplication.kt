@@ -7,8 +7,8 @@ import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 @ConfigurationPropertiesScan("at.willhaben")
-@EnableJpaRepositories("at.willhaben.driven.adapter")
-@EntityScan("at.willhaben.driven.adapter.output")
+@EnableJpaRepositories("at.willhaben.driven.adapter.persistence")
+@EntityScan("at.willhaben.driven.adapter.persistence")
 @SpringBootApplication(scanBasePackages = ["at.willhaben"])
 open class ShipBackendApplication
 
