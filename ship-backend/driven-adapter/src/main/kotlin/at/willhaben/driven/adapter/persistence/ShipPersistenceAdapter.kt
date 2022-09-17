@@ -5,8 +5,16 @@ import at.willhaben.domain.ports.driven.ShipPersistencePort
 import org.springframework.stereotype.Component
 
 @Component
-class ShipPersistenceAdapter(): ShipPersistencePort {
+class ShipPersistenceAdapter(
+    private val shipRepository: ShipRepository
+): ShipPersistencePort {
     override fun save(ship: Ship): Ship {
-        TODO("Not yet implemented")
+        val shipToPersist = ShipPersistenceEntity(
+            shipName = ship.shipName
+        )
+        shipRepository.save(shipToPersist)
+        return ship.apply {
+            id = shipToPersist.id
+        }
     }
 }
