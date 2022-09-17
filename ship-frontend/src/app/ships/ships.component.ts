@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Ship } from '../ship';
 
 @Component({
   selector: 'app-ships',
@@ -7,7 +8,10 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ShipsComponent implements OnInit {
 
-  ship = "Flying Dutchman";
+  ship: Ship = {
+    id: 1,
+    name: 'Flying Dutchman'
+  }
   
   constructor() { }
 
