@@ -23,7 +23,7 @@ export class ShipServiceService {
   ) { }
 
   addShip(ship: Ship): Observable<Ship> {
-    return this.http.post<Ship>(this.shipsUrl, ship, this.httpOptions).pipe(
+    return this.http.post<Ship>(this.shipsUrl, {name: ship.name}, this.httpOptions).pipe(
       tap((newShip: Ship) => console.log(`added ship w/ id=${newShip.id}`))
     );
   }
