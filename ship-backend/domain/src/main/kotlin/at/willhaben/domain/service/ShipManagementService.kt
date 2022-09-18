@@ -10,7 +10,7 @@ import java.lang.IllegalStateException
 
 @Service
 class ShipManagementService(
-    private val shipPersistencePort: ShipPersistencePort
+    private val shipPersistencePort: ShipPersistencePort,
 ): ShipManagementPort {
 
     override fun createShip(shipCreationData: ShipCreationDataDTO): ShipDTO {
@@ -20,4 +20,14 @@ class ShipManagementService(
             name = newShip.shipName
         )
     }
+
+    override fun getAllShips(): List<ShipDTO> {
+        TODO("Not yet implemented")
+    }
+
+    private fun toShipDTO(ship: Ship) =
+        ShipDTO(
+            id = ship.id ?: throw IllegalStateException(),
+            name = ship.shipName
+        )
 }
