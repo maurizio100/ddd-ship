@@ -16,6 +16,11 @@ export class ShipsComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.getShips()
+  }
+
+  getShips(): void {
+    this.shipService.getShips().subscribe(ships => this.ships = ships)
   }
 
   add(name: string): void {

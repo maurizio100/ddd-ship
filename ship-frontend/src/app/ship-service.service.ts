@@ -27,4 +27,9 @@ export class ShipServiceService {
       tap((newShip: Ship) => console.log(`added ship w/ id=${newShip.id}`))
     );
   }
+
+  getShips(): Observable<Ship[]> {
+    return this.http.get<Ship[]>(this.shipsUrl)
+  }
+
 }
