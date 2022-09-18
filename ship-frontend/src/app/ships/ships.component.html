@@ -10,6 +10,8 @@
 
 <ul class="ships">
     <li *ngFor="let ship of ships">
-        <span class="badge">{{ship.id}}</span> {{ship.name}}
+        <a>
+            <span class="badge">{{ship.id}}</span> {{ship.name}}
+        </a>
     </li>
 </ul>
