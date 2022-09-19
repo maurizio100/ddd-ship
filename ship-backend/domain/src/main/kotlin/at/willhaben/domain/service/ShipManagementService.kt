@@ -2,6 +2,7 @@ package at.willhaben.domain.service
 
 import at.willhaben.domain.model.Ship
 import at.willhaben.domain.ports.driven.ShipPersistencePort
+import at.willhaben.domain.ports.driven.ShipQueryPort
 import at.willhaben.domain.ports.driving.ShipCreationDataDTO
 import at.willhaben.domain.ports.driving.ShipDTO
 import at.willhaben.domain.ports.driving.ShipManagementPort
@@ -11,18 +12,16 @@ import java.lang.IllegalStateException
 @Service
 class ShipManagementService(
     private val shipPersistencePort: ShipPersistencePort,
+    private val shipQueryPort: ShipQueryPort
 ): ShipManagementPort {
 
     override fun createShip(shipCreationData: ShipCreationDataDTO): ShipDTO {
         val newShip = shipPersistencePort.save(Ship(name = shipCreationData.name))
-        return ShipDTO(
-            id = newShip.id ?: throw IllegalStateException(),
-            name = newShip.shipName
-        )
+        return toShipDTO(newShip)
     }
 
     override fun getAllShips(): List<ShipDTO> {
-        TODO("Not yet implemented")
+        return shipQueryPort.getAllShips().map {toShipDTO(it)}
     }
 
     private fun toShipDTO(ship: Ship) =
