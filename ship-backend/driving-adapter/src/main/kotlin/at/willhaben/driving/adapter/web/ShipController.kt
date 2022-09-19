@@ -8,7 +8,7 @@ import at.willhaben.driving.adapter.web.responsemodel.ShipOverviewResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/web")
+@RequestMapping("/web/ships")
 @CrossOrigin(origins = ["http://localhost:4200"])
 class ShipController (
         private val shipManagementPort: ShipManagementPort
@@ -19,7 +19,7 @@ class ShipController (
         return shipManagementPort.getAllShips().map {toShipResponse(it)}
     }
 
-    @PostMapping("/ships")
+    @PostMapping
     fun createShip(@RequestBody ship: ShipCreationRequest): ShipOverviewResponse {
         val shipCreationDTO = ShipCreationDataDTO(name = ship.name);
         val createdShip = shipManagementPort.createShip(shipCreationDTO)
