@@ -5,8 +5,17 @@ import at.willhaben.domain.ports.driven.ShipQueryPort
 import org.springframework.stereotype.Component
 
 @Component
-class ShipQueryAdapter() : ShipQueryPort {
+class ShipQueryAdapter(
+    private val shipRepository: ShipRepository
+) : ShipQueryPort {
+
     override fun getAllShips(): List<Ship> {
-        TODO("Not yet implemented")
+        return shipRepository.findAll().map { toShip(it) }
     }
+
+    private fun toShip(shipPersistenceEntity: ShipPersistenceEntity) =
+        Ship(
+            id = shipPersistenceEntity.id,
+            name = shipPersistenceEntity.shipName
+        )
 }
