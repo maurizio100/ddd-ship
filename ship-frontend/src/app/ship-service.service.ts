@@ -40,4 +40,10 @@ export class ShipServiceService {
     return this.http.get<Ship[]>(this.shipsUrl)
   }
 
+  getShip(shipId: Number): Observable<Ship> {
+    const url = `${this.shipsUrl}/${shipId}`
+    return this.http.get<Ship>(url).pipe(
+      tap(_ => console.log('fetch details for ship'))
+    )
+  }
 }

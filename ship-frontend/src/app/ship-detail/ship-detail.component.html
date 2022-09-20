@@ -1,0 +1,9 @@
+<div *ngIf="ship">
+    <h2>{{ship.name | uppercase}} Details</h2>
+    <div><span>id: </span>{{ship.id}}</div>
+    <div>
+        <div><span>Ship name: </span>{{ship.name}}</div>
+    </div>
+
+    <button type="button" (click)="goBack()">go back</button>
+</div>
