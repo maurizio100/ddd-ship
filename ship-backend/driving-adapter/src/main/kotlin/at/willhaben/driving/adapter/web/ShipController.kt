@@ -26,6 +26,11 @@ class ShipController (
         return toShipResponse(createdShip)
     }
 
+    @DeleteMapping("/{shipId}")
+    fun deleteShip(@PathVariable("shipId") shipId:Long) {
+        shipManagementPort.deleteShip(shipId)
+    }
+
     private fun toShipResponse(ship: ShipDTO) =
         ShipOverviewResponse(
             id = ship.id,
