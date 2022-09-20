@@ -17,4 +17,8 @@ class ShipPersistenceAdapter(
             id = shipToPersist.id
         }
     }
+
+    override fun delete(shipId: Long) {
+        TODO("Not yet implemented")
+    }
 }
