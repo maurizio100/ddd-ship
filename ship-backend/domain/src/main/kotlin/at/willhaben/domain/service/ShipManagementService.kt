@@ -25,7 +25,7 @@ class ShipManagementService(
     }
 
     override fun deleteShip(shipId: Long) {
-        TODO("Not yet implemented")
+        shipPersistencePort.delete(shipId)
     }
 
     private fun toShipDTO(ship: Ship) =
