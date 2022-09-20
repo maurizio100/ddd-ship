@@ -13,7 +13,7 @@ class ShipQueryAdapter(
         return shipRepository.findAll().map { toShip(it) }
     }
 
-    override fun getShipDetails(shipId: Long): Ship {
+    override fun getShipDetails(shipId: Long): Ship? {
         TODO("Not yet implemented")
     }
 
