@@ -10,6 +10,7 @@ class ShipPersistenceAdapter(
 ): ShipPersistencePort {
     override fun save(ship: Ship): Ship {
         val shipToPersist = ShipPersistenceEntity(
+            id = ship.id,
             shipName = ship.shipName
         )
         shipRepository.save(shipToPersist)
