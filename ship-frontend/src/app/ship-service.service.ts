@@ -28,6 +28,14 @@ export class ShipServiceService {
     );
   }
 
+  deleteShip(shipId:Number) {
+    const url = `${this.shipsUrl}/${shipId}`;
+
+    return this.http.delete<Ship>(url, this.httpOptions).pipe(
+      tap(_ => console.log(`deleted ship id=${shipId}`))
+    )
+  }
+
   getShips(): Observable<Ship[]> {
     return this.http.get<Ship[]>(this.shipsUrl)
   }
