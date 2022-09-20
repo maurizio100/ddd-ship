@@ -1,17 +1,19 @@
 package at.willhaben.driving.adapter.web
 
-import at.willhaben.domain.ports.driving.ShipCreationDataDTO
-import at.willhaben.domain.ports.driving.ShipDTO
-import at.willhaben.domain.ports.driving.ShipManagementPort
+import at.willhaben.domain.ports.driving.*
 import at.willhaben.driving.adapter.web.requestmodel.ShipCreationRequest
+import at.willhaben.driving.adapter.web.responsemodel.ShipDetailResponse
 import at.willhaben.driving.adapter.web.responsemodel.ShipOverviewResponse
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/web/ships")
 @CrossOrigin(origins = ["http://localhost:4200"])
 class ShipController (
-        private val shipManagementPort: ShipManagementPort
+        private val shipManagementPort: ShipManagementPort,
+        private val shipInformationPort: ShipInformationPort
 ){
 
     @GetMapping
@@ -33,6 +35,18 @@ class ShipController (
 
     private fun toShipResponse(ship: ShipDTO) =
         ShipOverviewResponse(
+            id = ship.id,
+            name = ship.name
+        )
+
+    @GetMapping("/{shipId}")
+    fun getShip(@PathVariable("shipId") shipId:Long): ShipDetailResponse {
+        return shipInformationPort.getShipDetails(shipId)?.let{ toShipDetailResponse(it) }
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource");
+    }
+
+    private fun toShipDetailResponse(ship: ShipDetailDTO) =
+        ShipDetailResponse(
             id = ship.id,
             name = ship.name
         )
