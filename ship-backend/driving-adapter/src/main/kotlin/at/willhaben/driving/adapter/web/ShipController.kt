@@ -18,7 +18,7 @@ class ShipController (
 
     @GetMapping
     fun getShips(): List<ShipOverviewResponse> {
-        return shipManagementPort.getAllShips().map {toShipResponse(it)}
+        return shipInformationPort.getAllShips().map {toShipResponse(it)}
     }
 
     @PostMapping
