@@ -13,6 +13,10 @@ class ShipQueryAdapter(
         return shipRepository.findAll().map { toShip(it) }
     }
 
+    override fun getShipDetails(shipId: Long): Ship {
+        TODO("Not yet implemented")
+    }
+
     private fun toShip(shipPersistenceEntity: ShipPersistenceEntity) =
         Ship(
             id = shipPersistenceEntity.id,
