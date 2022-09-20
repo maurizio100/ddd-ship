@@ -4,7 +4,9 @@ class Ship(
     id: Long? = null,
     name: String? = null,
 ) {
-    val shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
+    var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
+        set(newShipName) { field = if(isValidName(newShipName)) newShipName else field }
+
     private fun isValidName(name: String?) = name?.let { it.isNotBlank() && it.length < 255} ?: false
 
     var id = id
