@@ -30,4 +30,9 @@ export class ShipsComponent implements OnInit {
       .subscribe(ship => {this.ships.push(ship);});
   }
 
+  delete(ship: Ship): void {
+    this.ships = this.ships.filter(s => s != ship)
+    this.shipService.deleteShip(ship.id).subscribe()
+  }
+
 }

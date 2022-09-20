@@ -19,11 +19,10 @@ import { InMemoryDataService } from './in-memory-data.service';
     BrowserModule,
     FormsModule,
     HttpClientModule
-    /*
+    /*,
     HttpClientInMemoryWebApiModule.forRoot(
       InMemoryDataService, { dataEncapsulation: false }
-    )
-    */
+    )*/
   ],
   providers: [],
   bootstrap: [AppComponent]
