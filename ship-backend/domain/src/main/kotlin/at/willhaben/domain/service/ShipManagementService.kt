@@ -5,6 +5,7 @@ import at.willhaben.domain.ports.driven.ShipPersistencePort
 import at.willhaben.domain.ports.driven.ShipQueryPort
 import at.willhaben.domain.ports.driving.ShipCreationDataDTO
 import at.willhaben.domain.ports.driving.ShipDTO
+import at.willhaben.domain.ports.driving.ShipDetailDTO
 import at.willhaben.domain.ports.driving.ShipManagementPort
 import org.springframework.stereotype.Service
 import java.lang.IllegalStateException
