@@ -5,7 +5,9 @@ class Ship(
     name: String? = null,
 ) {
     var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
-        set(newShipName) { field = if(isValidName(newShipName)) newShipName else field }
+        set(newShipName) {
+            field = if(isValidName(newShipName)) newShipName else field
+        }
 
     private fun isValidName(name: String?) = name?.let { it.isNotBlank() && it.length < 255} ?: false
 

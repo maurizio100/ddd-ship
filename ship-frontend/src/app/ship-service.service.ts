@@ -48,7 +48,8 @@ export class ShipServiceService {
   }
 
   updateShip(ship: Ship): Observable<any> {
-    return this.http.put(this.shipsUrl, ship, this.httpOptions).pipe(
+    const url = `${this.shipsUrl}/${ship.id}`
+    return this.http.put(url, ship, this.httpOptions).pipe(
       tap(_ => console.log(`updated ship id=${ship.id}`))
     )
   }

@@ -32,7 +32,7 @@ class ShipManagementService(
     }
 
     private fun updateShipData(ship: Ship, shipUpdateData: ShipUpdateDataDTO): ShipDTO {
-        ship.shipName = shipUpdateData.name
+        shipUpdateData.name?.apply { ship.shipName = this }
         return ShipConverter.toShipDTO(shipPersistencePort.save(ship))
     }
 }
