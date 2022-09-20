@@ -6,6 +6,7 @@ import at.willhaben.domain.ports.driven.ShipPersistencePort
 import at.willhaben.domain.ports.driving.ShipCreationDataDTO
 import at.willhaben.domain.ports.driving.ShipDTO
 import at.willhaben.domain.ports.driving.ShipManagementPort
+import at.willhaben.domain.ports.driving.ShipUpdateDataDTO
 import org.springframework.stereotype.Service
 
 @Service
@@ -20,5 +21,9 @@ class ShipManagementService(
 
     override fun deleteShip(shipId: Long) {
         shipPersistencePort.delete(shipId)
+    }
+
+    override fun updateShip(shipUpdateData: ShipUpdateDataDTO): ShipDTO {
+        TODO("Not yet implemented")
     }
 }
