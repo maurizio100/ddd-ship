@@ -26,8 +26,8 @@ import { ShipDetailComponent } from './ship-detail/ship-detail.component';
     /*,
     HttpClientInMemoryWebApiModule.forRoot(
       InMemoryDataService, { dataEncapsulation: false }
-    )
-    */
+    )*/
+    
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -46,4 +46,10 @@ export class ShipServiceService {
       tap(_ => console.log('fetch details for ship'))
     )
   }
+
+  updateShip(ship: Ship): Observable<any> {
+    return this.http.put(this.shipsUrl, ship, this.httpOptions).pipe(
+      tap(_ => console.log(`updated ship id=${ship.id}`))
+    )
+  }
 }

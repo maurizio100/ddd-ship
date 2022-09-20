@@ -2,8 +2,10 @@
     <h2>{{ship.name | uppercase}} Details</h2>
     <div><span>id: </span>{{ship.id}}</div>
     <div>
-        <div><span>Ship name: </span>{{ship.name}}</div>
+        <label for="ship-name">Ship name:</label>
+        <input id="ship-name" [(ngModel)]="ship.name" placeholder="Ship name"/>
     </div>
-
+    
     <button type="button" (click)="goBack()">go back</button>
+    <button type="button" (click)="save()">save</button>
 </div>
