@@ -2,6 +2,7 @@ package at.willhaben.driven.adapter.persistence
 
 import at.willhaben.domain.model.Ship
 import at.willhaben.domain.ports.driven.ShipQueryPort
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
@@ -14,7 +15,9 @@ class ShipQueryAdapter(
     }
 
     override fun getShipDetails(shipId: Long): Ship? {
-        TODO("Not yet implemented")
+        return shipRepository.findByIdOrNull(shipId)?.let {
+            toShip(it)
+        }
     }
 
     private fun toShip(shipPersistenceEntity: ShipPersistenceEntity) =
