@@ -24,6 +24,10 @@ class ShipManagementService(
         return shipQueryPort.getAllShips().map {toShipDTO(it)}
     }
 
+    override fun deleteShip(shipId: Long) {
+        TODO("Not yet implemented")
+    }
+
     private fun toShipDTO(ship: Ship) =
         ShipDTO(
             id = ship.id ?: throw IllegalStateException(),
