@@ -32,4 +32,10 @@ export class ShipDetailComponent implements OnInit {
     this.location.back();
   }
 
+  save(): void {
+    if (this.ship) {
+      this.shipService.updateShip(this.ship).subscribe()
+    }
+  }
+
 }
