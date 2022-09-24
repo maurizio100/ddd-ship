@@ -4,10 +4,10 @@ import at.willhaben.domain.converter.ShipConverter
 import at.willhaben.domain.model.Ship
 import at.willhaben.domain.ports.driven.ShipPersistencePort
 import at.willhaben.domain.ports.driven.ShipQueryPort
-import at.willhaben.domain.ports.driving.ShipCreationDataDTO
-import at.willhaben.domain.ports.driving.ShipDTO
-import at.willhaben.domain.ports.driving.ShipManagementPort
-import at.willhaben.domain.ports.driving.ShipUpdateDataDTO
+import at.willhaben.domain.ports.driving.ship.ShipCreationDataDTO
+import at.willhaben.domain.ports.driving.ship.ShipDTO
+import at.willhaben.domain.ports.driving.ship.ShipManagementPort
+import at.willhaben.domain.ports.driving.ship.ShipUpdateDataDTO
 import org.springframework.stereotype.Service
 
 @Service

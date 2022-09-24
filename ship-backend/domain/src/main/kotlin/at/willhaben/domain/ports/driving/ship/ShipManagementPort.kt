@@ -1,4 +1,4 @@
-package at.willhaben.domain.ports.driving
+package at.willhaben.domain.ports.driving.ship
 
 interface ShipManagementPort {
     fun createShip(shipCreationData: ShipCreationDataDTO): ShipDTO
