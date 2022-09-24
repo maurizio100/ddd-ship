@@ -5,8 +5,16 @@ import at.willhaben.domain.ports.driven.CargoQueryPort
 import org.springframework.stereotype.Component
 
 @Component
-class CargoQueryAdapter(): CargoQueryPort {
-    override fun findAvailableCargo(): List<Cargo> {
-        TODO("Not yet implemented")
-    }
+class CargoQueryAdapter(
+    private val cargoRepository: CargoRepository
+): CargoQueryPort {
+    override fun findAvailableCargo() =
+        cargoRepository.findAll().map{toCargo(it)}
+
+    private fun toCargo(cargo: CargoPersistenceEntity) =
+        Cargo(
+            id = cargo.id,
+            name = cargo.cargoName,
+            weight = cargo.cargoWeight
+        )
 }
