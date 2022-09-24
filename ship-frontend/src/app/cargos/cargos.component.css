@@ -1,0 +1,30 @@
+.cargo-container {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 30px;
+    justify-content: center;
+  }
+
+.cargo-item {
+    width: 80px;
+    height: 80px;
+    border: 1px black solid;
+    border-radius: 4px;
+    font-weight: bold;
+    background: silver;
+    
+    display: flex;
+    flex-direction: row;
+    align-items:flex-end;
+}
+
+.cargo-item span {
+    background-color: white;
+    flex-grow: 2;
+    text-align: center;
+}
+
+.cargo-item:hover {
+    opacity: 0.5;
+}
+

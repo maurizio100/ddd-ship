@@ -1,11 +1,18 @@
-<div *ngIf="ship">
-    <h2>{{ship.name | uppercase}} Details</h2>
-    <div><span>id: </span>{{ship.id}}</div>
-    <div>
-        <label for="ship-name">Ship name:</label>
-        <input id="ship-name" [(ngModel)]="ship.name" placeholder="Ship name"/>
+<div class="ship-detail">
+    <div class="ship" *ngIf="ship">
+        <h2>{{ship.name | uppercase}}</h2>
+        <div>
+            <label for="ship-name">Ship name:</label>
+
+        </div>
+        <div>
+            <input id="ship-name" [(ngModel)]="ship.name" placeholder="Ship name"/>
+        </div>
+        <button type="button" (click)="goBack()">go back</button>
+        <button type="button" (click)="save()">save</button>
     </div>
-    
-    <button type="button" (click)="goBack()">go back</button>
-    <button type="button" (click)="save()">save</button>
+
+    <div class="cargo">
+        <app-cargos></app-cargos>
+    </div>
 </div>

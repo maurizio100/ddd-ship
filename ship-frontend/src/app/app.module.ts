@@ -10,24 +10,25 @@ import { AppRoutingModule } from './app-routing.module';
 import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { InMemoryDataService } from './in-memory-data.service';
 import { ShipDetailComponent } from './ship-detail/ship-detail.component';
+import { CargosComponent } from './cargos/cargos.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
     ShipsComponent,
-    ShipDetailComponent
+    ShipDetailComponent,
+    CargosComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
     AppRoutingModule
-    /*,
+    ,
     HttpClientInMemoryWebApiModule.forRoot(
       InMemoryDataService, { dataEncapsulation: false }
-    )*/
-    
+    )    
   ],
   providers: [],
   bootstrap: [AppComponent]

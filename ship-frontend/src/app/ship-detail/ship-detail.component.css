@@ -3,23 +3,49 @@ label {
     color: #435960;
     font-weight: bold;
   }
-  input {
-    font-size: 1em;
-    padding: .5rem;
-  }
-  button {
-    margin-top: 20px;
-    background-color: #eee;
-    padding: 1rem;
-    border-radius: 4px;
-    font-size: 1rem;
-  }
-  button:hover {
-    background-color: #cfd8dc;
-  }
-  button:disabled {
-    background-color: #eee;
-    color: #ccc;
-    cursor: auto;
-  }
-  
+input {
+  font-size: 1em;
+  padding: .5rem;
+  margin-top: 1em;
+}
+button {
+  margin-top: 30px;
+  background-color: #eee;
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: sans-serif;
+}
+
+button:hover {
+  background-color: #cfd8dc;
+}
+button:disabled {
+  background-color: #eee;
+  color: #ccc;
+  cursor: auto;
+}
+
+.ship-detail {
+  display: flex;
+  gap: 1em;
+  flex-flow: row wrap;
+}
+
+.ship {
+  margin-top: 1em;
+  padding-left: 1em;
+  flex-grow: 1;
+  border: 1px black solid;
+}
+
+.cargo {
+  flex-grow: 1;
+  margin-top: 1em;
+  padding-bottom: 1em;
+  border: black 1px dashed;
+  padding-left: 1em;
+  width: 20%
+}
+
+
