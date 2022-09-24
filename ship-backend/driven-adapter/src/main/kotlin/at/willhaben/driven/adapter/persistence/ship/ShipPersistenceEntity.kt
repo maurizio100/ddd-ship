@@ -1,4 +1,4 @@
-package at.willhaben.driven.adapter.persistence
+package at.willhaben.driven.adapter.persistence.ship
 
 import javax.persistence.*
 
