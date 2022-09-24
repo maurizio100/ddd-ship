@@ -1,4 +1,4 @@
-package at.willhaben.domain.ports.driving
+package at.willhaben.domain.ports.driving.ship
 
 interface ShipInformationPort {
     fun getAllShips(): List<ShipDTO>

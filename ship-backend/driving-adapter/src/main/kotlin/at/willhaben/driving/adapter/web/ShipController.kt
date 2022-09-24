@@ -1,6 +1,6 @@
 package at.willhaben.driving.adapter.web
 
-import at.willhaben.domain.ports.driving.*
+import at.willhaben.domain.ports.driving.ship.*
 import at.willhaben.driving.adapter.web.requestmodel.ShipCreationRequest
 import at.willhaben.driving.adapter.web.requestmodel.ShipUpdateRequest
 import at.willhaben.driving.adapter.web.responsemodel.ShipDetailResponse
@@ -8,14 +8,13 @@ import at.willhaben.driving.adapter.web.responsemodel.ShipOverviewResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
-import javax.websocket.server.PathParam
 
 @RestController
 @RequestMapping("/web/ships")
 @CrossOrigin(origins = ["http://localhost:4200"])
 class ShipController (
-        private val shipManagementPort: ShipManagementPort,
-        private val shipInformationPort: ShipInformationPort
+    private val shipManagementPort: ShipManagementPort,
+    private val shipInformationPort: ShipInformationPort
 ){
 
     @GetMapping
