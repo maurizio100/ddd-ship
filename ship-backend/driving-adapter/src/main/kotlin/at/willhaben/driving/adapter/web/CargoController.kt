@@ -3,12 +3,14 @@ package at.willhaben.driving.adapter.web
 import at.willhaben.domain.ports.driving.cargo.CargoDTO
 import at.willhaben.domain.ports.driving.cargo.CargoInformationPort
 import at.willhaben.driving.adapter.web.responsemodel.CargoResponse
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/web/cargos")
+@CrossOrigin(origins = ["http://localhost:4200"])
 class CargoController(
     private val cargoInformationPort: CargoInformationPort
 ) {

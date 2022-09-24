@@ -1,0 +1,14 @@
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (1, 'Ale', 2.0);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (2, 'Chocolate', 0.8);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (3,  'Cinnamon', 0.9);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (4,  'Coffee', 1.9);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (5, 'Fruits', 2.3);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (6,  'Leather', 3.1);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (7,  'Paprika', 1);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (8,  'Planks', 3.3);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (9, 'Rum', 5.5);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (10,'Silk', 2);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (11, 'Sugar', 0.7);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (12, 'Tobacco', 3);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (13,'Wheat', 2.7);
+INSERT INTO cargos(id, cargo_name, cargo_weight) VALUES (14, 'Wine',3.3);
