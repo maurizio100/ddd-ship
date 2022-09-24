@@ -1,0 +1,13 @@
+<h2>Available Cargo</h2>
+<div class="cargo-container">
+    <div class="cargo-item" *ngFor="let cargo of cargos"
+        [ngStyle]="{ 
+            'background-image': 'url(/assets/cargo/' + cargo.id + '.jpg)',
+            'background-size': '80px 80px',
+            'background-repeat': 'no-repeat'
+            
+        }"
+    >
+        <span>{{cargo.name}}<br>{{cargo.weight}}</span>
+    </div>
+</div>
