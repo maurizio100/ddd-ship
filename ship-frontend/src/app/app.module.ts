@@ -25,10 +25,11 @@ import { CargosComponent } from './cargos/cargos.component';
     FormsModule,
     HttpClientModule,
     AppRoutingModule
+    /*
     ,
     HttpClientInMemoryWebApiModule.forRoot(
       InMemoryDataService, { dataEncapsulation: false }
-    )    
+    ) */   
   ],
   providers: [],
   bootstrap: [AppComponent]
