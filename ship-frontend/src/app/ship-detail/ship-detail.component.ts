@@ -4,6 +4,7 @@ import { Location } from '@angular/common';
 
 import { Ship } from '../ship';
 import { ShipServiceService } from '../ship-service.service';
+import { Cargo } from '../cargo';
 
 @Component({
   selector: 'app-ship-detail',
@@ -11,7 +12,7 @@ import { ShipServiceService } from '../ship-service.service';
   styleUrls: ['./ship-detail.component.css']
 })
 export class ShipDetailComponent implements OnInit {
-  ship: Ship | undefined;
+  ship!: Ship;
 
   constructor(
     private route: ActivatedRoute,
@@ -38,4 +39,8 @@ export class ShipDetailComponent implements OnInit {
     }
   }
 
+  onShipLoadUpdated(ship: Ship) {
+    this.ship.cargo.splice(0, ship.cargo.length);
+    this.ship.cargo.push(...ship.cargo);
+  }
 }

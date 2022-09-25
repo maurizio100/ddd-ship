@@ -1,6 +1,6 @@
-<h2>Available Cargo</h2>
+<h2>{{header}}</h2>
 <div class="cargo-container">
-    <div class="cargo-item" *ngFor="let cargo of cargos"
+    <div (click)="performLoading(cargo)" class="cargo-item" *ngFor="let cargo of cargos"
         [ngStyle]="{ 
             'background-image': 'url(/assets/cargo/' + cargo.id + '.jpg)',
             'background-size': '80px 80px',

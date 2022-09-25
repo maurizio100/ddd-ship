@@ -29,7 +29,7 @@ import { CargosComponent } from './cargos/cargos.component';
     ,
     HttpClientInMemoryWebApiModule.forRoot(
       InMemoryDataService, { dataEncapsulation: false }
-    ) */   
+    )*/
   ],
   providers: [],
   bootstrap: [AppComponent]
