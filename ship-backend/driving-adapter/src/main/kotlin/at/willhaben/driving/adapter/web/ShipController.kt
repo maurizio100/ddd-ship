@@ -1,5 +1,6 @@
 package at.willhaben.driving.adapter.web
 
+import at.willhaben.domain.ports.driving.cargo.CargoLoadManagementPort
 import at.willhaben.domain.ports.driving.ship.*
 import at.willhaben.driving.adapter.web.requestmodel.CargoLoadRequest
 import at.willhaben.driving.adapter.web.requestmodel.ShipCreationRequest
@@ -16,7 +17,8 @@ import org.springframework.web.server.ResponseStatusException
 @CrossOrigin(origins = ["http://localhost:4200"])
 class ShipController (
     private val shipManagementPort: ShipManagementPort,
-    private val shipInformationPort: ShipInformationPort
+    private val shipInformationPort: ShipInformationPort,
+    private val cargoLoadManagementPort: CargoLoadManagementPort
 ){
 
     @GetMapping
@@ -56,22 +58,25 @@ class ShipController (
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
     }
 
-
     @PostMapping("/{shipId}/cargos")
     fun addCargo(@PathVariable("shipId") shipId: Long, @RequestBody cargoLoad: CargoLoadRequest): ShipDetailResponse {
-        return shipInformationPort.getShipDetails(shipId)?.let {
-            ShipDetailResponse(
-                id = it.id,
-                name = "test load",
-                cargo = listOf(CargoResponse(id = 4, name = "Coffee", weight = 1.0f))
-            )
-        }
+        val cargoId = cargoLoad.cargoId ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
+        val updatedShip = cargoLoadManagementPort.addCargo(shipId, cargoId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
+
+        return toShipDetailResponse(updatedShip)
     }
 
     private fun toShipDetailResponse(ship: ShipDetailDTO) =
         ShipDetailResponse(
             id = ship.id,
-            name = ship.name
+            name = ship.name,
+            cargo = ship.cargo.map {
+                CargoResponse(
+                    id = it.id,
+                    name = it.name,
+                    weight = it.weight
+                )
+            }
         )
 }
