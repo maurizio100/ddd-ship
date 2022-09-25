@@ -1,18 +1,28 @@
 <div class="ship-detail">
     <div class="ship" *ngIf="ship">
-        <h2>{{ship.name | uppercase}}</h2>
-        <div>
-            <label for="ship-name">Ship name:</label>
+        <div class="ship-data">
+            <h2>{{ship.name | uppercase}}</h2>
+            <div>
+                <label for="ship-name">Ship name:</label>
 
+            </div>
+            <div>
+                <input id="ship-name" [(ngModel)]="ship.name" placeholder="Ship name"/>
+            </div>
+            <button type="button" (click)="goBack()">go back</button>
+            <button type="button" (click)="save()">save</button>
+        </div>        
+
+        <div class="loaded-cargo">
+            <app-cargos [ship]="ship" [showLoaded]="true"></app-cargos>
         </div>
-        <div>
-            <input id="ship-name" [(ngModel)]="ship.name" placeholder="Ship name"/>
-        </div>
-        <button type="button" (click)="goBack()">go back</button>
-        <button type="button" (click)="save()">save</button>
     </div>
 
     <div class="cargo">
-        <app-cargos></app-cargos>
+        <app-cargos 
+            [ship]="ship" 
+            [showLoaded]="false"
+            (shipUpdated)="onShipLoadUpdated($event)"
+        ></app-cargos>
     </div>
 </div>

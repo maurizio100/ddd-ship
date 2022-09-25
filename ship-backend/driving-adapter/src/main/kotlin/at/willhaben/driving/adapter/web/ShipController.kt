@@ -1,8 +1,10 @@
 package at.willhaben.driving.adapter.web
 
 import at.willhaben.domain.ports.driving.ship.*
+import at.willhaben.driving.adapter.web.requestmodel.CargoLoadRequest
 import at.willhaben.driving.adapter.web.requestmodel.ShipCreationRequest
 import at.willhaben.driving.adapter.web.requestmodel.ShipUpdateRequest
+import at.willhaben.driving.adapter.web.responsemodel.CargoResponse
 import at.willhaben.driving.adapter.web.responsemodel.ShipDetailResponse
 import at.willhaben.driving.adapter.web.responsemodel.ShipOverviewResponse
 import org.springframework.http.HttpStatus
@@ -51,6 +53,19 @@ class ShipController (
     @GetMapping("/{shipId}")
     fun getShip(@PathVariable("shipId") shipId:Long): ShipDetailResponse {
         return shipInformationPort.getShipDetails(shipId)?.let{ toShipDetailResponse(it) }
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
+    }
+
+
+    @PostMapping("/{shipId}/cargos")
+    fun addCargo(@PathVariable("shipId") shipId: Long, @RequestBody cargoLoad: CargoLoadRequest): ShipDetailResponse {
+        return shipInformationPort.getShipDetails(shipId)?.let {
+            ShipDetailResponse(
+                id = it.id,
+                name = "test load",
+                cargo = listOf(CargoResponse(id = 4, name = "Coffee", weight = 1.0f))
+            )
+        }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
     }
 

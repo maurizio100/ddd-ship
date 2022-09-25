@@ -5,13 +5,13 @@ import { Ship } from './ship';
 
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Cargo } from './cargo';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class ShipServiceService {
-
   private shipsUrl = 'http://localhost:8080/web/ships';
 
   httpOptions = {
@@ -51,6 +51,13 @@ export class ShipServiceService {
     const url = `${this.shipsUrl}/${ship.id}`
     return this.http.put(url, ship, this.httpOptions).pipe(
       tap(_ => console.log(`updated ship id=${ship.id}`))
+    )
+  }
+
+  loadCargo(ship: Ship, cargo: Cargo): Observable<Ship> {
+    const url = `${this.shipsUrl}/${ship.id}/cargos/`
+    return this.http.post<Ship>(url, {cargoId: cargo.id}, this.httpOptions).pipe(
+      tap(_ => console.log(`added cargo: ${cargo.name}`))
     )
   }
 }

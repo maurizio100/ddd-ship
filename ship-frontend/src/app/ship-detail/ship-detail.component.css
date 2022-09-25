@@ -37,6 +37,21 @@ button:disabled {
   padding-left: 1em;
   flex-grow: 1;
   border: 1px black solid;
+
+  display: flex;
+  flex-flow: column;
+  flex-wrap: wrap;
+  gap: 1em;
+}
+
+.ship .ship-data {
+  flex-grow: 1;
+}
+
+.ship .loaded-cargo {
+  flex-grow: 1;
+  margin-bottom: 1em;
+  
 }
 
 .cargo {
