@@ -1,6 +1,7 @@
 package at.willhaben.domain.service
 
 import at.willhaben.domain.converter.ShipConverter
+import at.willhaben.domain.exception.ShipTooHeavyException
 import at.willhaben.domain.ports.driven.CargoQueryPort
 import at.willhaben.domain.ports.driven.ShipPersistencePort
 import at.willhaben.domain.ports.driven.ShipQueryPort
@@ -18,10 +19,13 @@ class CargoLoadManagementService(
         val ship = shipQueryPort.getShipDetails(shipId) ?: return null
         val cargo = cargoQueryPort.findCargo(cargoId) ?: return null
 
-        ship.addCargo(cargo)
-        shipPersistencePort.save(ship)
-
-        return ShipConverter.toShipDetailDTO(ship)
+        return try {
+            ship.addCargo(cargo)
+            shipPersistencePort.save(ship)
+            ShipConverter.toShipDetailDTO(ship)
+        } catch (she: ShipTooHeavyException) {
+           ShipConverter.toShipDetailDTO(ship)
+        }
     }
 
     override fun removeCargo(shipId: Long, cargoId: Long): ShipDetailDTO? {
