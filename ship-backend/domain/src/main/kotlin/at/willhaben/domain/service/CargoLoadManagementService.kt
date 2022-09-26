@@ -25,6 +25,12 @@ class CargoLoadManagementService(
     }
 
     override fun removeCargo(shipId: Long, cargoId: Long): ShipDetailDTO? {
-        TODO("Not yet implemented")
+        val ship = shipQueryPort.getShipDetails(shipId) ?: return null
+        val cargo = cargoQueryPort.findCargo(cargoId) ?: return null
+
+        ship.removeCargo(cargo)
+        shipPersistencePort.save(ship)
+
+        return ShipConverter.toShipDetailDTO(ship)
     }
 }
