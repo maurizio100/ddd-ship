@@ -67,6 +67,14 @@ class ShipController (
         return toShipDetailResponse(updatedShip)
     }
 
+    @DeleteMapping("/{shipId}/cargos/{cargoId}")
+    fun addCargo(@PathVariable("shipId") shipId: Long, @PathVariable("cargoId") cargoId: Long): ShipDetailResponse {
+        val updatedShip = cargoLoadManagementPort.removeCargo(shipId, cargoId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
+
+        return toShipDetailResponse(updatedShip)
+    }
+
     private fun toShipDetailResponse(ship: ShipDetailDTO) =
         ShipDetailResponse(
             id = ship.id,
