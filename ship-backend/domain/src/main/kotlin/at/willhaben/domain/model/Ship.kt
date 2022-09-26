@@ -15,6 +15,11 @@ class Ship(
     fun addCargo(cargo: Cargo) {
         cargoLoad.add(cargo)
     }
+
+    fun removeCargo(cargo: Cargo) {
+        cargoLoad.remove(cargo)
+    }
+
     val loadedCargo: List<Cargo>
         get() = cargoLoad
 
