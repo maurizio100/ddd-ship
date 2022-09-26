@@ -1,8 +1,14 @@
 /* ShipDetailComponent's private CSS styles */
 label {
-    color: #435960;
+    color: black;
     font-weight: bold;
   }
+
+  h2 {
+    color: black;
+    font-weight: bold;
+  }
+
 input {
   font-size: 1em;
   padding: .5rem;
@@ -26,11 +32,17 @@ button:disabled {
   cursor: auto;
 }
 
+.ship-background {
+  background-image: url(https://i.guim.co.uk/img/media/e8f6e2839f90aa29229d2cfa92007c4863303e4a/0_201_2740_1645/master/2740.jpg?width=1200&quality=85&auto=format&fit=max&s=ea0bee8bde5d31ed3c9d97f5158cf207);
+  background-size:contain;
+  background-repeat: no-repeat;
+}
+
 .ship-detail {
   display: flex;
   gap: 1em;
   flex-flow: row wrap;
-  max-width: 1400px;
+  max-width: 1370px;
 }
 
 .ship {
