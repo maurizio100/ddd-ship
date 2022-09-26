@@ -23,4 +23,8 @@ class CargoLoadManagementService(
 
         return ShipConverter.toShipDetailDTO(ship)
     }
+
+    override fun removeCargo(shipId: Long, cargoId: Long): ShipDetailDTO? {
+        TODO("Not yet implemented")
+    }
 }
