@@ -5,6 +5,11 @@ class Ship(
     name: String? = null,
     private val cargoLoad: MutableList<Cargo> = mutableListOf()
 ) {
+
+    companion object {
+        const val MAX_WEIGHT = 22.0F
+    }
+
     var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
         set(newShipName) {
             field = if(isValidName(newShipName)) newShipName else field
@@ -27,4 +32,10 @@ class Ship(
         set(newId) {
             field = id?.let { id } ?: newId
         }
+
+    val weight: Float
+        get() = cargoLoad.sumOf{ it.weight.toDouble() }.toFloat()
+
+    val maxWeight: Float
+        get() = MAX_WEIGHT
 }

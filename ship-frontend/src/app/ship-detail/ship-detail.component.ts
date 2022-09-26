@@ -45,6 +45,7 @@ export class ShipDetailComponent implements OnInit {
   onShipLoadUpdated(ship: Ship) {
     this.ship.cargo.splice(0, this.ship.cargo.length);
     this.ship.cargo.push(...ship.cargo);
+    this.ship.weight = ship.weight;
     this.cargoLoadSubject.next(ship);
   }
 }

@@ -85,6 +85,8 @@ class ShipController (
                     name = it.name,
                     weight = it.weight
                 )
-            }
+            },
+            weight = ship.actualWeight,
+            maxweight = ship.maxWeight
         )
 }
