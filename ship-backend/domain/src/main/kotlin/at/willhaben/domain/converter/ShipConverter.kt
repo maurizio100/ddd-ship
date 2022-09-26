@@ -18,7 +18,9 @@ object ShipConverter {
         ShipDetailDTO(
             id = ship.id ?: throw IllegalStateException(),
             name = ship.shipName,
-            cargo = ship.loadedCargo.map { toCargoDTO(it) }
+            cargo = ship.loadedCargo.map { toCargoDTO(it) },
+            actualWeight = ship.weight,
+            maxWeight = ship.maxWeight
         )
 
     private fun toCargoDTO(cargo: Cargo) =
