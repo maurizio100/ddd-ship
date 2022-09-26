@@ -33,7 +33,7 @@ button:disabled {
 }
 
 .ship-background {
-  background-image: url(https://i.guim.co.uk/img/media/e8f6e2839f90aa29229d2cfa92007c4863303e4a/0_201_2740_1645/master/2740.jpg?width=1200&quality=85&auto=format&fit=max&s=ea0bee8bde5d31ed3c9d97f5158cf207);
+  background-image: url('../../assets/img/ship.jpg');
   background-size:contain;
   background-repeat: no-repeat;
 }
@@ -50,15 +50,46 @@ button:disabled {
   padding-left: 1em;
   flex-grow: 1;
   border: 1px black solid;
+  border-radius: 5px;
 
   display: flex;
   flex-flow: column;
   flex-wrap: wrap;
   gap: 1em;
+
+  max-width: 570px;
 }
 
-.ship .ship-data {
+.ship .ship-information {
   flex-grow: 2;
+  
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+}
+
+.ship-information .ship-data {
+  flex-grow:1;
+}
+
+.ship-information .ship-cargo {
+  flex-grow: 2;
+  color: black;
+  background-color: rgba(200, 200, 200, 0.7);
+  
+  text-align: right;
+  justify-content: right;
+  
+  padding-left: 1em;
+  padding-right: 1em;
+  border-radius: 5px;
+
+  max-width: 200px;
+  max-height: 150px;
+}
+
+.ship-cargo .ship-weight span {
+  font-size: 3em;
 }
 
 .ship .loaded-cargo {
