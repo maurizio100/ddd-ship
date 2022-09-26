@@ -30,6 +30,7 @@ button:disabled {
   display: flex;
   gap: 1em;
   flex-flow: row wrap;
+  max-width: 1400px;
 }
 
 .ship {
@@ -45,13 +46,12 @@ button:disabled {
 }
 
 .ship .ship-data {
-  flex-grow: 1;
+  flex-grow: 2;
 }
 
 .ship .loaded-cargo {
-  flex-grow: 1;
   margin-bottom: 1em;
-  
+  max-width: 300px;
 }
 
 .cargo {
@@ -60,7 +60,6 @@ button:disabled {
   padding-bottom: 1em;
   border: black 1px dashed;
   padding-left: 1em;
-  width: 20%
+  max-width: 500px;
 }
-
 

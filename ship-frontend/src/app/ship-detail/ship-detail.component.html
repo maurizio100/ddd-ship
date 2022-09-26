@@ -14,14 +14,19 @@
         </div>        
 
         <div class="loaded-cargo">
-            <app-cargos [ship]="ship" [showLoaded]="true"></app-cargos>
+            <app-cargos 
+                [ship]="ship" 
+                [showLoaded]="true"
+                (shipUpdated)="onShipLoadUpdated($event)"
+            ></app-cargos>
         </div>
     </div>
 
-    <div class="cargo">
+    <div class="cargo" *ngIf="ship">
         <app-cargos 
-            [ship]="ship" 
+            [ship]="ship"
             [showLoaded]="false"
+            [showLoadObserve]="cargoLoadSubject.asObservable()"
             (shipUpdated)="onShipLoadUpdated($event)"
         ></app-cargos>
     </div>

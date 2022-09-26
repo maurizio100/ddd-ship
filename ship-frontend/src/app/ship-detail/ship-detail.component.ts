@@ -4,7 +4,7 @@ import { Location } from '@angular/common';
 
 import { Ship } from '../ship';
 import { ShipServiceService } from '../ship-service.service';
-import { Cargo } from '../cargo';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-ship-detail',
@@ -13,15 +13,18 @@ import { Cargo } from '../cargo';
 })
 export class ShipDetailComponent implements OnInit {
   ship!: Ship;
+  cargoLoadSubject = new Subject<Ship>();
 
   constructor(
     private route: ActivatedRoute,
     private shipService: ShipServiceService,
     private location: Location
-  ) { }
+  ) { 
+    this.getShip();
+  }
 
   ngOnInit(): void {
-    this.getShip()
+   
   }
 
   getShip(): void {
@@ -40,7 +43,8 @@ export class ShipDetailComponent implements OnInit {
   }
 
   onShipLoadUpdated(ship: Ship) {
-    this.ship.cargo.splice(0, ship.cargo.length);
+    this.ship.cargo.splice(0, this.ship.cargo.length);
     this.ship.cargo.push(...ship.cargo);
+    this.cargoLoadSubject.next(ship);
   }
 }

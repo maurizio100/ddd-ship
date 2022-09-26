@@ -28,7 +28,7 @@ class ShipQueryAdapter(
             name = shipPersistenceEntity.shipName,
             cargoLoad = shipPersistenceEntity.cargoLoad.map {
                 toCargo(it)
-            }
+            }.toMutableList()
         )
 
     private fun toCargo(cargoPersistenceEntity: CargoPersistenceEntity) =

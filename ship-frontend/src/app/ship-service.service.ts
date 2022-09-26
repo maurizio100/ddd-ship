@@ -60,4 +60,11 @@ export class ShipServiceService {
       tap(_ => console.log(`added cargo: ${cargo.name}`))
     )
   }
+
+  unloadCargo(ship: Ship, cargo: Cargo): Observable<Ship> {
+    const url = `${this.shipsUrl}/${ship.id}/cargos/${cargo.id}`
+    return this.http.delete<Ship>(url, this.httpOptions).pipe(
+      tap(_ => console.log(`deleted cargo cargo: ${cargo.name}`))
+    )
+  }
 }
