@@ -2,7 +2,7 @@
     display: flex;
     flex-flow: row wrap;
     gap: 30px;
-    justify-content: center;
+    justify-content: left;
   }
 
 .cargo-item {
