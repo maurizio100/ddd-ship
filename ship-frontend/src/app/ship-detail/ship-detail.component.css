@@ -51,7 +51,7 @@ button:disabled {
 
 .ship .loaded-cargo {
   margin-bottom: 1em;
-  max-width: 300px;
+  max-width: 450px;
 }
 
 .cargo {
@@ -60,6 +60,6 @@ button:disabled {
   padding-bottom: 1em;
   border: black 1px dashed;
   padding-left: 1em;
-  max-width: 500px;
+  max-width: 450px;
 }
 
