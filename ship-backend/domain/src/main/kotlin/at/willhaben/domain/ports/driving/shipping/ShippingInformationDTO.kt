@@ -5,6 +5,6 @@ import at.willhaben.domain.ports.driving.cargo.CargoDTO
 data class ShippingInformationDTO(
     val shippingId: Long,
     val shipName: String,
-    val cargo: CargoDTO,
+    val cargo: List<CargoDTO>,
     val sailorsCode: String
 )
