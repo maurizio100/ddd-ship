@@ -27,12 +27,11 @@ import { DisembarkSummaryComponent } from './disembark-summary/disembark-summary
     FormsModule,
     HttpClientModule,
     AppRoutingModule
-/*    
+    /*
     ,
     HttpClientInMemoryWebApiModule.forRoot(
       InMemoryDataService, { dataEncapsulation: false }
-    )
-    */
+    )*/
   ],
   providers: [],
   bootstrap: [AppComponent]
