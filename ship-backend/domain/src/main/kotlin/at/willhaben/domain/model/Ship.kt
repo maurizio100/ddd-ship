@@ -2,6 +2,7 @@ package at.willhaben.domain.model
 
 import at.willhaben.domain.exception.ShipTooHeavyException
 import java.text.DecimalFormat
+import java.time.LocalDateTime
 
 class Ship(
     id: Long? = null,
@@ -10,11 +11,11 @@ class Ship(
 ) {
 
     companion object {
-        const val MAX_WEIGHT = 22.0F
+        const val MAX_WEIGHT = 15.0F
     }
 
     val sailorsCode: Int
-        get() = (System.currentTimeMillis() / currentWeight).toLong().mod(14)
+        get() = (currentWeight * LocalDateTime.now().minute).toInt().mod(14)
 
     var id = id
         set(newId) {
