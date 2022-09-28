@@ -6,7 +6,7 @@ import java.text.DecimalFormat
 class Ship(
     id: Long? = null,
     name: String? = null,
-    private val cargoLoad: MutableList<Cargo> = mutableListOf()
+    val cargoLoad: MutableList<Cargo> = mutableListOf()
 ) {
 
     companion object {
@@ -14,7 +14,7 @@ class Ship(
     }
 
     val sailorsCode: Int
-     get() = (currentWeight * System.currentTimeMillis()).toInt() % 14
+        get() = (System.currentTimeMillis() / currentWeight).toLong().mod(14)
 
     var id = id
         set(newId) {
@@ -27,9 +27,6 @@ class Ship(
         }
 
     var shipping: Shipping? = null
-        set(newShipping) {
-            field = if (shipping == null) newShipping else shipping
-        }
 
     private fun isValidName(name: String?) = name?.let { it.isNotBlank() && it.length < 255} ?: false
 

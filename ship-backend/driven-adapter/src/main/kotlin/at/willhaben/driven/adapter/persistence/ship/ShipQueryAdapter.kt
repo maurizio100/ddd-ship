@@ -2,6 +2,7 @@ package at.willhaben.driven.adapter.persistence.ship
 
 import at.willhaben.domain.model.Cargo
 import at.willhaben.domain.model.Ship
+import at.willhaben.domain.model.Shipping
 import at.willhaben.domain.ports.driven.ShipQueryPort
 import at.willhaben.driven.adapter.persistence.cargo.CargoPersistenceEntity
 import org.springframework.data.repository.findByIdOrNull
@@ -22,14 +23,20 @@ class ShipQueryAdapter(
         }
     }
 
-    private fun toShip(shipPersistenceEntity: ShipPersistenceEntity) =
-        Ship(
+    private fun toShip(shipPersistenceEntity: ShipPersistenceEntity): Ship {
+        val ship = Ship(
             id = shipPersistenceEntity.id,
             name = shipPersistenceEntity.shipName,
             cargoLoad = shipPersistenceEntity.cargoLoad.map {
                 toCargo(it)
-            }.toMutableList()
+            }.toMutableList(),
         )
+        shipPersistenceEntity.shipping?.apply {
+            ship.shipping = Shipping(id = this.id, sailorsQuote = this.sailorsCode)
+        }
+
+        return ship
+    }
 
     private fun toCargo(cargoPersistenceEntity: CargoPersistenceEntity) =
         Cargo(

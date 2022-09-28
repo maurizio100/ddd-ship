@@ -1,3 +1,4 @@
+INSERT INTO quotes(id, quote) Values(0,'To be successful at sea, we must keep things simple.' );
 INSERT INTO quotes(id, quote) Values(1,'There is nothing more enticing, disenchanting, and enslaving than the life at sea.' );
 INSERT INTO quotes(id, quote) Values(2,'I wanted freedom, open air, and adventure. I found it on the sea.' );
 INSERT INTO quotes(id, quote) Values(3,'Smell the sea and feel the sky. Let your soul and spirit fly.' );
