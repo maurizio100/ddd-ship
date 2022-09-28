@@ -13,15 +13,27 @@ class Ship(
         const val MAX_WEIGHT = 22.0F
     }
 
+    var id = id
+        set(newId) {
+            field = id?.let { id } ?: newId
+        }
+
     var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
         set(newShipName) {
             field = if(isValidName(newShipName)) newShipName else field
         }
 
+    var shipping: Shipping? = null
+        set(newShipping) {
+            field = if (shipping == null) newShipping else shipping
+        }
+
     private fun isValidName(name: String?) = name?.let { it.isNotBlank() && it.length < 255} ?: false
 
-    private var currentWeight: Float = calculateWeight()
+    val loadedCargo: List<Cargo>
+        get() = cargoLoad
 
+    private var currentWeight: Float = calculateWeight()
     fun addCargo(cargo: Cargo) {
         if (isShipLoadToHeavy(cargo)) throw ShipTooHeavyException("The ship gets too heavy with that cargo!")
 
@@ -39,14 +51,6 @@ class Ship(
             currentWeight -= cargo.weight
         }
     }
-
-    val loadedCargo: List<Cargo>
-        get() = cargoLoad
-
-    var id = id
-        set(newId) {
-            field = id?.let { id } ?: newId
-        }
 
     val weight: Float
         get() = DecimalFormat("#.##").format(currentWeight).toFloat()
