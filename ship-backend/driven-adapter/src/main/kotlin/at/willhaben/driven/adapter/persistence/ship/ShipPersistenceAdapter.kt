@@ -11,12 +11,15 @@ class ShipPersistenceAdapter(
     private val cargoRepository: CargoRepository
 ): ShipPersistencePort {
     override fun save(ship: Ship): Ship {
+        val cargo = ship.loadedCargo.map {
+            cargoRepository.getReferenceById(it.id)
+        }.toMutableList()
+
         val shipToPersist = ShipPersistenceEntity(
             id = ship.id,
             shipName = ship.shipName,
-            cargoLoad = ship.loadedCargo.map {
-                cargoRepository.getReferenceById(it.id)
-            }.toMutableList()
+            cargoLoad = cargo,
+            shipping = null
         )
         shipRepository.save(shipToPersist)
         return ship.apply {
