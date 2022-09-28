@@ -13,6 +13,9 @@ class Ship(
         const val MAX_WEIGHT = 22.0F
     }
 
+    val sailorsCode: Int
+     get() = (currentWeight * System.currentTimeMillis()).toInt() % 14
+
     var id = id
         set(newId) {
             field = id?.let { id } ?: newId
