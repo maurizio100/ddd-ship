@@ -2,6 +2,7 @@ package at.willhaben.domain.service
 
 import at.willhaben.domain.converter.ShipConverter
 import at.willhaben.domain.model.Shipping
+import at.willhaben.domain.ports.driven.QuoteQueryPort
 import at.willhaben.domain.ports.driven.ShipQueryPort
 import at.willhaben.domain.ports.driven.ShippingPersistencePort
 import at.willhaben.domain.ports.driving.shipping.ShippingCreationDataDTO
@@ -12,14 +13,16 @@ import org.springframework.stereotype.Service
 @Service
 class ShippingManagementService(
     private val shipQueryPort: ShipQueryPort,
-    private val shippingPersistencePort: ShippingPersistencePort
+    private val shippingPersistencePort: ShippingPersistencePort,
+    private val quoteQueryPort: QuoteQueryPort
 ): ShippingManagementPort {
     override fun createShipping(shippingInformation: ShippingCreationDataDTO): ShippingInformationDTO? {
         val foundShip = shipQueryPort.getShipDetails(shippingInformation.shipId) ?: return null
         if (foundShip.shipping != null) return ShipConverter.toShippingInformationDTO(foundShip)
 
+        val sailorsCode = foundShip.sailorsCode
         val shipping = Shipping(
-            sailorsCode = "some code"
+            sailorsQuote = quoteQueryPort.getQuoteForSailorsCode(sailorsCode)
         )
         foundShip.shipping = shipping
 

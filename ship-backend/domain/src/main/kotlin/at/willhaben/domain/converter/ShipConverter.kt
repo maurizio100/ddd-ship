@@ -6,7 +6,6 @@ import at.willhaben.domain.ports.driving.cargo.CargoDTO
 import at.willhaben.domain.ports.driving.ship.ShipDTO
 import at.willhaben.domain.ports.driving.ship.ShipDetailDTO
 import at.willhaben.domain.ports.driving.shipping.ShippingInformationDTO
-import kotlin.IllegalStateException
 
 object ShipConverter {
     fun toShipDTO(ship: Ship) =
@@ -37,8 +36,7 @@ object ShipConverter {
             shippingId = shipping.id ?: throw IllegalStateException(),
             shipName = ship.shipName,
             cargo = ship.loadedCargo.map { toCargoDTO(it) },
-            sailorsCode = shipping.sailorsCode
+            sailorsCode = shipping.sailorsQuote
         )
     }
-
 }
