@@ -11,6 +11,7 @@ import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { InMemoryDataService } from './in-memory-data.service';
 import { ShipDetailComponent } from './ship-detail/ship-detail.component';
 import { CargosComponent } from './cargos/cargos.component';
+import { DisembarkSummaryComponent } from './disembark-summary/disembark-summary.component';
 
 
 @NgModule({
@@ -18,18 +19,18 @@ import { CargosComponent } from './cargos/cargos.component';
     AppComponent,
     ShipsComponent,
     ShipDetailComponent,
-    CargosComponent
+    CargosComponent,
+    DisembarkSummaryComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
     AppRoutingModule
-    /*
     ,
     HttpClientInMemoryWebApiModule.forRoot(
       InMemoryDataService, { dataEncapsulation: false }
-    )*/
+    )
   ],
   providers: [],
   bootstrap: [AppComponent]

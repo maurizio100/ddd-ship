@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
+import { Router } from '@angular/router';
 
 import { Ship } from '../ship';
 import { ShipServiceService } from '../ship-service.service';
+import { DisembarkService } from '../disembark.service';
 import { Subject } from 'rxjs';
+import { ShippingSummary } from '../shipping-summary';
 
 @Component({
   selector: 'app-ship-detail',
@@ -18,13 +21,14 @@ export class ShipDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private shipService: ShipServiceService,
-    private location: Location
+    private disembarkService: DisembarkService,
+    private location: Location,
+    private router: Router
   ) { 
-    this.getShip();
   }
 
   ngOnInit(): void {
-   
+    this.getShip();
   }
 
   getShip(): void {
@@ -39,6 +43,14 @@ export class ShipDetailComponent implements OnInit {
   save(): void {
     if (this.ship) {
       this.shipService.updateShip(this.ship).subscribe()
+    }
+  }
+
+  disembark(): void {
+    if (this.ship) {
+      this.disembarkService.createShipping(this.ship).subscribe(
+        shippingsummary => this.router.navigate(['shipping/' + shippingsummary.id])
+      )
     }
   }
 
