@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { InMemoryDbService } from 'angular-in-memory-web-api';
 import { Ship } from './ship';
 import { Cargo } from './cargo';
+import { ShippingSummary } from './shipping-summary';
 
 @Injectable({
   providedIn: 'root'
@@ -41,7 +42,15 @@ export class InMemoryDataService implements InMemoryDbService {
       { id: 14, name: 'Wine', weight: 1.0}
     ];
 
-    return {ships, cargos};
+    const shippings: ShippingSummary[] =[
+      { id: 12, name: 'Dr. Nice', cargo: [
+        {id: 1, name:'Ale', weight: 1.0},
+        { id: 2, name: 'Chocolate', weight: 1.0},
+        { id: 3, name: 'Cinnamon', weight: 1.0}
+      ], sailorsCode: 'Sailing is fun for everyone!'
+    }];
+
+    return {ships, cargos, shippings};
   }
   
   constructor() { }

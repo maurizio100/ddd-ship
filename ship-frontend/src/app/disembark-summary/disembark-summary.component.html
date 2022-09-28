@@ -1,0 +1,20 @@
+<div class="ship-detail">
+    <h2>{{shipping.name | uppercase}} left the harbour!</h2>
+     
+    <div class="ship-information">
+        <div class="ship">
+            <img src="../../assets/img/ship.jpg">
+        </div>
+        <div class="loaded-cargo" *ngIf="shipping">
+            <app-cargos
+                [shipping] = "shipping"
+                [showLoaded]="true"
+            ></app-cargos>
+        </div>
+    </div>
+
+    <div class="sailors-code">
+        <span>{{shipping.sailorsCode}}</span>
+    </div>
+
+</div>
