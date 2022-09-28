@@ -23,8 +23,7 @@ httpOptions = {
 
   createShipping(ship: Ship): Observable<ShippingSummary> {
     return this.http.post<ShippingSummary>(this.shippingsUrl, {
-      name: ship.name,
-      cargo: ship.cargo
+      shippingId: ship.id
     }, this.httpOptions).pipe(
       tap((newShipping: ShippingSummary) => console.log(`created shipping for ship ${newShipping.name}`))
     )
