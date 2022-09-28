@@ -4,6 +4,7 @@ import { Cargo } from '../cargo';
 import { CargoService } from '../cargo.service';
 import { Ship } from '../ship';
 import { ShipServiceService } from '../ship-service.service';
+import { ShippingSummary } from '../shipping-summary';
 
 @Component({
   selector: 'app-cargos',
@@ -13,6 +14,7 @@ import { ShipServiceService } from '../ship-service.service';
 export class CargosComponent implements OnInit {
 
   @Input() ship!: Ship;
+  @Input() shipping!: ShippingSummary;
   @Input() showLoaded!: Boolean;
   @Input() showLoadObserve!: Observable<Ship>
 
@@ -31,7 +33,7 @@ export class CargosComponent implements OnInit {
   ngOnInit(): void {
     if (this.showLoaded) {
       this.header = 'Loaded Cargo';
-      this.cargos =  this.ship.cargo;
+      this.cargos =  this.ship != undefined ? this.ship.cargo : this.shipping.cargo;
 
     } else {
       this.header = 'Available Cargo';
