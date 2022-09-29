@@ -9,7 +9,7 @@ import { tap } from 'rxjs';
   providedIn: 'root'
 })
 export class CargoService {
-  private cargosUrl = 'http://localhost:8080/web/cargos';
+  private cargosUrl = 'http://172.22.118.168:8080/web/cargos';
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
