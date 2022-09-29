@@ -7,7 +7,6 @@
                     <input id="ship-name" [(ngModel)]="ship.name" placeholder="Ship name"/>
                 </div>
                 <button type="button" (click)="save()">save</button>
-                <button type="button" (click)="disembark()">disembark</button>
             </div>
             <div class="ship-cargo" *ngIf="ship.weight">
                 <div class="ship-weight">
@@ -23,6 +22,7 @@
                 [showLoaded]="true"
                 (shipUpdated)="onShipLoadUpdated($event)"
             ></app-cargos>
+            <button type="button" (click)="disembark()">disembark</button>
         </div>
     </div>
 

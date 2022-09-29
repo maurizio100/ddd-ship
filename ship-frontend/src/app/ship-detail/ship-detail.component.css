@@ -58,6 +58,7 @@ button:disabled {
   gap: 1em;
 
   max-width: 570px;
+  min-height: 450px;
 }
 
 .ship .ship-information {
