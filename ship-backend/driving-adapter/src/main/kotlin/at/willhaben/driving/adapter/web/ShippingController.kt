@@ -13,7 +13,7 @@ import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/web/shippings")
-@CrossOrigin(origins = ["http://localhost:4200"])
+@CrossOrigin(origins = ["http://localhost:4200", "http://localhost", "http://172.22.118.168"])
 class ShippingController(
     private val shippingManagementPort: ShippingManagementPort,
     private val shippingInformationPort: ShippingInformationPort
