@@ -11,7 +11,7 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class DisembarkService {
-  private shippingsUrl = 'http://172.22.118.168:8080/web/shippings';
+  private shippingsUrl = 'http://localhost:8080/web/shippings';
 
 httpOptions = {
   headers: new HttpHeaders({'Content-Type': 'application/json'})

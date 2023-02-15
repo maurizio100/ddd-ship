@@ -12,7 +12,7 @@ import { Cargo } from './cargo';
   providedIn: 'root'
 })
 export class ShipServiceService {
-  private shipsUrl = 'http://172.22.118.168:8080/web/ships';
+  private shipsUrl = 'http://localhost:8080/web/ships';
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
