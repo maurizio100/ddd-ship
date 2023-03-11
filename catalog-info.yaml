@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ddd-ship
+  description: Example file for introducing backstage with the ddd-ship project
+  annotations:
+    github.com/project-slug: backstage/ddd-ship
+  tags:
+    - kotlin
+    - angular
+    - ddd
+    - architecture
+spec:
+  type: website
+  owner: ddd-pirates
+  lifecycle: experimental
