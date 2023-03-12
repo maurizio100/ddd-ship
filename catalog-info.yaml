@@ -4,7 +4,8 @@ metadata:
   name: ddd-ship
   description: Example file for introducing backstage with the ddd-ship project
   annotations:
-    github.com/project-slug: ddd-ship
+    github.com/project-slug: maurizio100/ddd-ship
+
   tags:
     - kotlin
     - angular
@@ -12,5 +13,5 @@ metadata:
     - architecture
 spec:
   type: website
-  owner: ddd-pirates
+  owner: maurizio100
   lifecycle: experimental
