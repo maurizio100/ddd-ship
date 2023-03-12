@@ -12,6 +12,6 @@ metadata:
     - ddd
     - architecture
 spec:
-  type: website
+  type: service
   owner: maurizio100
   lifecycle: experimental
