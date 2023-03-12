@@ -4,7 +4,7 @@ metadata:
   name: ddd-ship
   description: Example file for introducing backstage with the ddd-ship project
   annotations:
-    github.com/project-slug: backstage/ddd-ship
+    github.com/project-slug: ddd-ship
   tags:
     - kotlin
     - angular
