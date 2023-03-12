@@ -11,6 +11,9 @@ metadata:
     - angular
     - ddd
     - architecture
+  links:
+    - url: https://google.com
+      title: Admin Dashboard
 spec:
   type: service
   owner: maurizio100
