@@ -9,16 +9,34 @@ volumes:
     name: hexagonship-postgres-data
 
 services:
-  hexagonship-service:
+  hexagonship-frontend:
+    container_name: hexagonship-frontend
+    image: ddd-ship-frontend
     build:
       dockerfile: Dockerfile
-      context: .
+      context: ship-frontend/.
+    networks:
+      - ship-network
+    ports:
+      - "80:80"
+    depends_on:
+      - hexagonship-service
+      - hexagonship-db
+
+  hexagonship-service:
+    container_name: hexagonship-backend
+    image: ddd-ship-backend
+    build:
+      dockerfile: Dockerfile
+      context: ship-backend/.
     environment:
       SPRING_PROFILES_ACTIVE: dev
     networks:
       - ship-network
     ports:
       - "8080:8080"
+    depends_on:
+      - hexagonship-db
 
   hexagonship-db:
     container_name: hexagonship-db-postgres
