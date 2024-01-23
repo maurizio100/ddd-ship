@@ -16,9 +16,7 @@
         <dependency>
             <groupId>at.willhaben</groupId>
             <artifactId>domain</artifactId>
-            <version>${project.version}</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
