@@ -14,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/web/ships")
-@CrossOrigin(origins = ["http://localhost:4200", "http://localhost", "http://172.22.118.168"])
 class ShipController (
     private val shipManagementPort: ShipManagementPort,
     private val shipInformationPort: ShipInformationPort,

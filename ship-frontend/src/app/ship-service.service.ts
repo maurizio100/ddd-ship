@@ -55,7 +55,7 @@ export class ShipServiceService {
   }
 
   loadCargo(ship: Ship, cargo: Cargo): Observable<Ship> {
-    const url = `${this.shipsUrl}/${ship.id}/cargos/`
+    const url = `${this.shipsUrl}/${ship.id}/cargos`
     return this.http.post<Ship>(url, {cargoId: cargo.id}, this.httpOptions).pipe(
       tap(_ => console.log(`added cargo: ${cargo.name}`))
     )
