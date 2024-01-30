@@ -1,7 +1,7 @@
 package com.sonicdevelopment.driving.adapter.web
 
-import at.willhaben.domain.ports.driving.cargo.CargoLoadManagementPort
-import at.willhaben.domain.ports.driving.ship.*
+import com.sonicdevelopment.domain.ports.driving.cargo.CargoLoadManagementPort
+import com.sonicdevelopment.domain.ports.driving.ship.*
 import com.sonicdevelopment.driving.adapter.web.requestmodel.CargoLoadRequest
 import com.sonicdevelopment.driving.adapter.web.requestmodel.ShipCreationRequest
 import com.sonicdevelopment.driving.adapter.web.requestmodel.ShipUpdateRequest

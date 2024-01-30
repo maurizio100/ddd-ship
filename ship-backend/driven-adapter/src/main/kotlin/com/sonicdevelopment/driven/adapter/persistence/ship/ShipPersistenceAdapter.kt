@@ -1,7 +1,7 @@
 package com.sonicdevelopment.driven.adapter.persistence.ship
 
-import at.willhaben.domain.model.Ship
-import at.willhaben.domain.ports.driven.ShipPersistencePort
+import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort
 import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoRepository
 import org.springframework.stereotype.Component
 

@@ -1,9 +1,9 @@
 package com.sonicdevelopment.driven.adapter.persistence.shipping
 
-import at.willhaben.domain.model.Cargo
-import at.willhaben.domain.model.Ship
-import at.willhaben.domain.model.Shipping
-import at.willhaben.domain.ports.driven.ShippingQueryPort
+import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.ports.driven.ShippingQueryPort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 

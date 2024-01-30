@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 @EnableJpaRepositories("com.sonicdevelopment.driven.adapter.persistence")
 @EntityScan("com.sonicdevelopment.driven.adapter.persistence")
 @SpringBootApplication(scanBasePackages = ["com.sonicdevelopment"])
-open class ShipBackendApplication
+class ShipBackendApplication
 
 fun main(args: Array<String>) {
     runApplication<ShipBackendApplication>(*args)

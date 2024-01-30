@@ -1,6 +1,6 @@
 package com.sonicdevelopment.driven.adapter.persistence.quote
 
-import at.willhaben.domain.ports.driven.QuoteQueryPort
+import com.sonicdevelopment.domain.ports.driven.QuoteQueryPort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 

@@ -1,9 +1,9 @@
 package com.sonicdevelopment.driving.adapter.web
 
-import at.willhaben.domain.ports.driving.shipping.ShippingCreationDataDTO
-import at.willhaben.domain.ports.driving.shipping.ShippingInformationDTO
-import at.willhaben.domain.ports.driving.shipping.ShippingInformationPort
-import at.willhaben.domain.ports.driving.shipping.ShippingManagementPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ShippingCreationDataDTO
+import com.sonicdevelopment.domain.ports.driving.shipping.ShippingInformationDTO
+import com.sonicdevelopment.domain.ports.driving.shipping.ShippingInformationPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
 import com.sonicdevelopment.driving.adapter.web.requestmodel.ShippingCreationRequest
 import com.sonicdevelopment.driving.adapter.web.responsemodel.CargoResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.ShippingResponse

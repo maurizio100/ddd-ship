@@ -1,7 +1,7 @@
 package com.sonicdevelopment.driven.adapter.persistence.cargo
 
-import at.willhaben.domain.model.Cargo
-import at.willhaben.domain.ports.driven.CargoQueryPort
+import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 

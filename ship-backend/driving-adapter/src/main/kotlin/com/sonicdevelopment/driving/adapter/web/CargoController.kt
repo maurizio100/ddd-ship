@@ -1,7 +1,7 @@
 package com.sonicdevelopment.driving.adapter.web
 
-import at.willhaben.domain.ports.driving.cargo.CargoDTO
-import at.willhaben.domain.ports.driving.cargo.CargoInformationPort
+import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
+import com.sonicdevelopment.domain.ports.driving.cargo.CargoInformationPort
 import com.sonicdevelopment.driving.adapter.web.responsemodel.CargoResponse
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
