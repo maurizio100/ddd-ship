@@ -18,7 +18,7 @@
 		<module>domain</module>
 	</modules>
 
-	<groupId>at.willhaben</groupId>
+	<groupId>com.sonicdevelopment</groupId>
 	<artifactId>ship-backend</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>ship-backend</name>
@@ -32,19 +32,19 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>at.willhaben</groupId>
+				<groupId>com.sonicdevelopment</groupId>
 				<artifactId>domain</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>at.willhaben</groupId>
+				<groupId>com.sonicdevelopment</groupId>
 				<artifactId>driving-adapter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>at.willhaben</groupId>
+				<groupId>com.sonicdevelopment</groupId>
 				<artifactId>driven-adapter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
