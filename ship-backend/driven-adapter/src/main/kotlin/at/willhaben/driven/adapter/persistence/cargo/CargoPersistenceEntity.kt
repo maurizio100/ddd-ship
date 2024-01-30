@@ -1,6 +1,6 @@
 package at.willhaben.driven.adapter.persistence.cargo
 
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "cargos")

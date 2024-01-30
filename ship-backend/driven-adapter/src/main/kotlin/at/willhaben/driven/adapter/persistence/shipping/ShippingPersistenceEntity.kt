@@ -1,7 +1,7 @@
 package at.willhaben.driven.adapter.persistence.shipping
 
 import at.willhaben.driven.adapter.persistence.ship.ShipPersistenceEntity
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "shippings")
