@@ -1,4 +1,4 @@
-package at.willhaben.application
+package com.sonicdevelopment.application
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
@@ -6,10 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
-@ConfigurationPropertiesScan("at.willhaben")
-@EnableJpaRepositories("at.willhaben.driven.adapter.persistence")
-@EntityScan("at.willhaben.driven.adapter.persistence")
-@SpringBootApplication(scanBasePackages = ["at.willhaben"])
+@ConfigurationPropertiesScan("com.sonicdevelopment")
+@EnableJpaRepositories("com.sonicdevelopment.driven.adapter.persistence")
+@EntityScan("com.sonicdevelopment.driven.adapter.persistence")
+@SpringBootApplication(scanBasePackages = ["com.sonicdevelopment"])
 open class ShipBackendApplication
 
 fun main(args: Array<String>) {
