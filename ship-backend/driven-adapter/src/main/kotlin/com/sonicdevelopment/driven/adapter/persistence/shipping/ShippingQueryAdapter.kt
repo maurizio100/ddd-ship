@@ -1,4 +1,4 @@
-package at.willhaben.driven.adapter.persistence.shipping
+package com.sonicdevelopment.driven.adapter.persistence.shipping
 
 import at.willhaben.domain.model.Cargo
 import at.willhaben.domain.model.Ship

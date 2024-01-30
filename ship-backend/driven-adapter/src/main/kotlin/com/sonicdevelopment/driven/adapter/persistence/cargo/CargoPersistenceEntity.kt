@@ -1,4 +1,4 @@
-package at.willhaben.driven.adapter.persistence.cargo
+package com.sonicdevelopment.driven.adapter.persistence.cargo
 
 import jakarta.persistence.*
 

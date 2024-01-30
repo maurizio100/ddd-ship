@@ -1,7 +1,7 @@
-package at.willhaben.driven.adapter.persistence.ship
+package com.sonicdevelopment.driven.adapter.persistence.ship
 
-import at.willhaben.driven.adapter.persistence.cargo.CargoPersistenceEntity
-import at.willhaben.driven.adapter.persistence.shipping.ShippingPersistenceEntity
+import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoPersistenceEntity
+import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingPersistenceEntity
 import jakarta.persistence.*
 
 @Entity

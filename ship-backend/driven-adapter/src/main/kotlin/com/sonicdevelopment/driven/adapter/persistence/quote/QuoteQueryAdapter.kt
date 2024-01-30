@@ -1,4 +1,4 @@
-package at.willhaben.driven.adapter.persistence.quote
+package com.sonicdevelopment.driven.adapter.persistence.quote
 
 import at.willhaben.domain.ports.driven.QuoteQueryPort
 import org.springframework.data.repository.findByIdOrNull

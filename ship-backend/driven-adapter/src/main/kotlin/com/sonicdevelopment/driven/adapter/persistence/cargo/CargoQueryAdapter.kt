@@ -1,4 +1,4 @@
-package at.willhaben.driven.adapter.persistence.cargo
+package com.sonicdevelopment.driven.adapter.persistence.cargo
 
 import at.willhaben.domain.model.Cargo
 import at.willhaben.domain.ports.driven.CargoQueryPort

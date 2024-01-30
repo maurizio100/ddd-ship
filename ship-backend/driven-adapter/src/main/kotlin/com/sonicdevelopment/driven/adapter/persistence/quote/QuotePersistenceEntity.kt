@@ -1,4 +1,4 @@
-package at.willhaben.driven.adapter.persistence.quote
+package com.sonicdevelopment.driven.adapter.persistence.quote
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
