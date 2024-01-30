@@ -17,6 +17,7 @@
         <dependency>
             <groupId>at.willhaben</groupId>
             <artifactId>domain</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
