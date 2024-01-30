@@ -29,6 +29,28 @@
 		<kotlin.version>1.9.22</kotlin.version>
 	</properties>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>at.willhaben</groupId>
+				<artifactId>domain</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>at.willhaben</groupId>
+				<artifactId>driving-adapter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>at.willhaben</groupId>
+				<artifactId>driven-adapter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>

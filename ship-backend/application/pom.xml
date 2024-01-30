@@ -15,19 +15,16 @@
         <dependency>
             <groupId>at.willhaben</groupId>
             <artifactId>domain</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>at.willhaben</groupId>
             <artifactId>driving-adapter</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>at.willhaben</groupId>
             <artifactId>driven-adapter</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
