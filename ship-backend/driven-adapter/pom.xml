@@ -10,17 +10,13 @@
     <artifactId>driven-adapter</artifactId>
 
     <properties>
+        <postgresql.version>42.5.1</postgresql.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>at.willhaben</groupId>
             <artifactId>domain</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
         </dependency>
 
         <dependency>
@@ -31,6 +27,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
         </dependency>
     </dependencies>
 
