@@ -1,4 +1,4 @@
-package at.willhaben.driving.adapter.web.responsemodel
+package com.sonicdevelopment.driving.adapter.web.responsemodel
 
 data class ShippingResponse(
     val id: Long,

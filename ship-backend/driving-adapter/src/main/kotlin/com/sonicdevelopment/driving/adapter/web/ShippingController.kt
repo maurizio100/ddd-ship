@@ -1,12 +1,12 @@
-package at.willhaben.driving.adapter.web
+package com.sonicdevelopment.driving.adapter.web
 
 import at.willhaben.domain.ports.driving.shipping.ShippingCreationDataDTO
 import at.willhaben.domain.ports.driving.shipping.ShippingInformationDTO
 import at.willhaben.domain.ports.driving.shipping.ShippingInformationPort
 import at.willhaben.domain.ports.driving.shipping.ShippingManagementPort
-import at.willhaben.driving.adapter.web.requestmodel.ShippingCreationRequest
-import at.willhaben.driving.adapter.web.responsemodel.CargoResponse
-import at.willhaben.driving.adapter.web.responsemodel.ShippingResponse
+import com.sonicdevelopment.driving.adapter.web.requestmodel.ShippingCreationRequest
+import com.sonicdevelopment.driving.adapter.web.responsemodel.CargoResponse
+import com.sonicdevelopment.driving.adapter.web.responsemodel.ShippingResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
