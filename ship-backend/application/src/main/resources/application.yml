@@ -1,6 +1,9 @@
 spring:
+  config:
+    activate:
+      on-profile: dev
   datasource:
-    url: jdbc:postgresql://localhost:5432/hexagonship
+    url: jdbc:postgresql://hexagonship-db-postgres:5432/hexagonship
     username: hexagonship_user
     password: hexagonship_user
   jpa:
@@ -8,6 +11,4 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQL81Dialect
-
-
+        dialect: org.hibernate.dialect.PostgreSQLDialect

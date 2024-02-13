@@ -12,7 +12,7 @@ import { Cargo } from './cargo';
   providedIn: 'root'
 })
 export class ShipServiceService {
-  private shipsUrl = 'http://localhost:8080/web/ships';
+  private shipsUrl = 'http://localhost/web/ships';
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -55,7 +55,7 @@ export class ShipServiceService {
   }
 
   loadCargo(ship: Ship, cargo: Cargo): Observable<Ship> {
-    const url = `${this.shipsUrl}/${ship.id}/cargos/`
+    const url = `${this.shipsUrl}/${ship.id}/cargos`
     return this.http.post<Ship>(url, {cargoId: cargo.id}, this.httpOptions).pipe(
       tap(_ => console.log(`added cargo: ${cargo.name}`))
     )

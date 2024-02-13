@@ -8,7 +8,10 @@ metadata:
     - angular
     - ddd
     - architecture
+  links:
+    - url: https://google.com
+      title: Admin Dashboard
 spec:
-  type: website
-  owner: ddd-pirates
+  type: service
+  owner: maurizio100
   lifecycle: experimental
