@@ -1,7 +1,4 @@
 spring:
-  sql:
-    init:
-      data-locations: classpath:data.sql
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:file:/home/maurizio/h2/hexagon-ship
