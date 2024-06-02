@@ -21,7 +21,7 @@ class CargoLoadManagementService(
 
         return try {
             ship.addCargo(cargo)
-            shipPersistencePort.save(ship)
+            shipPersistencePort.saveCargoLoad(ship)
             ShipConverter.toShipDetailDTO(ship)
         } catch (she: ShipTooHeavyException) {
            ShipConverter.toShipDetailDTO(ship)
@@ -33,7 +33,7 @@ class CargoLoadManagementService(
         val cargo = cargoQueryPort.findCargo(cargoId) ?: return null
 
         ship.removeCargo(cargo)
-        shipPersistencePort.save(ship)
+        shipPersistencePort.saveCargoLoad(ship)
 
         return ShipConverter.toShipDetailDTO(ship)
     }

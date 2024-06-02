@@ -18,7 +18,7 @@ class ShipManagementService(
 
     override fun createShip(shipCreationData: ShipCreationDataDTO): ShipDTO {
         val ship = Ship(name = shipCreationData.name)
-        val newShip = shipPersistencePort.save(ship)
+        val newShip = shipPersistencePort.saveNewShip(ship)
         return ShipConverter.toShipDTO(newShip)
     }
 
@@ -34,6 +34,6 @@ class ShipManagementService(
 
     private fun updateShipData(ship: Ship, shipUpdateData: ShipUpdateDataDTO): ShipDTO {
         shipUpdateData.name?.apply { ship.shipName = this }
-        return ShipConverter.toShipDTO(shipPersistencePort.save(ship))
+        return ShipConverter.toShipDTO(shipPersistencePort.saveNewShip(ship))
     }
 }
