@@ -2,38 +2,26 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort
-import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoRepository
+import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort.InitialShipInformation
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepository
 import jakarta.transaction.Transactional
-import org.springframework.data.repository.findByIdOrNull
+import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.stereotype.Component
 
 @Component
 class ShipPersistenceAdapter(
     private val shipRepository: ShipRepository,
-    private val shippingRepository: ShippingRepository,
-    private val cargoRepository: CargoRepository
+    private val shippingRepository: ShippingRepository
 ): ShipPersistencePort {
-    override fun saveNewShip(ship: Ship): Ship {
+    override fun saveNewShip(ship: InitialShipInformation): Long? {
         val persistedShip = shipRepository.save(createShipEntity(ship))
-        return ship.apply { id = persistedShip.id }
+        return persistedShip.id
     }
 
-    private fun createShipEntity(ship: Ship) =
+    private fun createShipEntity(ship: InitialShipInformation) =
         ShipPersistenceEntity(
-            id = ship.id,
             shipName = ship.shipName
         )
-
-    override fun saveCargoLoad(ship: Ship): Ship {
-        val persistedShip = shipRepository.findByIdOrNull(ship.id) ?: throw IllegalStateException()
-        persistedShip.cargoLoad = getCargoData(ship)
-        shipRepository.save(persistedShip)
-        return ship
-    }
-
-    private fun getCargoData(ship: Ship) =
-        ship.loadedCargo.map { cargoRepository.getReferenceById(it.id) }.toMutableList()
 
     @Transactional
     override fun delete(shipId: Long) {
