@@ -14,21 +14,23 @@ class ShipPersistenceAdapter(
     private val cargoRepository: CargoRepository
 ): ShipPersistencePort {
     override fun save(ship: Ship): Ship {
-        val cargo = ship.loadedCargo.map {
-            cargoRepository.getReferenceById(it.id)
-        }.toMutableList()
+        val persistedShip = shipRepository.save(createShipEntity(ship))
+        return ship.apply { id = persistedShip.id }
+    }
 
-        val shipToPersist = ShipPersistenceEntity(
+    private fun createShipEntity(ship: Ship) =
+        ShipPersistenceEntity(
             id = ship.id,
             shipName = ship.shipName,
-            cargoLoad = cargo,
-            shipping = null
+            cargoLoad = getCargoData(ship),
+            shipping = getShippingData(ship)
         )
-        shipRepository.save(shipToPersist)
-        return ship.apply {
-            id = shipToPersist.id
-        }
-    }
+
+    private fun getCargoData(ship: Ship) =
+        ship.loadedCargo.map { cargoRepository.getReferenceById(it.id) }.toMutableList()
+
+    private fun getShippingData(ship: Ship) =
+        ship.shipping?.id?.let { shippingRepository.getReferenceById(it) }
 
     @Transactional
     override fun delete(shipId: Long) {
