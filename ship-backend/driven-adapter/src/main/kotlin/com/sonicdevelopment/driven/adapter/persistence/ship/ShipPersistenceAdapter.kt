@@ -2,33 +2,26 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort
-import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoRepository
+import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort.InitialShipInformation
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepository
 import jakarta.transaction.Transactional
+import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.stereotype.Component
 
 @Component
 class ShipPersistenceAdapter(
     private val shipRepository: ShipRepository,
-    private val shippingRepository: ShippingRepository,
-    private val cargoRepository: CargoRepository
+    private val shippingRepository: ShippingRepository
 ): ShipPersistencePort {
-    override fun save(ship: Ship): Ship {
-        val cargo = ship.loadedCargo.map {
-            cargoRepository.getReferenceById(it.id)
-        }.toMutableList()
-
-        val shipToPersist = ShipPersistenceEntity(
-            id = ship.id,
-            shipName = ship.shipName,
-            cargoLoad = cargo,
-            shipping = null
-        )
-        shipRepository.save(shipToPersist)
-        return ship.apply {
-            id = shipToPersist.id
-        }
+    override fun saveNewShip(ship: InitialShipInformation): Long? {
+        val persistedShip = shipRepository.save(createShipEntity(ship))
+        return persistedShip.id
     }
+
+    private fun createShipEntity(ship: InitialShipInformation) =
+        ShipPersistenceEntity(
+            shipName = ship.shipName
+        )
 
     @Transactional
     override fun delete(shipId: Long) {

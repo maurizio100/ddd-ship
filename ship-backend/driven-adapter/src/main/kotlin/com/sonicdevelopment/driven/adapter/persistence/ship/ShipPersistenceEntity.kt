@@ -3,6 +3,8 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoPersistenceEntity
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingPersistenceEntity
 import jakarta.persistence.*
+import org.hibernate.annotations.Cascade
+import org.hibernate.annotations.CascadeType
 
 @Entity
 @Table(name = "ships")

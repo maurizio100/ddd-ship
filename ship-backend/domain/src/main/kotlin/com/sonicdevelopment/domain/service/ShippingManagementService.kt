@@ -19,10 +19,12 @@ class ShippingManagementService(
     override fun createShipping(shippingInformation: ShippingCreationDataDTO): ShippingInformationDTO? {
         val foundShip = shipQueryPort.getShipDetails(shippingInformation.shipId) ?: return null
         val sailorsCode = foundShip.sailorsCode
+
         val shipping = Shipping(
             id = foundShip.shipping?.id,
             sailorsQuote = quoteQueryPort.getQuoteForSailorsCode(sailorsCode)
         )
+
         foundShip.shipping = shipping
 
         val shipWithShippingRecord = shippingPersistencePort.createShipping(foundShip)
