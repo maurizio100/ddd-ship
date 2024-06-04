@@ -1,11 +1,9 @@
 package com.sonicdevelopment.driven.adapter.persistence.ship
 
-import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort
 import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort.InitialShipInformation
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepository
 import jakarta.transaction.Transactional
-import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.stereotype.Component
 
 @Component

@@ -24,9 +24,9 @@ class ShippingQueryAdapter(
         val ship = Ship(
             id = persistedShip.id,
             name = persistedShip.shipName,
-            cargoLoad = persistedCargo.map {
-                Cargo(id = it.id, name = it.cargoName, it.cargoWeight)
-            }.toMutableList()
+            cargoLoad = persistedCargo.associate {
+                it.id to Cargo(id = it.id, name = it.cargoName, it.cargoWeight)
+            }.toMutableMap()
         )
         ship.shipping = Shipping(
             id = shippingPersistenceEntity.id,

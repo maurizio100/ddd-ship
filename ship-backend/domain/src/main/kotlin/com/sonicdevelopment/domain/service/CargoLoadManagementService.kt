@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.converter.ShipConverter
+import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
@@ -26,6 +27,8 @@ class CargoLoadManagementService(
             ShipConverter.toShipDetailDTO(ship)
         } catch (she: ShipTooHeavyException) {
            ShipConverter.toShipDetailDTO(ship)
+        } catch (ile: ItemAlreadyLoadedException) {
+            ShipConverter.toShipDetailDTO(ship)
         }
     }
 
@@ -39,9 +42,5 @@ class CargoLoadManagementService(
         return ShipConverter.toShipDetailDTO(ship)
     }
 
-    fun toCargoLoadInformation(ship: Ship) =
-        CargoPersistencePort.CargoLoadInformation(
-            shipId = ship.id,
-            cargoLoad = ship.loadedCargo
-        )
+    private fun toCargoLoadInformation(ship: Ship) = CargoPersistencePort.CargoLoadInformation.fromShip(ship)
 }
