@@ -1,4 +1,3 @@
 package com.sonicdevelopment.domain.exception
 
-class ShipTooHeavyException(message: String): Exception(message) {
-}
+class ShipTooHeavyException(message: String): RuntimeException(message)

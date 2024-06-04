@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import java.text.DecimalFormat
 import java.time.LocalDateTime
@@ -7,7 +8,7 @@ import java.time.LocalDateTime
 class Ship(
     id: Long? = null,
     name: String? = null,
-    val cargoLoad: MutableList<Cargo> = mutableListOf()
+    private val cargoLoad: MutableMap<Long, Cargo> = mutableMapOf()
 ) {
 
     companion object {
@@ -32,20 +33,21 @@ class Ship(
     private fun isValidName(name: String?) = name?.let { it.isNotBlank() && it.length < 255} ?: false
 
     val loadedCargo: List<Cargo>
-        get() = cargoLoad
+        get() = cargoLoad.values.toMutableList()
 
     private var currentWeight: Float = calculateWeight()
     fun addCargo(cargo: Cargo) {
+        if (cargoLoad.contains(cargo.id)) throw ItemAlreadyLoadedException("The cargo is already loaded on the ship!")
         if (isShipLoadToHeavy(cargo)) throw ShipTooHeavyException("The ship gets too heavy with that cargo!")
 
-        cargoLoad.add(cargo)
+        cargoLoad[cargo.id] = cargo
         currentWeight += cargo.weight
     }
 
     private fun isShipLoadToHeavy(cargo: Cargo) = (currentWeight + cargo.weight)  > MAX_WEIGHT
 
     fun removeCargo(cargo: Cargo) {
-        cargoLoad.remove(cargo)
+        cargoLoad.remove(cargo.id)
         if (currentWeight < cargo.weight) {
             currentWeight = 0.0F
         } else {
@@ -59,5 +61,5 @@ class Ship(
     val maxWeight: Float
         get() = MAX_WEIGHT
 
-    private fun calculateWeight() = cargoLoad.sumOf{ it.weight.toDouble() }.toFloat()
+    private fun calculateWeight() = cargoLoad.values.sumOf{ it.weight.toDouble() }.toFloat()
 }

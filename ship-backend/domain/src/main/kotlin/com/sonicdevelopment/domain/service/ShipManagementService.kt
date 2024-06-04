@@ -3,6 +3,7 @@ package com.sonicdevelopment.domain.service
 import com.sonicdevelopment.domain.converter.ShipConverter
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort
+import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort.InitialShipInformation.Companion.fromShip
 import com.sonicdevelopment.domain.ports.driven.ShipQueryPort
 import com.sonicdevelopment.domain.ports.driving.ship.ShipCreationDataDTO
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDTO
@@ -18,8 +19,10 @@ class ShipManagementService(
 
     override fun createShip(shipCreationData: ShipCreationDataDTO): ShipDTO {
         val ship = Ship(name = shipCreationData.name)
-        val newShip = shipPersistencePort.saveNewShip(ship)
-        return ShipConverter.toShipDTO(newShip)
+        val shipId = shipPersistencePort.saveNewShip(fromShip(ship))
+        ship.id = shipId
+
+        return ShipConverter.toShipDTO(ship)
     }
 
     override fun deleteShip(shipId: Long) {
@@ -34,6 +37,7 @@ class ShipManagementService(
 
     private fun updateShipData(ship: Ship, shipUpdateData: ShipUpdateDataDTO): ShipDTO {
         shipUpdateData.name?.apply { ship.shipName = this }
-        return ShipConverter.toShipDTO(shipPersistencePort.saveNewShip(ship))
+        shipPersistencePort.saveNewShip(fromShip(ship))
+        return ShipConverter.toShipDTO(ship)
     }
 }
