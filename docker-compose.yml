@@ -7,6 +7,8 @@ networks:
 volumes:
   hexagonship-postgres-data:
     name: hexagonship-postgres-data
+  minio-data:
+    name: minio-data
 
 services:
   hexagonship-frontend:
@@ -51,3 +53,16 @@ services:
       - "5432:5432"
     volumes:
       - "hexagonship-postgres-data:/var/lib/postgresql/data"
+  minio:
+    image: bitnami/minio:latest
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - ship-network
+    volumes:
+      - "minio-data:/data"
+    environment:
+      - MINIO_ROOT_USER=your_username
+      - MINIO_ROOT_PASSWORD=your_pasword
+      - MINIO_DEFAULT_BUCKETS=catains

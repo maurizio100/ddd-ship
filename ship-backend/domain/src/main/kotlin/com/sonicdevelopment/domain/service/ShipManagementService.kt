@@ -18,7 +18,7 @@ class ShipManagementService(
 ): ShipManagementPort {
 
     override fun createShip(shipCreationData: ShipCreationDataDTO): ShipDTO {
-        val ship = Ship(name = shipCreationData.name)
+        val ship = Ship(name = shipCreationData.name, catainId = shipCreationData.catainId)
         val shipId = shipPersistencePort.saveNewShip(fromShip(ship))
         ship.id = shipId
 

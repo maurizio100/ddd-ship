@@ -1,6 +1,7 @@
 package com.sonicdevelopment.driven.adapter.persistence.ship
 
 import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoPersistenceEntity
+import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntity
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingPersistenceEntity
 import jakarta.persistence.*
 import org.hibernate.annotations.Cascade
@@ -16,6 +17,10 @@ class ShipPersistenceEntity(
 
     @Column(name = "ship_name")
     var shipName: String,
+
+    @Column(name = "catain_id")
+    @ManyToOne
+    var catain: CatainPersistenceEntity,
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
