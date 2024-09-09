@@ -3,7 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort
 import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort.InitialShipInformation
 import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntity
-import com.sonicdevelopment.driven.adapter.persistence.catain.CatainRepository
+import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntityRepository
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepository
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 class ShipPersistenceAdapter(
     private val shipRepository: ShipRepository,
     private val shippingRepository: ShippingRepository,
-    private val catainRepository: CatainRepository
+    private val catainRepository: CatainPersistenceEntityRepository
 ): ShipPersistencePort {
     override fun saveNewShip(ship: InitialShipInformation): Long? {
         val catain = catainRepository.getReferenceById(ship.catainId.id)
