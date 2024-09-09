@@ -27,6 +27,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<kotlin.version>1.9.22</kotlin.version>
+		<minio.version>8.5.12</minio.version>
 	</properties>
 
 	<dependencyManagement>
@@ -47,6 +48,12 @@
 				<groupId>com.sonicdevelopment</groupId>
 				<artifactId>driven-adapter</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.minio</groupId>
+				<artifactId>minio</artifactId>
+				<version>${minio.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

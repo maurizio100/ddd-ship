@@ -63,6 +63,6 @@ services:
     volumes:
       - "minio-data:/data"
     environment:
-      - MINIO_ROOT_USER=your_username
-      - MINIO_ROOT_PASSWORD=your_pasword
+      - MINIO_ROOT_USER=hexagonminio
+      - MINIO_ROOT_PASSWORD=hexagonminio
       - MINIO_DEFAULT_BUCKETS=catains
