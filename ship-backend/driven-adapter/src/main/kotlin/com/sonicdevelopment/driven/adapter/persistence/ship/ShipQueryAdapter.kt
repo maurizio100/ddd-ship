@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.ports.driven.ShipQueryPort
 import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoPersistenceEntity
 import org.springframework.data.repository.findByIdOrNull
@@ -30,6 +31,7 @@ class ShipQueryAdapter(
             cargoLoad = shipPersistenceEntity.cargoLoad.associate {
                 it.id to toCargo(it)
             }.toMutableMap(),
+            catainId = CatainId(shipPersistenceEntity.catain.id)
         )
         shipPersistenceEntity.shipping?.apply {
             ship.shipping = Shipping(id = this.id, sailorsQuote = this.sailorsCode)

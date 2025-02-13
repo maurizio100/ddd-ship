@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.shipping
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.ports.driven.ShippingQueryPort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
@@ -26,7 +27,8 @@ class ShippingQueryAdapter(
             name = persistedShip.shipName,
             cargoLoad = persistedCargo.associate {
                 it.id to Cargo(id = it.id, name = it.cargoName, it.cargoWeight)
-            }.toMutableMap()
+            }.toMutableMap(),
+            catainId = CatainId(persistedShip.catain.id)
         )
         ship.shipping = Shipping(
             id = shippingPersistenceEntity.id,

@@ -2,12 +2,14 @@ package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
+import com.sonicdevelopment.domain.model.values.CatainId
 import java.text.DecimalFormat
 import java.time.LocalDateTime
 
 class Ship(
     id: Long? = null,
     name: String? = null,
+    val catainId: CatainId,
     private val cargoLoad: MutableMap<Long, Cargo> = mutableMapOf()
 ) {
 

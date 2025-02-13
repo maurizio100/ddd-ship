@@ -1,7 +1,4 @@
 spring:
-  config:
-    activate:
-      on-profile: dev
   datasource:
     url: jdbc:postgresql://hexagonship-db-postgres:5432/hexagonship
     username: hexagonship_user
@@ -12,3 +9,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    generate-ddl: true
+
+minio:
+  url: http://hexagonship-minio:9000
+  access:
+    name: hexagonminio
+    secret: hexagonminio
+  bucket:
+    name: catains

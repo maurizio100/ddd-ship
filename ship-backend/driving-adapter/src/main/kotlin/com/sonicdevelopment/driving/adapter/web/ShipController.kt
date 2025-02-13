@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driving.adapter.web
 
+import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoLoadManagementPort
 import com.sonicdevelopment.domain.ports.driving.ship.*
 import com.sonicdevelopment.driving.adapter.web.requestmodel.CargoLoadRequest
@@ -27,7 +28,7 @@ class ShipController (
 
     @PostMapping
     fun createShip(@RequestBody ship: ShipCreationRequest): ShipOverviewResponse {
-        val shipCreationDTO = ShipCreationDataDTO(name = ship.name)
+        val shipCreationDTO = ShipCreationDataDTO(name = ship.name, catainId = CatainId(ship.catainId))
         val createdShip = shipManagementPort.createShip(shipCreationDTO)
         return toShipResponse(createdShip)
     }

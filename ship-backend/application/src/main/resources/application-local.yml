@@ -1,14 +1,15 @@
 spring:
   datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:file:/home/maurizio/h2/hexagon-ship
-    username: sa
-    password: sa
+    url: jdbc:postgresql://localhost:5432/hexagonship
+    username: hexagonship_user
+    password: hexagonship_user
   jpa:
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     generate-ddl: true
-  h2:
-    console:
-      enabled: true
+
+minio:
+  url: http://localhost:9000

@@ -2,6 +2,7 @@ package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.converter.ShipConverter
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.ports.driven.CatainRepository
 import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort
 import com.sonicdevelopment.domain.ports.driven.ShipPersistencePort.InitialShipInformation.Companion.fromShip
 import com.sonicdevelopment.domain.ports.driven.ShipQueryPort
@@ -18,7 +19,7 @@ class ShipManagementService(
 ): ShipManagementPort {
 
     override fun createShip(shipCreationData: ShipCreationDataDTO): ShipDTO {
-        val ship = Ship(name = shipCreationData.name)
+        val ship = Ship(name = shipCreationData.name, catainId = shipCreationData.catainId)
         val shipId = shipPersistencePort.saveNewShip(fromShip(ship))
         ship.id = shipId
 
