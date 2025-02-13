@@ -16,6 +16,7 @@
 		<module>driving-adapter</module>
 		<module>driven-adapter</module>
 		<module>domain</module>
+		<module>integration-test</module>
 	</modules>
 
 	<groupId>com.sonicdevelopment</groupId>
@@ -55,6 +56,12 @@
 				<artifactId>minio</artifactId>
 				<version>${minio.version}</version>
 			</dependency>
+
+			<dependency>
+				<groupId>com.sonicdevelopment</groupId>
+				<artifactId>integration-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -66,6 +73,10 @@
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-stdlib</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
 		</dependency>
 	</dependencies>
 
