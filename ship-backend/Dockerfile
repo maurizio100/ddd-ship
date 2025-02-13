@@ -8,6 +8,7 @@ COPY application/pom.xml application/pom.xml
 COPY domain/pom.xml domain/pom.xml
 COPY driven-adapter/pom.xml driven-adapter/pom.xml
 COPY driving-adapter/pom.xml driving-adapter/pom.xml
+COPY integration-test/pom.xml integration-test/pom.xml
 
 RUN mvn -B -e -C dependency:go-offline
 
@@ -21,6 +22,7 @@ COPY application/src /app/application/src
 COPY domain/src /app/domain/src
 COPY driven-adapter/src /app/driven-adapter/src
 COPY driving-adapter/src /app/driving-adapter/src
+COPY integration-test/src /app/integreation-test/src
 
 RUN mvn clean install
 

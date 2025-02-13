@@ -1,4 +1,4 @@
-version: '3.6'
+version: "3.6"
 
 networks:
   ship-network:
@@ -54,10 +54,11 @@ services:
     volumes:
       - "hexagonship-postgres-data:/var/lib/postgresql/data"
   minio:
+    container_name: hexagonship-minio
     image: bitnami/minio:latest
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - "9000:9000"
+      - "9001:9001"
     networks:
       - ship-network
     volumes:

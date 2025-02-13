@@ -10,3 +10,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     generate-ddl: true
+
+minio:
+  url: http://localhost:9000
