@@ -13,7 +13,7 @@ class CatainRepositoryAdapter(
 ) : CatainRepository {
     override fun findCatainById(catainId: CatainId): Catain? {
         return catainPersistenceEntityRepository.findByIdOrNull(
-            catainId.id
+            catainId.id()
         )?.let{ toCatain(it) }
     }
 

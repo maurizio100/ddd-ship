@@ -15,7 +15,7 @@ class ShipPersistenceAdapter(
     private val catainRepository: CatainPersistenceEntityRepository
 ): ShipPersistencePort {
     override fun saveNewShip(ship: InitialShipInformation): Long? {
-        val catain = catainRepository.getReferenceById(ship.catainId.id)
+        val catain = catainRepository.getReferenceById(ship.catainId.id())
         val persistedShip = shipRepository.save(createShipEntity(ship, catain))
         return persistedShip.id
     }
