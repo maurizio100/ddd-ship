@@ -1,19 +1,32 @@
-<section class="new-ship max-width-container border">
-  <div class="section-grid max-width border">
-    <div class="new-ship__button border">
-      <p>new-ship__button</p>
+<section class="page-heading max-width-container">
+  <div class="section-grid max-width">
+    <h2 class="page-heading__heading">Available Ships</h2>
+    <div class="new-ship__button">
+      <a class="ship__actions-action ship__actions-action-green"
+        >Create New Ship</a
+      >
     </div>
   </div>
 </section>
 
-<section class="ships-list max-width-container border">
-  <div class="section-grid max-width border">
-    <div
-      *ngFor="let ship of ships"
-      class="ship border"
-      routerLink="/detail/{{ ship.id }}"
-    >
-      <span class="badge">{{ ship.id }}</span> {{ ship.name }}
+<section class="ships-list max-width-container">
+  <div class="section-grid max-width">
+    <div *ngFor="let ship of ships" class="ship">
+      <div class="ship__image">
+        <img src="../../assets/img/ship.jpg" />
+      </div>
+      <div class="ship__stats">
+        <p class="ship__stats-name">{{ ship.name }}</p>
+        <p class="ship__stats-shippings">Shippings: 0</p>
+      </div>
+      <div class="ship__actions">
+        <a class="ship__actions-action ship__actions-action-orange"
+          >Ship Details</a
+        >
+        <a class="ship__actions-action ship__actions-action-green"
+          >New shipping</a
+        >
+      </div>
     </div>
   </div>
 </section>

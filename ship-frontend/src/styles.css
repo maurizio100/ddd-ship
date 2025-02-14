@@ -129,7 +129,6 @@ ul {
   justify-content: center;
 }
 
-
 .border {
   border: 1px solid black;
 }
@@ -137,9 +136,30 @@ ul {
 .section-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 10px;
+  gap: 15px;
 }
 
-.main {
-  margin: 0.4em 0em;
+/* Typography */
+h1,
+h2,
+h3 {
+  font-family: bebas-neue, sans-serif;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+p,
+a {
+  font-family: avory-i-latin, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 0.3rem;
+}
+
+img {
+  max-width: 100%;
+}
+
+.page-heading>.section-grid {
+  background: #ebebeb;
 }
