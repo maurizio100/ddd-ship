@@ -1,20 +1,19 @@
-<div>
-    <label for="new-ship">Ship name: </label>
-    <input id="new-ship" #shipName />
-  
-    <!-- (click) passes input value to add() and then clears the input -->
-    <button type="button" class="add-button" (click)="add(shipName.value); shipName.value=''">
-      Add Ship
-    </button>
-</div>
+<section class="new-ship max-width-container border">
+  <div class="section-grid max-width border">
+    <div class="new-ship__button border">
+      <p>new-ship__button</p>
+    </div>
+  </div>
+</section>
 
-<ul class="ships">
-    <li *ngFor="let ship of ships">
-
-        <a routerLink="/detail/{{ship.id}}">
-            <span class="badge">{{ship.id}}</span> {{ship.name}}
-        </a>
-        
-        <button type="button" class="delete" title="delete ship" (click)="delete(ship)">x</button>
-    </li>
-</ul>
+<section class="ships-list max-width-container border">
+  <div class="section-grid max-width border">
+    <div
+      *ngFor="let ship of ships"
+      class="ship border"
+      routerLink="/detail/{{ ship.id }}"
+    >
+      <span class="badge">{{ ship.id }}</span> {{ ship.name }}
+    </div>
+  </div>
+</section>

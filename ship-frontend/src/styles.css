@@ -116,8 +116,12 @@ ul {
 
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+}
+
+.max-width {
+  width: 100%;
+  max-width: 1024px;
+  padding: 1em;
 }
 
 .max-width-container {
@@ -125,18 +129,17 @@ ul {
   justify-content: center;
 }
 
+
 .border {
   border: 1px solid black;
 }
 
-/* main container */
-.main {
-  display: flex;
-  justify-self: center;
-  margin: 1em 0;
-  width: 90%;
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 10px;
 }
 
-.global-footer {
-  flex: 1;
+.main {
+  margin: 0.4em 0em;
 }
