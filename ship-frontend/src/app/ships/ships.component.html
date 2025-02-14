@@ -2,9 +2,11 @@
   <div class="section-grid max-width">
     <h2 class="page-heading__heading">Available Ships</h2>
     <div class="new-ship__button">
+      <!--
       <a class="ship__actions-action ship__actions-action-green"
         >Create New Ship</a
       >
+      -->
     </div>
   </div>
 </section>
@@ -17,13 +19,17 @@
       </div>
       <div class="ship__stats">
         <p class="ship__stats-name">{{ ship.name }}</p>
-        <p class="ship__stats-shippings">Shippings: 0</p>
+        <!-- <p class="ship__stats-shippings">Shippings: 0</p> -->
       </div>
       <div class="ship__actions">
+        <!--
         <a class="ship__actions-action ship__actions-action-orange"
           >Ship Details</a
         >
-        <a class="ship__actions-action ship__actions-action-green"
+        -->
+        <a
+          routerLink="/detail/{{ ship.id }}"
+          class="ship__actions-action ship__actions-action-green"
           >New shipping</a
         >
       </div>

@@ -51,6 +51,7 @@
   border: 1px solid black;
   color: black;
   font-weight: bold;
+  text-decoration: none;
 }
 
 .ship__actions-action:hover {
