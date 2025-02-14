@@ -1,4 +1,3 @@
-/* Global Resets */
 html,
 body,
 div,
@@ -110,33 +109,4 @@ body {
 ol,
 ul {
   list-style: none;
-}
-
-/* Individual styles */
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-.max-width-container {
-  display: flex;
-  justify-content: center;
-}
-
-.border {
-  border: 1px solid black;
-}
-
-/* main container */
-.main {
-  display: flex;
-  justify-self: center;
-  margin: 1em 0;
-  width: 90%;
-}
-
-.global-footer {
-  flex: 1;
 }
