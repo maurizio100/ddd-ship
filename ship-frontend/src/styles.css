@@ -105,12 +105,36 @@ section {
 
 body {
   line-height: 1;
+  height: 100%;
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 ol,
 ul {
   list-style: none;
 }
+
+
+/* global layouts */
+.global-header {
+  background: #007FFF;
+  min-height: 100px;
+}
+
+.global-footer {
+  background: #FFC89F;
+  min-height: 50px;
+}
+
+main {
+  flex: 1;
+}
+
 
 /* Individual styles */
 
