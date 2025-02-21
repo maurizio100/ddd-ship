@@ -9,7 +9,7 @@
   </div>
 </section>
 
-<section class="shipping-area max-width-container border">
+<section class="shipping-area max-width-container">
   <div class="section-grid max-width">
     <div class="cargo-area">
       <app-cargos
@@ -46,43 +46,17 @@
   </div>
 </section>
 
-<section class="shipping-cta max-width-container border">
+<section class="shipping-cta max-width-container">
   <div class="section-grid max-width">
-    <div class="shipping-back border">shipping-back</div>
-    <div class="shipping-embark border">shipping embark</div>
+    <div class="shipping-back">
+      <button type="button" class="button__cancel" (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+    <div class="shipping-embark">
+      <button type="button" class="button__disembark" (click)="disembark()">
+        Start Journey
+      </button>
+    </div>
   </div>
 </section>
-
-<!--
-<h2 *ngIf="ship">{{ ship.name | uppercase }}</h2>
-<div class="ship-detail" *ngIf="ship">
-  <div class="ship ship-background">
-    <div class="ship-information">
-      <div class="ship-cargo" *ngIf="ship.weight">
-        <div class="ship-weight">
-          <h2>Current Weight</h2>
-          <span>{{ ship.weight }} / {{ ship.maxweight }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="loaded-cargo">
-      <app-cargos
-        [ship]="ship"
-        [showLoaded]="true"
-        (shipUpdated)="onShipLoadUpdated($event)"
-      ></app-cargos>
-      <button type="button" (click)="disembark()">disembark</button>
-    </div>
-  </div>
-
-  <div class="cargo" *ngIf="ship">
-    <app-cargos
-      [ship]="ship"
-      [showLoaded]="false"
-      [showLoadObserve]="cargoLoadSubject.asObservable()"
-      (shipUpdated)="onShipLoadUpdated($event)"
-    ></app-cargos>
-  </div>
-</div>
--->
