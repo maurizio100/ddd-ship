@@ -16,9 +16,12 @@ export class InMemoryDataService implements InMemoryDbService {
         weight: 3.0,
         maxweight: 20,
         cargo: [
-          { id: 1, name: 'Ale', weight: 1.0 },
           { id: 2, name: 'Chocolate', weight: 1.0 },
           { id: 3, name: 'Cinnamon', weight: 1.0 },
+          { id: 7, name: 'Paprika', weight: 1.0 },
+          { id: 8, name: 'Planks', weight: 1.0 },
+          { id: 9, name: 'Rum', weight: 1.0 },
+          { id: 10, name: 'Silk', weight: 1.0 },
         ],
       },
 
@@ -85,7 +88,7 @@ export class InMemoryDataService implements InMemoryDbService {
     ];
 
     const cargos: Cargo[] = [
-      { id: 1, name: 'Ale', weight: 1.0 },
+      { id: 1, name: 'Ale', weight: 5.0 },
       { id: 2, name: 'Chocolate', weight: 1.0 },
       { id: 3, name: 'Cinnamon', weight: 1.0 },
       { id: 4, name: 'Coffee', weight: 1.0 },

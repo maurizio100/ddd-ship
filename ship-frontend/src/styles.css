@@ -184,3 +184,13 @@ img {
 .page-heading>.section-grid {
   background: #ebebeb;
 }
+
+.page-heading__heading {
+  grid-column: span 4;
+  margin-bottom: 0;
+}
+
+.page-heading__highlight {
+  font-weight: bold;
+  color: blue;
+}
