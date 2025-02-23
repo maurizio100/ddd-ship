@@ -1,54 +1,57 @@
-.ship-background {
-    background-image: url('../../assets/img/ship.jpg');
-    background-size:contain;
-    background-repeat: no-repeat;
-  }
-  
-  .ship-detail {
-    display: flex;
-    gap: 0.5em;
-    flex-flow: column wrap;
-    max-width: 800px;
-  }
-  
-  .ship-detail h2 {
-      color: black;
-      font-weight: bold;
-  }
+.page-heading__heading {
+  grid-column: span 8;
+}
 
-  .ship-detail .ship-information {
-    display: flex;
-    flex-flow: row wrap;
-    border: 1px black solid;
-  }
+.shipping-summary {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
 
-  .ship {
-    flex-grow: 1;
-    border-radius: 5px;
-  
-    display: flex;
-    flex-flow: column;
-    flex-wrap: wrap;
-    gap: 1em;
-  }
+.shipping-summary__styling {
+  border: 1px solid black;
+  border-radius: 5px;
+}
 
-  .ship-information .ship img {
-    width: 350px;
-    height: 250px;
-  }
+.shipping-ship {
+  grid-column: span 4;
+}
 
-  .ship-information .loaded-cargo {
-    margin-bottom: 1em;
-    margin-right: 1em;
-    margin-left: 1em;
-  }
+.shipping-cargo {
+  grid-column: span 8;
+}
 
-  .ship-detail .sailors-code {
-    border: 1px solid;
-    border-radius: 5px;
-    font-size: 1.5em;
-    font-weight: bold;
-    padding-top: 1em;
-    padding-bottom: 1em;
-    padding-left: 1em;
-  }
+.cargo-container {
+  padding-top: 1em;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 30px;
+  justify-content: left;
+}
+
+.cargo-item {
+  width: 80px;
+  height: 80px;
+  border: 1px black solid;
+  border-radius: 4px;
+  font-weight: bold;
+  background: silver;
+
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+.sailors-code {
+  padding-bottom: 1em;
+}
+
+.sailors-code__styling {
+  border: 1px solid;
+  border-radius: 5px;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.disembark-allships {
+  grid-column: 11/13;
+}

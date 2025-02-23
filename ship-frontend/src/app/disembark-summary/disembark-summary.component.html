@@ -1,20 +1,33 @@
-<div class="ship-detail">
-    <h2>{{shipping.name | uppercase}} left the harbour!</h2>
-     
-    <div class="ship-information">
-        <div class="ship">
-            <img src="../../assets/img/ship.jpg">
-        </div>
-        <div class="loaded-cargo" *ngIf="shipping">
-            <app-cargos
-                [shipping] = "shipping"
-                [showLoaded]="true"
-            ></app-cargos>
-        </div>
-    </div>
+<section class="page-heading max-width-container">
+  <div class="section-grid max-width">
+    <h2 class="page-heading__heading">
+      <span class="page-heading__highlight">Black Perl</span>
+      left the harbor!
+    </h2>
+  </div>
+</section>
 
-    <div class="sailors-code">
-        <span>{{shipping.sailorsCode}}</span>
+<section class="shipping-summary max-width-container">
+  <div class="shipping-summary__styling section-grid max-width">
+    <div class="shipping-ship">
+      <img src="../../assets/img/ship.jpg" />
     </div>
+    <div class="shipping-cargo" *ngIf="shipping">
+      <app-cargos [shipping]="shipping" [showLoaded]="true"></app-cargos>
+    </div>
+  </div>
+</section>
 
-</div>
+<section class="sailors-code max-width-container">
+  <p class="max-width sailors-code__styling">
+    {{ shipping.sailorsCode }}
+  </p>
+</section>
+
+<section class="disembark-cta max-width-container">
+  <div class="max-width section-grid">
+    <div class="disembark-allships">
+      <button type="button" class="button__navigation">View all Ships</button>
+    </div>
+  </div>
+</section>

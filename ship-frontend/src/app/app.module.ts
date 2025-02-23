@@ -13,27 +13,25 @@ import { ShipDetailComponent } from './ship-detail/ship-detail.component';
 import { CargosComponent } from './cargos/cargos.component';
 import { DisembarkSummaryComponent } from './disembark-summary/disembark-summary.component';
 
-
 @NgModule({
   declarations: [
     AppComponent,
     ShipsComponent,
     ShipDetailComponent,
     CargosComponent,
-    DisembarkSummaryComponent
+    DisembarkSummaryComponent,
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
-    AppRoutingModule
+    AppRoutingModule,
     /*
-    ,
-    HttpClientInMemoryWebApiModule.forRoot(
-      InMemoryDataService, { dataEncapsulation: false }
-    )*/
+    HttpClientInMemoryWebApiModule.forRoot(InMemoryDataService, {
+      dataEncapsulation: false,
+    }),*/
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

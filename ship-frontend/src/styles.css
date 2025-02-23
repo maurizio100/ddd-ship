@@ -1,45 +1,227 @@
-/* You can add global styles to this file, and also import other style files */
-/* Application-wide Styles */
-h1 {
-    color: #369;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 250%;
-  }
-  h2, h3 {
-    color: #444;
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: lighter;
-  }
-  body {
-    margin: 2em;
-  }
-  body, input[type="text"], button {
-    color: #333;
-    font-family: Cambria, Georgia, serif;
-  }
-  button {
-    background-color: #eee;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    color: black;
-    font-size: 1.2rem;
-    padding: 1rem;
-    margin-right: 1rem;
-    margin-bottom: 1rem;
-    margin-top: 1rem;
-  }
-  button:hover {
-    background-color: black;
-    color: white;
-  }
-  button:disabled {
-    background-color: #eee;
-    color: #aaa;
-    cursor: auto;
-  }
-  
-  /* everywhere else */
-  * {
-    font-family: Arial, Helvetica, sans-serif;
-  }
+/* Global Resets */
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
+}
+
+body {
+  line-height: 1;
+  height: 100%;
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+/* global layouts */
+.global-header {
+  background-color: #d1f6f1;
+}
+
+.global-footer {
+  background-color: #FFC89F;
+  min-height: 50px;
+}
+
+main {
+  flex: 1;
+}
+
+/* Individual styles */
+
+* {
+  box-sizing: border-box;
+}
+
+.max-width {
+  width: 100%;
+  max-width: 1024px;
+  padding: 1em;
+}
+
+.max-width-container {
+  display: flex;
+  justify-content: center;
+}
+
+.border {
+  border: 1px solid black;
+}
+
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 15px;
+}
+
+/* Typography */
+h1,
+h2,
+h3 {
+  font-family: bebas-neue, sans-serif;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+p,
+a {
+  font-family: avory-i-latin, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 0.3rem;
+}
+
+img {
+  max-width: 100%;
+}
+
+.page-heading>.section-grid {
+  background: #ebebeb;
+}
+
+.page-heading__heading {
+  grid-column: span 7;
+  margin-bottom: 0;
+}
+
+.page-heading__highlight {
+  font-weight: bold;
+  color: blue;
+}
+
+button {
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.button__disembark {
+  color: white;
+  background-color: rgb(33, 203, 33);
+}
+
+.button__cancel {
+  color: white;
+  background-color: red;
+}
+
+.button__navigation {
+  background-color: #AEF;
+}
+
+button:hover {
+  background-color: #cfd8dc;
+}
+
+button:disabled {
+  background-color: #eee;
+  color: #ccc;
+  cursor: auto;
+}

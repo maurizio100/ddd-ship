@@ -1,109 +1,56 @@
-/* ShipDetailComponent's private CSS styles */
-label {
-    color: black;
-    font-weight: bold;
-  }
-
-  h2 {
-    color: black;
-    font-weight: bold;
-  }
-
-input {
-  font-size: 1em;
-  padding: .5rem;
-  margin-top: 1em;
-}
-button {
-  margin-top: 30px;
-  background-color: #eee;
-  padding: 1rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-family: sans-serif;
+.shipping-area {
+  height: 670px
 }
 
-button:hover {
-  background-color: #cfd8dc;
-}
-button:disabled {
-  background-color: #eee;
-  color: #ccc;
-  cursor: auto;
-}
-
-.ship-background {
-  background-image: url('../../assets/img/ship.jpg');
-  background-size:contain;
-  background-repeat: no-repeat;
+.cargo-area {
+  padding: 1em;
+  grid-column: span 6;
+  overflow-y: auto;
+  border: dashed 1px black;
+  border-radius: 10px;
 }
 
-.ship-detail {
+.ship-area {
+  grid-column: span 6;
   display: flex;
-  gap: 1em;
-  flex-flow: row wrap;
-  max-width: 1370px;
-}
-
-.ship {
-  margin-top: 1em;
-  padding-left: 1em;
-  flex-grow: 1;
-  border: 1px black solid;
+  flex-direction: column;
+  border: solid 1px black;
   border-radius: 5px;
-
-  display: flex;
-  flex-flow: column;
-  flex-wrap: wrap;
-  gap: 1em;
-
-  max-width: 570px;
-  min-height: 450px;
 }
 
-.ship .ship-information {
-  flex-grow: 2;
-  
-  display: flex;
-  flex-flow: row;
-  flex-wrap: wrap;
-}
-
-.ship-information .ship-data {
-  flex-grow:1;
-}
-
-.ship-information .ship-cargo {
-  flex-grow: 2;
-  color: black;
-  background-color: rgba(200, 200, 200, 0.7);
-  
-  text-align: right;
-  justify-content: right;
-  
-  padding-left: 1em;
-  padding-right: 1em;
-  border-radius: 5px;
-
-  max-width: 200px;
-  max-height: 150px;
-}
-
-.ship-cargo .ship-weight span {
-  font-size: 3em;
-}
-
-.ship .loaded-cargo {
-  margin-bottom: 1em;
-  max-width: 450px;
-}
-
-.cargo {
+.ship-cargo {
   flex-grow: 1;
-  margin-top: 1em;
-  padding-bottom: 1em;
-  border: black 1px dashed;
-  padding-left: 1em;
-  max-width: 450px;
+  display: flex;
+  flex-direction: column;
 }
 
+.ship-cargo-list {
+  flex-grow: 1;
+  padding: 0.1em 0.5em 0.5em 0.5em;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ship-weight {
+  border: dotted 2px black;
+  padding: 0.5em;
+  background-color: #CCC;
+  justify-items: end;
+}
+
+.ship-weight p {
+  font-size: 1.5em;
+}
+
+.ship-weight-status {
+  font-weight: bold;
+  color: blue;
+}
+
+.shipping-back {
+  grid-column: 10/11;
+}
+
+.shipping-embark {
+  grid-column: 11/13;
+}
