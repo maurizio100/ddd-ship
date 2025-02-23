@@ -186,11 +186,42 @@ img {
 }
 
 .page-heading__heading {
-  grid-column: span 4;
+  grid-column: span 7;
   margin-bottom: 0;
 }
 
 .page-heading__highlight {
   font-weight: bold;
   color: blue;
+}
+
+button {
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.button__disembark {
+  color: white;
+  background-color: rgb(33, 203, 33);
+}
+
+.button__cancel {
+  color: white;
+  background-color: red;
+}
+
+.button__navigation {
+  background-color: #AEF;
+}
+
+button:hover {
+  background-color: #cfd8dc;
+}
+
+button:disabled {
+  background-color: #eee;
+  color: #ccc;
+  cursor: auto;
 }

@@ -54,30 +54,3 @@
 .shipping-embark {
   grid-column: 11/13;
 }
-
-button {
-  padding: 1rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.button__disembark {
-  color: white;
-  background-color: rgb(33, 203, 33);
-}
-
-.button__cancel {
-  color: white;
-  background-color: red;
-}
-
-button:hover {
-  background-color: #cfd8dc;
-}
-
-button:disabled {
-  background-color: #eee;
-  color: #ccc;
-  cursor: auto;
-}
