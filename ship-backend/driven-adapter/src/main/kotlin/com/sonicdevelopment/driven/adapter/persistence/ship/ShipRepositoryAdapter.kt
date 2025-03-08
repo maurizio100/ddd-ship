@@ -21,10 +21,9 @@ class ShipRepositoryAdapter(
     private val shippingRepository: ShippingRepository,
     private val catainRepository: CatainPersistenceEntityRepository
 ): ShipRepositoryPort {
-    override fun saveNewShip(ship: InitialShipInformation): Long? {
+    override fun saveNewShip(ship: InitialShipInformation) {
         val catain = catainRepository.findByCatainId(ship.catainId.id) ?: throw EntityNotFoundException()
-        val persistedShip = shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
-        return persistedShip.id
+        shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
     }
 
     private fun createShipEntity(ship: InitialShipInformation, catain: CatainPersistenceEntity) =

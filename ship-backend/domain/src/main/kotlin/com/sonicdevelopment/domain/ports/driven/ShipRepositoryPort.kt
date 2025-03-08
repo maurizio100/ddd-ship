@@ -5,7 +5,7 @@ import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.ShipId
 
 interface ShipRepositoryPort {
-    fun saveNewShip(ship: InitialShipInformation): Long?
+    fun saveNewShip(ship: InitialShipInformation)
 
     class InitialShipInformation private constructor(
         val shipId: ShipId,
