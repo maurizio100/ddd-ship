@@ -29,7 +29,7 @@ class ShippingQueryAdapter(
             cargoLoad = persistedCargo.associate {
                 it.id to Cargo(id = it.id, name = it.cargoName, it.cargoWeight)
             }.toMutableMap(),
-            catainId = CatainId(persistedShip.catain.id)
+            catainId = CatainId(persistedShip.catain.catainId)
         )
         ship.shipping = Shipping(
             id = shippingPersistenceEntity.id,

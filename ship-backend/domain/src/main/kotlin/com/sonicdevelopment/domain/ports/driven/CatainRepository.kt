@@ -5,4 +5,5 @@ import com.sonicdevelopment.domain.model.values.CatainId
 
 interface CatainRepository {
     fun findCatainById(catainId: CatainId): Catain?
+    fun findAllCatains(): List<Catain>
 }
