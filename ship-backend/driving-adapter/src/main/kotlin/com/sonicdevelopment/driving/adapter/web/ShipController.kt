@@ -30,6 +30,8 @@ class ShipController (
 
     @PostMapping
     fun createShip(@RequestBody ship: ShipCreationRequest): ShipOverviewResponse {
+        if (ship.catainId == null) throw IllegalArgumentException("No catainid given")
+
         val shipCreationDTO = ShipCreationDataDTO(name = ship.name, catainId = CatainId(ship.catainId))
         val createdShip = shipManagementPort.createShip(shipCreationDTO)
         return toShipResponse(createdShip)

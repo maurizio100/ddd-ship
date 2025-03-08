@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 @RestController
 @RequestMapping("/catains")
@@ -16,7 +17,7 @@ class CatainController(
     private val catainImageInformationPort: CatainImageInformationPort
 ) {
     @GetMapping("/{catainId}/image")
-    fun getCatainImage(@PathVariable("catainId") catainId: Long): ResponseEntity<ByteArray> {
+    fun getCatainImage(@PathVariable("catainId") catainId: UUID): ResponseEntity<ByteArray> {
         val catainImage = catainImageInformationPort.getCatainImage(CatainId(catainId))
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$catainId\"")

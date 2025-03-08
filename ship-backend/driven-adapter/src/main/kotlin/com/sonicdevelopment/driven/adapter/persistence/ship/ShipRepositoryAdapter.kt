@@ -11,6 +11,7 @@ import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoPersistenceEnt
 import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntity
 import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntityRepository
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepository
+import jakarta.persistence.EntityNotFoundException
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
 
@@ -21,7 +22,7 @@ class ShipRepositoryAdapter(
     private val catainRepository: CatainPersistenceEntityRepository
 ): ShipRepositoryPort {
     override fun saveNewShip(ship: InitialShipInformation): Long? {
-        val catain = catainRepository.getReferenceById(ship.catainId.id())
+        val catain = catainRepository.findByCatainId(ship.catainId.id) ?: throw EntityNotFoundException()
         val persistedShip = shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
         return persistedShip.id
     }
@@ -56,7 +57,7 @@ class ShipRepositoryAdapter(
             cargoLoad = shipPersistenceEntity.cargoLoad.associate {
                 it.id to toCargo(it)
             }.toMutableMap(),
-            catainId = CatainId(shipPersistenceEntity.catain.id)
+            catainId = CatainId(shipPersistenceEntity.catain.catainId)
         )
         shipPersistenceEntity.shipping?.apply {
             ship.shipping = Shipping(id = this.id, sailorsQuote = this.sailorsCode)
