@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driving.adapter.web
 
+import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingCreationDataDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingInformationDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingInformationPort
@@ -20,7 +21,7 @@ class ShippingController(
     @PostMapping
     fun createShipping(@RequestBody shippingCreationRequest: ShippingCreationRequest): ShippingResponse {
         val shippingId = shippingCreationRequest.shippingId ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
-        val shipping = shippingManagementPort.createShipping(ShippingCreationDataDTO(shippingId))
+        val shipping = shippingManagementPort.createShipping(ShippingCreationDataDTO(ShipId(shippingId)))
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
 
         return toShippingResponse(shipping)

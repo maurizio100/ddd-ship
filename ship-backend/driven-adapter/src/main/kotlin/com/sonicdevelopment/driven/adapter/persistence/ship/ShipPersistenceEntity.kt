@@ -4,6 +4,7 @@ import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoPersistenceEnt
 import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntity
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingPersistenceEntity
 import jakarta.persistence.*
+import java.util.*
 
 @Entity
 @Table(name = "ships")
@@ -12,6 +13,8 @@ class ShipPersistenceEntity(
     @GeneratedValue
     @Column(name = "id")
     var id: Long? = null,
+
+    var shipId: UUID,
 
     @Column(name = "ship_name")
     var shipName: String,

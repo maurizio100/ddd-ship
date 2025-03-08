@@ -4,21 +4,22 @@ import com.sonicdevelopment.domain.converter.ShipConverter
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
-import com.sonicdevelopment.domain.ports.driven.ShipQueryPort
+import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoLoadManagementPort
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
 import org.springframework.stereotype.Service
 
 @Service
 class CargoLoadManagementService(
-    private val shipQueryPort: ShipQueryPort,
+    private val shipRepositoryPort: ShipRepositoryPort,
     private val cargoPersistencePort: CargoPersistencePort,
     private val cargoQueryPort: CargoQueryPort
 ) : CargoLoadManagementPort {
-    override fun addCargo(shipId: Long, cargoId: Long): ShipDetailDTO? {
-        val ship = shipQueryPort.getShipDetails(shipId) ?: return null
+    override fun addCargo(shipId: ShipId, cargoId: Long): ShipDetailDTO? {
+        val ship = shipRepositoryPort.getShipDetails(shipId) ?: return null
         val cargo = cargoQueryPort.findCargo(cargoId) ?: return null
 
         return try {
@@ -32,8 +33,8 @@ class CargoLoadManagementService(
         }
     }
 
-    override fun removeCargo(shipId: Long, cargoId: Long): ShipDetailDTO? {
-        val ship = shipQueryPort.getShipDetails(shipId) ?: return null
+    override fun removeCargo(shipId: ShipId, cargoId: Long): ShipDetailDTO? {
+        val ship = shipRepositoryPort.getShipDetails(shipId) ?: return null
         val cargo = cargoQueryPort.findCargo(cargoId) ?: return null
 
         ship.removeCargo(cargo)
