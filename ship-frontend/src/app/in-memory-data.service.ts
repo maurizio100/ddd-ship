@@ -11,7 +11,7 @@ export class InMemoryDataService implements InMemoryDbService {
   createDb() {
     const ships: Ship[] = [
       {
-        id: 12,
+        id: "12",
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
@@ -26,7 +26,7 @@ export class InMemoryDataService implements InMemoryDbService {
       },
 
       {
-        id: 14,
+        id: "14",
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
@@ -38,7 +38,7 @@ export class InMemoryDataService implements InMemoryDbService {
         ],
       },
       {
-        id: 12,
+        id: "12",
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
@@ -50,7 +50,7 @@ export class InMemoryDataService implements InMemoryDbService {
       },
 
       {
-        id: 14,
+        id: '14',
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
@@ -62,7 +62,7 @@ export class InMemoryDataService implements InMemoryDbService {
         ],
       },
       {
-        id: 12,
+        id: '12',
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
@@ -74,7 +74,7 @@ export class InMemoryDataService implements InMemoryDbService {
       },
 
       {
-        id: 14,
+        id: '14',
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,

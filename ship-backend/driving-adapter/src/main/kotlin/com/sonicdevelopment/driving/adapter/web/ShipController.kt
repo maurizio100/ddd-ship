@@ -55,8 +55,8 @@ class ShipController (
         )
 
     @GetMapping("/{shipId}")
-    fun getShip(@PathVariable("shipId") shipId:ShipId): ShipDetailResponse {
-        return shipInformationPort.getShipDetails(shipId)?.let{ toShipDetailResponse(it) }
+    fun getShip(@PathVariable("shipId") shipId:UUID): ShipDetailResponse {
+        return shipInformationPort.getShipDetails(ShipId(shipId))?.let{ toShipDetailResponse(it) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
     }
 

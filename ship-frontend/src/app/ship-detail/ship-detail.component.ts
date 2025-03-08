@@ -31,7 +31,7 @@ export class ShipDetailComponent implements OnInit {
   }
 
   getShip(): void {
-    const id = parseInt(this.route.snapshot.paramMap.get('id')!);
+    const id = this.route.snapshot.paramMap.get('id')!;
     this.shipService.getShip(id).subscribe((ship) => (this.ship = ship));
   }
 

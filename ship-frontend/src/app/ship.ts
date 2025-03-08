@@ -1,7 +1,7 @@
 import { Cargo } from "./cargo";
 
 export interface Ship {
-    id: number;
+    id: string;
     name: string;
     cargo: Cargo[];
     weight: number;
