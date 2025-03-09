@@ -4,8 +4,15 @@
   </div>
 </section>
 
-<section class="max-width-container border">
-  <div class="section-grid max-width border">ship-name section</div>
+<section class="max-width-container ship-name">
+  <div class="section-grid max-width">
+    <input
+      placeholder="Enter shipname"
+      class="ship-name__field"
+      id="new-ship"
+      #shipName
+    />
+  </div>
 </section>
 
 <section class="catain-list max-width-container">
@@ -51,6 +58,13 @@
   </div>
 </section>
 
-<section class="max-width-container border">
-  <div class="section-grid max-width border">cta-area</div>
+<section class="shipping-cta max-width-container">
+  <div class="section-grid max-width">
+    <div class="shipping-back">
+      <button type="button" class="button__cancel">Cancel</button>
+    </div>
+    <div class="shipping-embark">
+      <button type="button" class="button__disembark">Create Ship</button>
+    </div>
+  </div>
 </section>
