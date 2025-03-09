@@ -8,6 +8,7 @@ import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.ShippingQueryPort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
+import java.util.*
 
 @Component
 class ShippingQueryAdapter(
@@ -29,7 +30,7 @@ class ShippingQueryAdapter(
             cargoLoad = persistedCargo.associate {
                 it.id to Cargo(id = it.id, name = it.cargoName, it.cargoWeight)
             }.toMutableMap(),
-            catainId = CatainId(persistedShip.catain.catainId)
+            catainId = CatainId(persistedShip.catain?.catainId ?: UUID.randomUUID())
         )
         ship.shipping = Shipping(
             id = shippingPersistenceEntity.id,

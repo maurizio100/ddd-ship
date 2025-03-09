@@ -20,7 +20,7 @@ class ShipPersistenceEntity(
     var shipName: String,
 
     @ManyToOne
-    var catain: CatainPersistenceEntity,
+    var catain: CatainPersistenceEntity?,
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
