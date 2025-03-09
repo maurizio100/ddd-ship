@@ -8,7 +8,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 
 import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
-import { InMemoryDataService } from './in-memory-data.service';
+import { InMemoryDataService } from './services/in-memory-data.service';
 import { ShipDetailComponent } from './ship-detail/ship-detail.component';
 import { CargosComponent } from './cargos/cargos.component';
 import { DisembarkSummaryComponent } from './disembark-summary/disembark-summary.component';
@@ -29,7 +29,8 @@ import { DisembarkSummaryComponent } from './disembark-summary/disembark-summary
     /*
     HttpClientInMemoryWebApiModule.forRoot(InMemoryDataService, {
       dataEncapsulation: false,
-    }),*/
+    }),
+*/
   ],
   providers: [],
   bootstrap: [AppComponent],

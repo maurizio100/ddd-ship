@@ -3,11 +3,11 @@ import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 
-import { Ship } from '../ship';
-import { ShipServiceService } from '../ship-service.service';
-import { DisembarkService } from '../disembark.service';
+import { Ship } from '../models/ship';
+import { ShipService } from '../services/ship-service.service';
+import { DisembarkService } from '../services/disembark.service';
 import { Subject } from 'rxjs';
-import { ShippingSummary } from '../shipping-summary';
+import { ShippingSummary } from '../models/shipping-summary';
 
 @Component({
   selector: 'app-ship-detail',
@@ -20,7 +20,7 @@ export class ShipDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private shipService: ShipServiceService,
+    private shipService: ShipService,
     private disembarkService: DisembarkService,
     private location: Location,
     private router: Router

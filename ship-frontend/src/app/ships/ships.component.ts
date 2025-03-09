@@ -1,38 +1,37 @@
 import { Component, OnInit } from '@angular/core';
-import { Ship } from '../ship';
-import { ShipServiceService } from '../ship-service.service';
+import { Ship } from '../models/ship';
+import { ShipService } from '../services/ship-service.service';
 
 @Component({
   selector: 'app-ships',
   templateUrl: './ships.component.html',
-  styleUrls: ['./ships.component.css']
+  styleUrls: ['./ships.component.css'],
 })
 export class ShipsComponent implements OnInit {
-
   ships: Ship[] = [];
 
-  constructor(
-    private shipService: ShipServiceService
-  ) { }
+  constructor(private shipService: ShipService) {}
 
   ngOnInit(): void {
-    this.getShips()
+    this.getShips();
   }
 
   getShips(): void {
-    this.shipService.getShips().subscribe(ships => this.ships = ships)
+    this.shipService.getShips().subscribe((ships) => (this.ships = ships));
   }
 
   add(name: string): void {
     name = name.trim();
-    if (!name) { return; }
-    this.shipService.addShip({ name } as Ship)
-      .subscribe(ship => {this.ships.push(ship);});
+    if (!name) {
+      return;
+    }
+    this.shipService.addShip({ name } as Ship).subscribe((ship) => {
+      this.ships.push(ship);
+    });
   }
 
   delete(ship: Ship): void {
-    this.ships = this.ships.filter(s => s != ship)
-    this.shipService.deleteShip(ship.id).subscribe()
+    this.ships = this.ships.filter((s) => s != ship);
+    this.shipService.deleteShip(ship.id).subscribe();
   }
-
 }
