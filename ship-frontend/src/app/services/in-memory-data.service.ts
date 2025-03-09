@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { InMemoryDbService } from 'angular-in-memory-web-api';
-import { Ship } from './ship';
-import { Cargo } from './cargo';
-import { ShippingSummary } from './shipping-summary';
+import { Ship } from '../models/ship';
+import { Cargo } from '../models/cargo';
+import { ShippingSummary } from '../models/shipping-summary';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +11,7 @@ export class InMemoryDataService implements InMemoryDbService {
   createDb() {
     const ships: Ship[] = [
       {
-        id: "12",
+        id: '12',
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
@@ -26,7 +26,7 @@ export class InMemoryDataService implements InMemoryDbService {
       },
 
       {
-        id: "14",
+        id: '14',
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
@@ -38,7 +38,7 @@ export class InMemoryDataService implements InMemoryDbService {
         ],
       },
       {
-        id: "12",
+        id: '12',
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
