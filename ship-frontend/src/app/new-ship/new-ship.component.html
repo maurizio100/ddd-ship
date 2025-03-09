@@ -10,7 +10,7 @@
       placeholder="Enter shipname"
       class="ship-name__field"
       id="new-ship"
-      #shipName
+      [(ngModel)]="name"
     />
   </div>
 </section>
@@ -37,7 +37,9 @@
       <button type="button" class="button__cancel">Cancel</button>
     </div>
     <div class="shipping-embark">
-      <button type="button" class="button__disembark">Create Ship</button>
+      <button type="button" class="button__disembark" (click)="createShip()">
+        Create Ship
+      </button>
     </div>
   </div>
 </section>

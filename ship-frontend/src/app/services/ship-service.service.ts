@@ -5,6 +5,7 @@ import { Ship } from '../models/ship';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Cargo } from '../models/cargo';
+import { NewShipRequest } from '../models/new-ship-request';
 
 @Injectable({
   providedIn: 'root',
@@ -18,9 +19,9 @@ export class ShipService {
 
   constructor(private http: HttpClient) {}
 
-  addShip(ship: Ship): Observable<Ship> {
+  addShip(ship: NewShipRequest): Observable<Ship> {
     return this.http
-      .post<Ship>(this.shipsUrl, { name: ship.name }, this.httpOptions)
+      .post<Ship>(this.shipsUrl, ship, this.httpOptions)
       .pipe(
         tap((newShip: Ship) => console.log(`added ship w/ id=${newShip.id}`))
       );

@@ -4,5 +4,5 @@ import java.util.*
 
 data class ShipCreationRequest(
     val name: String? = null,
-    val catainId: UUID? = UUID.randomUUID()
+    val catainId: UUID? = null
 )
