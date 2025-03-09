@@ -1,0 +1,54 @@
+.catain-list-border {
+  border: 2px solid black;
+  border-radius: 5px;
+}
+
+.catain-list__container {
+  display: flex;
+  flex-direction: column;
+}
+
+.catain-list__title {
+  border: 1px dashed black;
+  padding: 1em 1em;
+  text-align: center;
+}
+
+.catain {
+  grid-column: span 3;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  padding-top: 0.5em;
+  border: 1px solid black;
+  border-radius: 7px;
+}
+
+.catain-selected {
+  background-color: #BBffff;
+  opacity: 60%;
+}
+
+.catain__image {
+  align-self: center;
+  max-width: 340px;
+}
+
+.catain__image img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 15px;
+}
+
+.catain__name {
+  font-weight: bold;
+  letter-spacing: 5px;
+  justify-self: end;
+  border-top: 0.1em dashed;
+  padding-top: 0.4em;
+}
+
+.catain__name-center {
+  text-align: center;
+}
