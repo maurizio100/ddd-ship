@@ -3,16 +3,17 @@ package com.sonicdevelopment.domain.model
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.model.values.ShipId
 import java.text.DecimalFormat
 import java.time.LocalDateTime
+import java.util.*
 
 class Ship(
-    id: Long? = null,
+    id: ShipId? = null,
     name: String? = null,
     val catainId: CatainId,
     private val cargoLoad: MutableMap<Long, Cargo> = mutableMapOf()
 ) {
-
     companion object {
         const val MAX_WEIGHT = 15.0F
     }
@@ -20,10 +21,7 @@ class Ship(
     val sailorsCode: Int
         get() = (currentWeight * LocalDateTime.now().minute).toInt().mod(14)
 
-    var id = id
-        set(newId) {
-            field = id?.let { id } ?: newId
-        }
+    val id = id ?: ShipId(UUID.randomUUID())
 
     var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
         set(newShipName) {

@@ -4,9 +4,11 @@ import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
 import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.ShippingQueryPort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
+import java.util.*
 
 @Component
 class ShippingQueryAdapter(
@@ -23,12 +25,12 @@ class ShippingQueryAdapter(
         val persistedCargo = persistedShip.cargoLoad
 
         val ship = Ship(
-            id = persistedShip.id,
+            id = ShipId(persistedShip.shipId),
             name = persistedShip.shipName,
             cargoLoad = persistedCargo.associate {
                 it.id to Cargo(id = it.id, name = it.cargoName, it.cargoWeight)
             }.toMutableMap(),
-            catainId = CatainId(persistedShip.catain.id)
+            catainId = CatainId(persistedShip.catain?.catainId ?: UUID.randomUUID())
         )
         ship.shipping = Shipping(
             id = shippingPersistenceEntity.id,
