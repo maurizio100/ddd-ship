@@ -19,39 +19,12 @@
   <div class="max-width catain-list__container catain-list-border">
     <h2 class="catain-list__title">Choose Your Catain</h2>
     <div class="section-grid">
-      <div class="catain">
+      <div *ngFor="let catain of catains" class="catain">
         <div class="catain__image">
-          <img src="../../assets/catains/bootstrap_bill.jpg" />
+          <img [src]="getImageUrl(catain.id)" />
         </div>
         <div class="catain__name">
-          <p class="catain__name-center">Catain</p>
-        </div>
-      </div>
-
-      <div class="catain catain-selected">
-        <div class="catain__image">
-          <img src="../../assets/catains/catain_black_whiskers.png" />
-        </div>
-        <div class="catain__name">
-          <p class="catain__name-center">Catain</p>
-        </div>
-      </div>
-
-      <div class="catain">
-        <div class="catain__image">
-          <img src="../../assets/catains/catain_cat_sparrow.png" />
-        </div>
-        <div class="catain__name">
-          <p class="catain__name-center">Catain</p>
-        </div>
-      </div>
-
-      <div class="catain">
-        <div class="catain__image">
-          <img src="../../assets/catains/furry_jones.jpeg" />
-        </div>
-        <div class="catain__name">
-          <p class="catain__name-center">Catain</p>
+          <p class="catain__name-center">{{ catain.name }}</p>
         </div>
       </div>
     </div>

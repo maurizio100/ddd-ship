@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { InMemoryDbService } from 'angular-in-memory-web-api';
+import { InMemoryDbService, RequestInfo } from 'angular-in-memory-web-api';
 import { Ship } from '../models/ship';
 import { Cargo } from '../models/cargo';
 import { ShippingSummary } from '../models/shipping-summary';
+import { Catain } from '../models/catain';
 
 @Injectable({
   providedIn: 'root',
@@ -117,7 +118,54 @@ export class InMemoryDataService implements InMemoryDbService {
       },
     ];
 
-    return { ships, cargos, shippings };
+    const catains: Catain[] = [
+      {
+        id: 'e5e63ab1-f0d2-4ee4-9924-478b359c73e1',
+        name: 'Bootstrap Bill',
+      },
+      {
+        id: '02f0d814-8e33-4570-afaf-526949a90784',
+        name: 'Catain Black Whiskers',
+      },
+      {
+        id: 'cac60e67-f65e-42a2-96cb-1783fdd56873',
+        name: 'Catain Cat sparrow',
+      },
+      {
+        id: '6bc80803-f8a5-4e64-9499-eb2758d91bf1',
+        name: 'Furry Jones',
+      },
+    ];
+
+    return { ships, cargos, shippings, catains };
+  }
+
+  get(reqInfo: RequestInfo) {
+    const { collectionName, id } = reqInfo;
+
+    if (collectionName === 'catains' && id && reqInfo.url.includes('/image')) {
+      return reqInfo.utils.createResponse$(() => ({
+        body: this.getMockImage(id),
+        status: 200,
+      }));
+    }
+
+    return undefined; // Default behavior for other requests
+  }
+
+  private getMockImage(catainId: string): string {
+    const imageMap: { [key: string]: string } = {
+      'e5e63ab1-f0d2-4ee4-9924-478b359c73e1':
+        '../../assets/catains/bootstrap_bill.jpg',
+      '02f0d814-8e33-4570-afaf-526949a90784':
+        '../../assets/catains/catain_black_whiskers.png',
+      'cac60e67-f65e-42a2-96cb-1783fdd56873':
+        '../../assets/catains/catain_cat_sparrow.png',
+      '6bc80803-f8a5-4e64-9499-eb2758d91bf1':
+        '../../assets/catains/furry_jones.jpeg',
+    };
+
+    return imageMap[catainId] || '../../assets/catains/default.jpg';
   }
 
   constructor() {}

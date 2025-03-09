@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @RestController
+@CrossOrigin(origins = [])
 @RequestMapping("/web/ships")
 class ShipController (
     private val shipManagementPort: ShipManagementPort,
