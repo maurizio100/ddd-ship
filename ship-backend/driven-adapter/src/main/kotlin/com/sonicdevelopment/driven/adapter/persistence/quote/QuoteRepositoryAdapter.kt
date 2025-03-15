@@ -7,7 +7,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
-class QuoteQueryAdapter(
+class QuoteRepositoryAdapter(
     private val quoteRepository: QuoteRepository
 ): QuoteRepositoryPort {
     override fun getQuoteForSailorsCode(sailorsCode: SailorsCode): ShippingQuote {

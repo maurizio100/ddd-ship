@@ -8,7 +8,7 @@ import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
 
 @Component
-class ShippingPersistenceAdapter(
+class ShippingRepositoryAdapter(
     private val shippingRepository: ShippingRepository,
     private val shipPersistenceEntityRepository: ShipPersistenceEntityRepository
 ): ShippingRepositoryPort {
