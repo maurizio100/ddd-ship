@@ -1,13 +1,21 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.model.enums.ShippingState
+import com.sonicdevelopment.domain.model.values.ShippingId
+
 class Shipping(
-    id: Long? = null,
-    val sailorsQuote: String
+    val id: ShippingId,
+    val sailorsQuote: String?,
+    private var _shippingState: ShippingState = ShippingState.PREPARING
 ) {
-    var id = id
-        set(newId) {
-            field = id?.let { id } ?: newId
+
+    var shippingState = _shippingState
+        get() = field
+    fun nextShippingState() {
+        _shippingState = when(shippingState) {
+            ShippingState.PREPARING -> ShippingState.SHIPPING
+            ShippingState.SHIPPING -> ShippingState.DONE
+            ShippingState.DONE -> ShippingState.DONE
         }
-
-
+    }
 }

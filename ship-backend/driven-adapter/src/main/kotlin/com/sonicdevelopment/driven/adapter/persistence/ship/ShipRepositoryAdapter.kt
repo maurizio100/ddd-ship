@@ -3,18 +3,22 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.ShipId
+import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
 import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoPersistenceEntity
 import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntity
 import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntityRepository
+import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingPersistenceEntity
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepository
+import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingStateEnumEntity
+import jakarta.persistence.EntityNotFoundException
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
-import java.util.*
 
 @Component
 class ShipRepositoryAdapter(
@@ -23,11 +27,11 @@ class ShipRepositoryAdapter(
     private val catainRepository: CatainPersistenceEntityRepository
 ): ShipRepositoryPort {
     override fun saveNewShip(ship: InitialShipInformation) {
-        val catain = catainRepository.findByCatainId(ship.catainId.id)// ?: throw EntityNotFoundException()
+        val catain = catainRepository.findByCatainId(ship.catainId.id) ?: throw EntityNotFoundException()
         shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
     }
 
-    private fun createShipEntity(ship: InitialShipInformation, catain: CatainPersistenceEntity?) =
+    private fun createShipEntity(ship: InitialShipInformation, catain: CatainPersistenceEntity) =
         ShipPersistenceEntity(
             shipId = ship.shipId.id,
             shipName = ship.shipName,
@@ -51,19 +55,29 @@ class ShipRepositoryAdapter(
     }
 
     private fun toShip(shipPersistenceEntity: ShipPersistenceEntity): Ship {
-        val ship = Ship(
+        val shippingPersistenceEntity = shippingRepository.findByShipIdAndShppingStateIn(
+            shipPersistenceEntity.shipId,
+            listOf(ShippingStateEnumEntity.PERPARING, ShippingStateEnumEntity.SHIPPING)
+        )
+
+        val catain = CatainId(shipPersistenceEntity.catain.catainId)
+
+        return shippingPersistenceEntity?.let {
+            Ship(
+                id = ShipId(shipPersistenceEntity.shipId),
+                name = shipPersistenceEntity.shipName,
+                cargoLoad = it.cargoLoad.associate {
+                    cargo -> CargoId(cargo.cargoId) to toCargo(cargo)
+                }.toMutableMap(),
+                activeShipping = toShipping(it),
+                catainId = catain
+
+            )
+        } ?: Ship(
             id = ShipId(shipPersistenceEntity.shipId),
             name = shipPersistenceEntity.shipName,
-            cargoLoad = shipPersistenceEntity.cargoLoad.associate {
-                CargoId(it.cargoId) to toCargo(it)
-            }.toMutableMap(),
-            catainId = CatainId(shipPersistenceEntity.catain?.catainId ?: UUID.randomUUID())
+            catainId = catain
         )
-        shipPersistenceEntity.shipping?.apply {
-            ship.shipping = Shipping(id = this.id, sailorsQuote = this.sailorsCode)
-        }
-
-        return ship
     }
 
     private fun toCargo(cargoPersistenceEntity: CargoPersistenceEntity) =
@@ -72,4 +86,14 @@ class ShipRepositoryAdapter(
             name = cargoPersistenceEntity.cargoName,
             weight = cargoPersistenceEntity.cargoWeight
         )
+
+    private fun toShipping(shippingPersistenceEntity: ShippingPersistenceEntity): Shipping {
+        return Shipping(
+            id = ShippingId(shippingPersistenceEntity.shippingId),
+            sailorsQuote = shippingPersistenceEntity.sailorsCode,
+            _shippingState = ShippingState.valueOf(
+                shippingPersistenceEntity.shppingState.name
+            )
+        )
+    }
 }

@@ -5,7 +5,6 @@ import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.ShipId
-import com.sonicdevelopment.domain.model.values.ShippingId
 import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.util.*
@@ -14,7 +13,7 @@ class Ship(
     id: ShipId? = null,
     name: String? = null,
     val catainId: CatainId,
-    val activeShipping: ShippingId? = null,
+    val activeShipping: Shipping? = null,
     private val cargoLoad: MutableMap<CargoId, Cargo> = mutableMapOf()
 ) {
     companion object {
