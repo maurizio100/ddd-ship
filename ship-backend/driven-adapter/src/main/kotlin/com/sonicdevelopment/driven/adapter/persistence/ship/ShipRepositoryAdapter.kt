@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
@@ -54,7 +55,7 @@ class ShipRepositoryAdapter(
             id = ShipId(shipPersistenceEntity.shipId),
             name = shipPersistenceEntity.shipName,
             cargoLoad = shipPersistenceEntity.cargoLoad.associate {
-                it.id to toCargo(it)
+                CargoId(it.cargoId) to toCargo(it)
             }.toMutableMap(),
             catainId = CatainId(shipPersistenceEntity.catain?.catainId ?: UUID.randomUUID())
         )
@@ -67,7 +68,7 @@ class ShipRepositoryAdapter(
 
     private fun toCargo(cargoPersistenceEntity: CargoPersistenceEntity) =
         Cargo(
-            id = cargoPersistenceEntity.id,
+            id = CargoId(cargoPersistenceEntity.cargoId),
             name = cargoPersistenceEntity.cargoName,
             weight = cargoPersistenceEntity.cargoWeight
         )

@@ -14,6 +14,7 @@ class ShipPersistenceEntity(
     @Column(name = "id")
     var id: Long? = null,
 
+    @Column(name = "ship_id")
     var shipId: UUID,
 
     @Column(name = "ship_name")

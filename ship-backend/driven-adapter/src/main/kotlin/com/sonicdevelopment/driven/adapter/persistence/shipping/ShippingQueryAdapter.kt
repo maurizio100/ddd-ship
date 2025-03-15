@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.shipping
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.ShippingQueryPort
@@ -28,7 +29,7 @@ class ShippingQueryAdapter(
             id = ShipId(persistedShip.shipId),
             name = persistedShip.shipName,
             cargoLoad = persistedCargo.associate {
-                it.id to Cargo(id = it.id, name = it.cargoName, it.cargoWeight)
+                CargoId(it.cargoId) to Cargo(id = CargoId(it.cargoId), name = it.cargoName, it.cargoWeight)
             }.toMutableMap(),
             catainId = CatainId(persistedShip.catain?.catainId ?: UUID.randomUUID())
         )

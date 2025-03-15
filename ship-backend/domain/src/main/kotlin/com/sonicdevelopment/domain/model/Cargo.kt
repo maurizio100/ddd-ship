@@ -1,7 +1,9 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.model.values.CargoId
+
 class Cargo(
-    val id: Long,
+    val id: CargoId,
     val name: String,
     val weight: Float
 ) {

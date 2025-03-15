@@ -18,7 +18,7 @@ class CargoController(
 
     private fun toCargoResponse(cargo: CargoDTO) =
         CargoResponse(
-            id = cargo.id,
+            id = cargo.id.id,
             name = cargo.name,
             weight = cargo.weight
         )

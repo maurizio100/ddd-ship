@@ -19,5 +19,7 @@ class CargoPersistenceAdapter(
     }
 
     private fun getCargoData(cargoLoadInformation: CargoLoadInformation) =
-        cargoLoadInformation.cargoLoad.map { cargoRepository.getReferenceById(it.id) }.toMutableList()
+        cargoLoadInformation.cargoLoad.mapNotNull {
+            cargoRepository.findByCargoId(it.id.id)
+        }.toMutableList()
 }

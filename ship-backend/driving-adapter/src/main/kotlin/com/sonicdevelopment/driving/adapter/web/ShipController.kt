@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driving.adapter.web
 
+import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoLoadManagementPort
@@ -54,7 +55,8 @@ class ShipController (
     private fun toShipResponse(ship: ShipDTO) =
         ShipOverviewResponse(
             id = ship.id.id,
-            name = ship.name
+            name = ship.name,
+            hasActiveShipping = ship.hasActiveShipping
         )
 
     @GetMapping("/{shipId}")
@@ -66,15 +68,15 @@ class ShipController (
     @PostMapping("/{shipId}/cargos")
     fun addCargo(@PathVariable("shipId") shipId: UUID, @RequestBody cargoLoad: CargoLoadRequest): ShipDetailResponse {
         val cargoId = cargoLoad.cargoId ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
-        val updatedShip = cargoLoadManagementPort.addCargo(ShipId(shipId), cargoId)
+        val updatedShip = cargoLoadManagementPort.addCargo(ShipId(shipId), CargoId(cargoId))
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
 
         return toShipDetailResponse(updatedShip)
     }
 
     @DeleteMapping("/{shipId}/cargos/{cargoId}")
-    fun addCargo(@PathVariable("shipId") shipId: UUID, @PathVariable("cargoId") cargoId: Long): ShipDetailResponse {
-        val updatedShip = cargoLoadManagementPort.removeCargo(ShipId(shipId), cargoId)
+    fun addCargo(@PathVariable("shipId") shipId: UUID, @PathVariable("cargoId") cargoId: UUID): ShipDetailResponse {
+        val updatedShip = cargoLoadManagementPort.removeCargo(ShipId(shipId), CargoId(cargoId))
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
 
         return toShipDetailResponse(updatedShip)
@@ -86,7 +88,7 @@ class ShipController (
             name = ship.name,
             cargo = ship.cargo.map {
                 CargoResponse(
-                    id = it.id,
+                    id = it.id.id,
                     name = it.name,
                     weight = it.weight
                 )

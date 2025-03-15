@@ -33,7 +33,7 @@ class ShippingController(
             name = shippingInformationDTO.shipName,
             sailorsCode = shippingInformationDTO.sailorsCode,
             cargo = shippingInformationDTO.cargo.map {
-                CargoResponse(id = it.id, name = it.name, weight = it.weight)
+                CargoResponse(id = it.id.id, name = it.name, weight = it.weight)
             }
         )
 

@@ -10,13 +10,14 @@ import com.sonicdevelopment.domain.ports.driving.shipping.ShippingInformationDTO
 object ShipConverter {
     fun toShipDTO(ship: Ship) =
         ShipDTO(
-            id = ship.id ?: throw IllegalStateException(),
-            name = ship.shipName
+            id = ship.id,
+            name = ship.shipName,
+            hasActiveShipping = ship.activeShipping != null
         )
 
     fun toShipDetailDTO(ship: Ship) =
         ShipDetailDTO(
-            id = ship.id ?: throw IllegalStateException(),
+            id = ship.id,
             name = ship.shipName,
             cargo = ship.loadedCargo.map { toCargoDTO(it) },
             actualWeight = ship.weight,

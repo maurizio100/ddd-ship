@@ -2,8 +2,10 @@ package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
+import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.ShipId
+import com.sonicdevelopment.domain.model.values.ShippingId
 import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.util.*
@@ -12,7 +14,8 @@ class Ship(
     id: ShipId? = null,
     name: String? = null,
     val catainId: CatainId,
-    private val cargoLoad: MutableMap<Long, Cargo> = mutableMapOf()
+    val activeShipping: ShippingId? = null,
+    private val cargoLoad: MutableMap<CargoId, Cargo> = mutableMapOf()
 ) {
     companion object {
         const val MAX_WEIGHT = 15.0F
