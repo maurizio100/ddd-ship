@@ -10,13 +10,24 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class DisembarkService {
-  private shippingsUrl = 'http://localhost/web/shippings';
+  private shippingsUrl = 'http://localhost/web/ships';
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
   };
 
   constructor(private http: HttpClient) {}
+
+  releaseShip(ship: Ship): Observable<Ship> {
+    const url = `/${ship.id}/shippings`;
+    return this.http
+      .put<Ship>(url, this.httpOptions)
+      .pipe(
+        tap((releaseShip: Ship) =>
+          console.log(`created shipping for ship ${releaseShip.name}`)
+        )
+      );
+  }
 
   createShipping(ship: Ship): Observable<ShippingSummary> {
     return this.http

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Ship } from '../models/ship';
 import { ShipService } from '../services/ship-service.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-ships',
@@ -10,7 +11,7 @@ import { ShipService } from '../services/ship-service.service';
 export class ShipsComponent implements OnInit {
   ships: Ship[] = [];
 
-  constructor(private shipService: ShipService) {}
+  constructor(private shipService: ShipService, private router: Router) {}
 
   ngOnInit(): void {
     this.getShips();
@@ -23,5 +24,11 @@ export class ShipsComponent implements OnInit {
   delete(ship: Ship): void {
     this.ships = this.ships.filter((s) => s != ship);
     this.shipService.deleteShip(ship.id).subscribe();
+  }
+
+  createShipping(ship: Ship) {
+    this.shipService
+      .createShipping(ship)
+      .subscribe((ship) => this.router.navigate([`/detail/${ship.id}`]));
   }
 }

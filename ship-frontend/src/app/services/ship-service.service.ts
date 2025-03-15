@@ -53,6 +53,18 @@ export class ShipService {
       .pipe(tap((_) => console.log(`updated ship id=${ship.id}`)));
   }
 
+  createShipping(ship: Ship): Observable<Ship> {
+    const url = `${this.shipsUrl}/${ship.id}/shippings`;
+
+    return this.http
+      .post<Ship>(this.shipsUrl, this.httpOptions)
+      .pipe(
+        tap((newShip: Ship) =>
+          console.log(`added shippping w/ id=${newShip.id}`)
+        )
+      );
+  }
+
   loadCargo(ship: Ship, cargo: Cargo): Observable<Ship> {
     const url = `${this.shipsUrl}/${ship.id}/cargos`;
     return this.http

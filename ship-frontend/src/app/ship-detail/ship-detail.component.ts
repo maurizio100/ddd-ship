@@ -7,7 +7,6 @@ import { Ship } from '../models/ship';
 import { ShipService } from '../services/ship-service.service';
 import { DisembarkService } from '../services/disembark.service';
 import { Subject } from 'rxjs';
-import { ShippingSummary } from '../models/shipping-summary';
 
 @Component({
   selector: 'app-ship-detail',
@@ -35,22 +34,12 @@ export class ShipDetailComponent implements OnInit {
     this.shipService.getShip(id).subscribe((ship) => (this.ship = ship));
   }
 
-  goBack(): void {
-    this.location.back();
-  }
-
-  save(): void {
-    if (this.ship) {
-      this.shipService.updateShip(this.ship).subscribe();
-    }
-  }
-
   disembark(): void {
     if (this.ship) {
       this.disembarkService
-        .createShipping(this.ship)
-        .subscribe((shippingsummary) =>
-          this.router.navigate(['shipping/' + shippingsummary.id])
+        .releaseShip(this.ship)
+        .subscribe((releasedShip) =>
+          this.router.navigate(['shipping/' + releasedShip.id])
         );
     }
   }
