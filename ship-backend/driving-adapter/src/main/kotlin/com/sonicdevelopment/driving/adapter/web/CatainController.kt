@@ -8,14 +8,12 @@ import com.sonicdevelopment.driving.adapter.web.responsemodel.CatainResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
-@RequestMapping("/catains")
+@CrossOrigin(origins = [])
+@RequestMapping("/web/catains")
 class CatainController(
     private val catainImageInformationPort: CatainImageInformationPort,
     private val catainInformationPort: CatainInformationPort

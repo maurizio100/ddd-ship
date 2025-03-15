@@ -20,16 +20,6 @@ export class ShipsComponent implements OnInit {
     this.shipService.getShips().subscribe((ships) => (this.ships = ships));
   }
 
-  add(name: string): void {
-    name = name.trim();
-    if (!name) {
-      return;
-    }
-    this.shipService.addShip({ name } as Ship).subscribe((ship) => {
-      this.ships.push(ship);
-    });
-  }
-
   delete(ship: Ship): void {
     this.ships = this.ships.filter((s) => s != ship);
     this.shipService.deleteShip(ship.id).subscribe();

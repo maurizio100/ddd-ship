@@ -1,0 +1,84 @@
+.ship-name {
+  padding: 0.5em;
+}
+
+.ship-name>div {
+  background-color: #BBffff;
+}
+
+.ship-name__field {
+  grid-column: span 4;
+  height: 40px;
+  font-size: 1em;
+  border: 1px solid grey;
+  border-radius: 5px;
+}
+
+.catain-list-border {
+  border: 2px solid black;
+  border-radius: 5px;
+}
+
+.catain-list__container {
+  display: flex;
+  flex-direction: column;
+}
+
+.catain-list__title {
+  border: 1px dashed black;
+  padding: 1em 1em;
+  text-align: center;
+}
+
+.catain {
+  grid-column: span 3;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  padding-top: 0.5em;
+  border: 1px solid black;
+  border-radius: 7px;
+}
+
+.catain:hover {
+  cursor: pointer;
+  background-color: #CCC;
+  opacity: 60%;
+}
+
+.catain-selected {
+  background-color: #BBffff;
+  opacity: 60%;
+}
+
+.catain__image {
+  align-self: center;
+  max-width: 340px;
+}
+
+.catain__image img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 15px;
+}
+
+.catain__name {
+  font-weight: bold;
+  letter-spacing: 5px;
+  justify-self: end;
+  border-top: 0.1em dashed;
+  padding-top: 0.4em;
+}
+
+.catain__name-center {
+  text-align: center;
+}
+
+.shipping-back {
+  grid-column: 10/11;
+}
+
+.shipping-embark {
+  grid-column: 11/13;
+}
