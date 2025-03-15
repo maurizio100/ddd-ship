@@ -19,7 +19,12 @@
   <div class="max-width catain-list__container catain-list-border">
     <h2 class="catain-list__title">Choose Your Catain</h2>
     <div class="section-grid">
-      <div *ngFor="let catain of catains" class="catain">
+      <div
+        *ngFor="let catain of catains"
+        class="catain"
+        [ngClass]="{ 'catain-selected': catain.id === this.selectedCatain }"
+        (click)="selectCatain(catain.id)"
+      >
         <div class="catain__image">
           <img [src]="getImageUrl(catain.id)" />
         </div>
@@ -34,7 +39,9 @@
 <section class="shipping-cta max-width-container">
   <div class="section-grid max-width">
     <div class="shipping-back">
-      <button type="button" class="button__cancel">Cancel</button>
+      <button type="button" class="button__cancel" (click)="cancel()">
+        Cancel
+      </button>
     </div>
     <div class="shipping-embark">
       <button type="button" class="button__disembark" (click)="createShip()">
