@@ -2,10 +2,11 @@ package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.ShippingId
+import com.sonicdevelopment.domain.model.values.ShippingQuote
 
 class Shipping(
     val id: ShippingId,
-    val sailorsQuote: String?,
+    private var _shippingQuote: ShippingQuote? = null,
     private var _shippingState: ShippingState = ShippingState.PREPARING
 ) {
 
@@ -17,5 +18,12 @@ class Shipping(
             ShippingState.SHIPPING -> ShippingState.DONE
             ShippingState.DONE -> ShippingState.DONE
         }
+    }
+
+    var shippingQuote = _shippingQuote
+        get() = field
+    fun release(shippingQuote: ShippingQuote) {
+        _shippingState = ShippingState.SHIPPING
+        _shippingQuote = shippingQuote
     }
 }

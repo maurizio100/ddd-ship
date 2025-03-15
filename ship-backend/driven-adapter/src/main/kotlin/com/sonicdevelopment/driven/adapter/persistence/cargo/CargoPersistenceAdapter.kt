@@ -2,19 +2,23 @@ package com.sonicdevelopment.driven.adapter.persistence.cargo
 
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort.CargoLoadInformation
-import com.sonicdevelopment.driven.adapter.persistence.ship.ShipPersistenceEntityRepository
+import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepository
 import org.springframework.stereotype.Component
 
 @Component
 class CargoPersistenceAdapter(
-    private val shipPersistenceEntityRepository: ShipPersistenceEntityRepository,
+    private val shippingRepository: ShippingRepository,
     private val cargoRepository: CargoRepository
 ): CargoPersistencePort {
 
     override fun updateCargoLoad(cargoLoadInformation: CargoLoadInformation): CargoLoadInformation {
-        val persistedShip = shipPersistenceEntityRepository.findByShipId(cargoLoadInformation.shipId.id) ?: throw IllegalStateException()
-        persistedShip.cargoLoad = getCargoData(cargoLoadInformation)
-        shipPersistenceEntityRepository.save(persistedShip)
+        val persistedShipping = shippingRepository.findByShippingId(
+            cargoLoadInformation.shippingId.id
+        ) ?: throw IllegalStateException()
+
+        persistedShipping.cargoLoad = getCargoData(cargoLoadInformation)
+        shippingRepository.save(persistedShipping)
+
         return cargoLoadInformation
     }
 

@@ -2,37 +2,45 @@ package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
-import com.sonicdevelopment.domain.model.values.CargoId
-import com.sonicdevelopment.domain.model.values.CatainId
-import com.sonicdevelopment.domain.model.values.ShipId
+import com.sonicdevelopment.domain.model.values.*
 import java.text.DecimalFormat
-import java.time.LocalDateTime
 import java.util.*
 
 class Ship(
-    id: ShipId? = null,
+    val id: ShipId = ShipId(UUID.randomUUID()),
     name: String? = null,
     val catainId: CatainId,
-    val activeShipping: Shipping? = null,
+    activeShipping: Shipping? = null,
     private val cargoLoad: MutableMap<CargoId, Cargo> = mutableMapOf()
 ) {
-    companion object {
-        const val MAX_WEIGHT = 15.0F
-    }
-
-    val sailorsCode: Int
-        get() = (currentWeight * LocalDateTime.now().minute).toInt().mod(14)
-
-    val id = id ?: ShipId(UUID.randomUUID())
 
     var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
         set(newShipName) {
             field = if(isValidName(newShipName)) newShipName else field
         }
 
-    var shipping: Shipping? = null
+    var activeShipping = activeShipping
+        get() { return field }
+
+    fun createNewShipping() {
+        if (activeShipping == null) {
+            activeShipping = Shipping(ShippingId(UUID.randomUUID()))
+        }
+    }
+
+    fun release(shippingQuote: ShippingQuote) {
+        activeShipping?.release(shippingQuote)
+    }
+
+    fun createSailorsCode(): SailorsCode {
+        return SailorsCode(currentWeight)
+    }
 
     private fun isValidName(name: String?) = name?.let { it.isNotBlank() && it.length < 255} ?: false
+
+    companion object {
+        const val MAX_WEIGHT = 15.0F
+    }
 
     val loadedCargo: List<Cargo>
         get() = cargoLoad.values.toMutableList()
@@ -46,7 +54,8 @@ class Ship(
         currentWeight += cargo.weight
     }
 
-    private fun isShipLoadToHeavy(cargo: Cargo) = (currentWeight + cargo.weight)  > MAX_WEIGHT
+    private fun isShipLoadToHeavy(cargo: Cargo) =
+        (currentWeight + cargo.weight)  > MAX_WEIGHT
 
     fun removeCargo(cargo: Cargo) {
         cargoLoad.remove(cargo.id)

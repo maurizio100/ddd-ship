@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
 
 interface ShippingRepository: JpaRepository<ShippingPersistenceEntity, Long> {
+    fun findByShippingId(shippingId: UUID): ShippingPersistenceEntity?
     fun deleteByShip_shipId(shipId: UUID)
-    fun findByShipIdAndShppingStateIn(shipId: UUID, shippingState: List<ShippingStateEnumEntity>): ShippingPersistenceEntity?
+    fun findByShip_ShipIdAndShppingStateIn(shipId: UUID, shippingState: List<ShippingStateEnumEntity>): ShippingPersistenceEntity?
 }

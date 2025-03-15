@@ -4,10 +4,7 @@ import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
 import com.sonicdevelopment.domain.model.enums.ShippingState
-import com.sonicdevelopment.domain.model.values.CargoId
-import com.sonicdevelopment.domain.model.values.CatainId
-import com.sonicdevelopment.domain.model.values.ShipId
-import com.sonicdevelopment.domain.model.values.ShippingId
+import com.sonicdevelopment.domain.model.values.*
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
 import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoPersistenceEntity
@@ -55,7 +52,7 @@ class ShipRepositoryAdapter(
     }
 
     private fun toShip(shipPersistenceEntity: ShipPersistenceEntity): Ship {
-        val shippingPersistenceEntity = shippingRepository.findByShipIdAndShppingStateIn(
+        val shippingPersistenceEntity = shippingRepository.findByShip_ShipIdAndShppingStateIn(
             shipPersistenceEntity.shipId,
             listOf(ShippingStateEnumEntity.PERPARING, ShippingStateEnumEntity.SHIPPING)
         )
@@ -90,7 +87,7 @@ class ShipRepositoryAdapter(
     private fun toShipping(shippingPersistenceEntity: ShippingPersistenceEntity): Shipping {
         return Shipping(
             id = ShippingId(shippingPersistenceEntity.shippingId),
-            sailorsQuote = shippingPersistenceEntity.sailorsCode,
+            _shippingQuote = shippingPersistenceEntity.sailorsCode?.let { ShippingQuote(it) },
             _shippingState = ShippingState.valueOf(
                 shippingPersistenceEntity.shppingState.name
             )
