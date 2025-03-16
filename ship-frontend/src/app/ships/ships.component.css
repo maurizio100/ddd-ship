@@ -70,3 +70,10 @@
 .ships-list>.section-grid {
   grid-auto-rows: 17em;
 }
+
+.shipping-state__shipping {
+  text-align: center;
+  font-weight: bold;
+  background-color: #BBffff;
+  border: 1px solid;
+}

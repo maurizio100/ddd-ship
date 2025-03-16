@@ -23,16 +23,19 @@
         <!-- <p class="ship__stats-shippings">Shippings: 0</p> -->
       </div>
       <div class="ship__actions">
-        <!--
-        <a class="ship__actions-action ship__actions-action-orange"
-          >Ship Details</a
-        >
-        -->
-        <a
+        <a *ngIf="ship.shippingState === null || ship.shippingState === ShippingState.DONE"
           (click)="createShipping(ship)"
           class="ship__actions-action ship__actions-action-green"
-          >New shipping</a
-        >
+          >New shipping</a>
+
+        <a *ngIf="ship.shippingState === ShippingState.PREPARING"
+           (click)="editShipping(ship)"
+           class="ship__actions-action ship__actions-action-green"
+        >New shipping</a>
+
+        <div class="shipping-state__shipping" *ngIf="ship.shippingState === ShippingState.SHIPPING">
+          <p>{{ship.name}} is at sea</p>
+        </div>
       </div>
     </div>
   </div>

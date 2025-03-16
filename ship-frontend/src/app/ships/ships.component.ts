@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Ship } from '../models/ship';
+import {Ship, ShippingState} from '../models/ship';
 import { ShipService } from '../services/ship-service.service';
 import { Router } from '@angular/router';
 
@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./ships.component.css'],
 })
 export class ShipsComponent implements OnInit {
+ // shippingState = ShippingState;
   ships: Ship[] = [];
 
   constructor(private shipService: ShipService, private router: Router) {}
@@ -26,4 +27,10 @@ export class ShipsComponent implements OnInit {
       .createShipping(ship)
       .subscribe((shippingSummary) => this.router.navigate([`ships/${shippingSummary.shipId}/cargo`]));
   }
+
+  editShipping(ship: Ship) {
+    this.router.navigate([`ships/${ship.id}/cargo`]);
+  }
+
+  protected readonly ShippingState = ShippingState;
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import { DisembarkService } from '../services/disembark.service';
 import { ShippingSummary } from '../models/shipping-summary';
 
@@ -13,7 +13,8 @@ export class DisembarkSummaryComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private disembarkService: DisembarkService
+    private disembarkService: DisembarkService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -26,5 +27,9 @@ export class DisembarkSummaryComponent implements OnInit {
     this.disembarkService
       .getShipping(shipId, shippingId)
       .subscribe((shipping) => (this.shipping = shipping));
+  }
+
+  allShips() : void {
+    this.router.navigate(['/ships'])
   }
 }

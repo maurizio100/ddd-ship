@@ -23,11 +23,15 @@ class Ship(
     fun createNewShipping() {
         if (activeShipping == null) {
             activeShipping = Shipping(ShippingId(UUID.randomUUID()))
+            return
         }
 
         if (activeShipping?.shippingState == ShippingState.DONE) {
             activeShipping = Shipping(ShippingId(UUID.randomUUID()))
+            return
         }
+
+        throw IllegalArgumentException()
     }
 
     fun release(shippingQuote: ShippingQuote) {

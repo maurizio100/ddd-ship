@@ -6,4 +6,9 @@ export interface Ship {
     cargo: Cargo[];
     weight: number;
     maxweight: number;
+    shippingState: ShippingState | null;
+}
+
+export enum ShippingState {
+  PREPARING= 'PREPARING', SHIPPING= 'SHIPPING', DONE= 'DONE'
 }
