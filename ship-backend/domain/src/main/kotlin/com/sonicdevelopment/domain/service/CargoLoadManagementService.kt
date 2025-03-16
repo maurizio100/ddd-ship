@@ -4,6 +4,7 @@ import com.sonicdevelopment.domain.converter.ShipConverter
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
@@ -18,7 +19,7 @@ class CargoLoadManagementService(
     private val cargoPersistencePort: CargoPersistencePort,
     private val cargoQueryPort: CargoQueryPort
 ) : CargoLoadManagementPort {
-    override fun addCargo(shipId: ShipId, cargoId: Long): ShipDetailDTO? {
+    override fun addCargo(shipId: ShipId, cargoId: CargoId): ShipDetailDTO? {
         val ship = shipRepositoryPort.getShipDetails(shipId) ?: return null
         val cargo = cargoQueryPort.findCargo(cargoId) ?: return null
 
@@ -33,7 +34,7 @@ class CargoLoadManagementService(
         }
     }
 
-    override fun removeCargo(shipId: ShipId, cargoId: Long): ShipDetailDTO? {
+    override fun removeCargo(shipId: ShipId, cargoId: CargoId): ShipDetailDTO? {
         val ship = shipRepositoryPort.getShipDetails(shipId) ?: return null
         val cargo = cargoQueryPort.findCargo(cargoId) ?: return null
 

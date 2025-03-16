@@ -10,7 +10,7 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class DisembarkService {
-  private shippingsUrl = 'http://localhost/web/shippings';
+  private shippingsUrl = 'http://localhost/web/ships';
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -18,24 +18,19 @@ export class DisembarkService {
 
   constructor(private http: HttpClient) {}
 
-  createShipping(ship: Ship): Observable<ShippingSummary> {
+  releaseShip(ship: Ship): Observable<ShippingSummary> {
+    const url = `${this.shippingsUrl}/${ship.id}/shippings`;
     return this.http
-      .post<ShippingSummary>(
-        this.shippingsUrl,
-        {
-          shippingId: ship.id,
-        },
-        this.httpOptions
-      )
+      .put<ShippingSummary>(url, this.httpOptions)
       .pipe(
-        tap((newShipping: ShippingSummary) =>
-          console.log(`created shipping for ship ${newShipping.name}`)
+        tap((shippingSummary: ShippingSummary) =>
+          console.log(`created shipping for ship ${shippingSummary.name}`)
         )
       );
   }
 
-  getShipping(shippingId: Number): Observable<ShippingSummary> {
-    const url = `${this.shippingsUrl}/${shippingId}`;
+  getShipping(shipId: String, shippingId: String): Observable<ShippingSummary> {
+    const url = `${this.shippingsUrl}/${shipId}/shippings/${shippingId}`;
     return this.http
       .get<ShippingSummary>(url)
       .pipe(tap((_) => console.log('fetch shipping details')));

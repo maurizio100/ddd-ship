@@ -16,6 +16,7 @@ export class InMemoryDataService implements InMemoryDbService {
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
+        shippingState: null,
         cargo: [
           { id: 2, name: 'Chocolate', weight: 1.0 },
           { id: 3, name: 'Cinnamon', weight: 1.0 },
@@ -31,30 +32,7 @@ export class InMemoryDataService implements InMemoryDbService {
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
-        cargo: [
-          { id: 7, name: 'Paprika', weight: 1.0 },
-          { id: 8, name: 'Planks', weight: 1.0 },
-          { id: 9, name: 'Rum', weight: 1.0 },
-          { id: 10, name: 'Silk', weight: 1.0 },
-        ],
-      },
-      {
-        id: '12',
-        name: 'Dr. Nice',
-        weight: 3.0,
-        maxweight: 20,
-        cargo: [
-          { id: 1, name: 'Ale', weight: 1.0 },
-          { id: 2, name: 'Chocolate', weight: 1.0 },
-          { id: 3, name: 'Cinnamon', weight: 1.0 },
-        ],
-      },
-
-      {
-        id: '14',
-        name: 'Dr. Nice',
-        weight: 3.0,
-        maxweight: 20,
+        shippingState: null,
         cargo: [
           { id: 7, name: 'Paprika', weight: 1.0 },
           { id: 8, name: 'Planks', weight: 1.0 },
@@ -67,6 +45,7 @@ export class InMemoryDataService implements InMemoryDbService {
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
+        shippingState: null,
         cargo: [
           { id: 1, name: 'Ale', weight: 1.0 },
           { id: 2, name: 'Chocolate', weight: 1.0 },
@@ -79,6 +58,33 @@ export class InMemoryDataService implements InMemoryDbService {
         name: 'Dr. Nice',
         weight: 3.0,
         maxweight: 20,
+        shippingState: null,
+        cargo: [
+          { id: 7, name: 'Paprika', weight: 1.0 },
+          { id: 8, name: 'Planks', weight: 1.0 },
+          { id: 9, name: 'Rum', weight: 1.0 },
+          { id: 10, name: 'Silk', weight: 1.0 },
+        ],
+      },
+      {
+        id: '12',
+        name: 'Dr. Nice',
+        weight: 3.0,
+        maxweight: 20,
+        shippingState: null,
+        cargo: [
+          { id: 1, name: 'Ale', weight: 1.0 },
+          { id: 2, name: 'Chocolate', weight: 1.0 },
+          { id: 3, name: 'Cinnamon', weight: 1.0 },
+        ],
+      },
+
+      {
+        id: '14',
+        name: 'Dr. Nice',
+        weight: 3.0,
+        maxweight: 20,
+        shippingState: null,
         cargo: [
           { id: 7, name: 'Paprika', weight: 1.0 },
           { id: 8, name: 'Planks', weight: 1.0 },
@@ -107,7 +113,8 @@ export class InMemoryDataService implements InMemoryDbService {
 
     const shippings: ShippingSummary[] = [
       {
-        id: 12,
+        id: '12',
+        shipId: '13',
         name: 'Dr. Nice',
         cargo: [
           { id: 1, name: 'Ale', weight: 1.0 },
@@ -115,6 +122,7 @@ export class InMemoryDataService implements InMemoryDbService {
           { id: 3, name: 'Cinnamon', weight: 1.0 },
         ],
         sailorsCode: 'Sailing is fun for everyone!',
+        weight: 0.0
       },
     ];
 

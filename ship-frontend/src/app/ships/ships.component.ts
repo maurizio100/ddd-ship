@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Ship } from '../models/ship';
+import {Ship, ShippingState} from '../models/ship';
 import { ShipService } from '../services/ship-service.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-ships',
@@ -8,9 +9,10 @@ import { ShipService } from '../services/ship-service.service';
   styleUrls: ['./ships.component.css'],
 })
 export class ShipsComponent implements OnInit {
+ // shippingState = ShippingState;
   ships: Ship[] = [];
 
-  constructor(private shipService: ShipService) {}
+  constructor(private shipService: ShipService, private router: Router) {}
 
   ngOnInit(): void {
     this.getShips();
@@ -20,8 +22,15 @@ export class ShipsComponent implements OnInit {
     this.shipService.getShips().subscribe((ships) => (this.ships = ships));
   }
 
-  delete(ship: Ship): void {
-    this.ships = this.ships.filter((s) => s != ship);
-    this.shipService.deleteShip(ship.id).subscribe();
+  createShipping(ship: Ship) {
+    this.shipService
+      .createShipping(ship)
+      .subscribe((shippingSummary) => this.router.navigate([`ships/${shippingSummary.shipId}/cargo`]));
   }
+
+  editShipping(ship: Ship) {
+    this.router.navigate([`ships/${ship.id}/cargo`]);
+  }
+
+  protected readonly ShippingState = ShippingState;
 }
