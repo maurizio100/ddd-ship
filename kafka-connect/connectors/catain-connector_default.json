@@ -1,0 +1,23 @@
+{
+  "name":"catain_table_fetcher",
+  "config":{
+    "slot.name": "catain_table",
+    "plugin.name": "pgoutput",
+
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tombstones.on.delete": "false",
+
+    "tasks.max": "1",
+
+    "database.hostname": "hexagonship-db-postgres",
+    "database.port": "5432",
+    "database.user": "hexagonship_user",
+    "database.password": "hexagonship_user",
+    "database.dbname": "hexagonship",
+    "database.server.name": "catain",
+
+    "schema.include.list": "public",
+    "table.include.list": "public.catains",
+    "topic.prefix": "hexagonship"
+  }
+}

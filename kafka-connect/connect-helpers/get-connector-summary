@@ -1,0 +1,5 @@
+#!/bin/bash
+. $(dirname "$0")/get-connectors | jq '.[]' | \
+xargs -I{connector_name} $(dirname "$0")/get-connector-status {connector_name} | \
+jq -c -M '[.name,.connector.state,.tasks[].state]|join(":|:")'| \
+column -s : -t| sed 's/\"//g'| sort

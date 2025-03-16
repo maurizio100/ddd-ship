@@ -1,0 +1,3 @@
+#!/bin/bash
+export KAFKA_CONNECT=http://localhost:8083
+
