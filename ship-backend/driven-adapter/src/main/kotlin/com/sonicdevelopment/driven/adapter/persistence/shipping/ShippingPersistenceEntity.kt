@@ -17,7 +17,7 @@ class ShippingPersistenceEntity(
     var shippingId: UUID,
 
     @Column(name = "sailors_code")
-    var sailorsCode: String?,
+    var sailorsCode: String? = null,
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="ship_id", nullable=false)

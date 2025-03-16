@@ -17,11 +17,12 @@ class ShippingManagementService(
 ): ShippingManagementPort {
     override fun createShipping(shipId: ShipId): ShippingDetailsDTO? {
         val foundShip = shipRepositoryPort.getShipDetails(shipId) ?: return null
-        foundShip.createNewShipping()
 
-        val shipWithShippingRecord = shippingRepositoryPort.createShipping(foundShip)
-        return shipWithShippingRecord.activeShipping?.let {
-            ShippingConverter.toShippingDetailDTO(shipWithShippingRecord, it)
+        foundShip.createNewShipping()
+        shippingRepositoryPort.createShipping(foundShip)
+
+        return foundShip.activeShipping?.let {
+            ShippingConverter.toShippingDetailDTO(foundShip, it)
         } ?: throw IllegalStateException()
     }
 

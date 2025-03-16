@@ -13,6 +13,6 @@ class ShippingInformationService(
 ): ShippingInformationPort {
 
     override fun getShipping(shipId: ShipId, shippingId: ShippingId): ShippingDetailsDTO? {
-        return null
+        return shippingRepositoryPort.getShippingInformation(shipId, shippingId)
     }
 }
