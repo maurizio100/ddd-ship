@@ -1,18 +1,13 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Catain } from '../models/catain';
 import { Observable } from 'rxjs';
-import { Binary } from '@angular/compiler';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CatainService {
-  private catainsUrl = 'http://localhost:8080/web/catains';
-
-  httpOptions = {
-    headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-  };
+  private catainsUrl = 'http://localhost/web/catains';
 
   constructor(private http: HttpClient) {}
 

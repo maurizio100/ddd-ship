@@ -12,7 +12,7 @@ import {ShippingSummary} from "../models/shipping-summary";
   providedIn: 'root',
 })
 export class ShipService {
-  private shipsUrl = 'http://localhost:8080/web/ships';
+  private shipsUrl = 'http://localhost/web/ships';
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
