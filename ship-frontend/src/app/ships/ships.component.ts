@@ -21,14 +21,9 @@ export class ShipsComponent implements OnInit {
     this.shipService.getShips().subscribe((ships) => (this.ships = ships));
   }
 
-  delete(ship: Ship): void {
-    this.ships = this.ships.filter((s) => s != ship);
-    this.shipService.deleteShip(ship.id).subscribe();
-  }
-
   createShipping(ship: Ship) {
     this.shipService
       .createShipping(ship)
-      .subscribe((ship) => this.router.navigate([`/detail/${ship.id}`]));
+      .subscribe((shippingSummary) => this.router.navigate([`/detail/${shippingSummary.shipId}`]));
   }
 }

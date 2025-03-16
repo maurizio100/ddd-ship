@@ -21,9 +21,10 @@ export class DisembarkSummaryComponent implements OnInit {
   }
 
   getShipping(): void {
-    const id = parseInt(this.route.snapshot.paramMap.get('id')!);
+    const shipId = this.route.snapshot.paramMap.get('shipId')!;
+    const shippingId = this.route.snapshot.paramMap.get('shippingId')!;
     this.disembarkService
-      .getShipping(id)
+      .getShipping(shipId, shippingId)
       .subscribe((shipping) => (this.shipping = shipping));
   }
 }

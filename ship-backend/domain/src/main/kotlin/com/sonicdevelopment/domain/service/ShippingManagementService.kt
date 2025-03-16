@@ -1,12 +1,10 @@
 package com.sonicdevelopment.domain.service
 
-import com.sonicdevelopment.domain.converter.ShipConverter
 import com.sonicdevelopment.domain.converter.ShippingConverter
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
-import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingDetailsDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
 import org.springframework.stereotype.Service

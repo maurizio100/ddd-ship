@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Cargo } from '../models/cargo';
 import { NewShipRequest } from '../models/new-ship-request';
+import {ShippingSummary} from "../models/shipping-summary";
 
 @Injectable({
   providedIn: 'root',
@@ -27,14 +28,6 @@ export class ShipService {
       );
   }
 
-  deleteShip(shipId: string) {
-    const url = `${this.shipsUrl}/${shipId}`;
-
-    return this.http
-      .delete<Ship>(url, this.httpOptions)
-      .pipe(tap((_) => console.log(`deleted ship id=${shipId}`)));
-  }
-
   getShips(): Observable<Ship[]> {
     return this.http.get<Ship[]>(this.shipsUrl);
   }
@@ -46,21 +39,13 @@ export class ShipService {
       .pipe(tap((_) => console.log('fetch details for ship')));
   }
 
-  updateShip(ship: Ship): Observable<any> {
-    const url = `${this.shipsUrl}/${ship.id}`;
-    return this.http
-      .put(url, ship, this.httpOptions)
-      .pipe(tap((_) => console.log(`updated ship id=${ship.id}`)));
-  }
-
-  createShipping(ship: Ship): Observable<Ship> {
+  createShipping(ship: Ship): Observable<ShippingSummary> {
     const url = `${this.shipsUrl}/${ship.id}/shippings`;
-
     return this.http
-      .post<Ship>(this.shipsUrl, this.httpOptions)
+      .post<ShippingSummary>(url, this.httpOptions)
       .pipe(
-        tap((newShip: Ship) =>
-          console.log(`added shippping w/ id=${newShip.id}`)
+        tap((shipping: ShippingSummary) =>
+          console.log(`added shippping for ship id=${shipping.id}`)
         )
       );
   }
