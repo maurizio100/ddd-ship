@@ -19,7 +19,7 @@ class ShippingPersistenceEntity(
     @Column(name = "sailors_code")
     var sailorsCode: String? = null,
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name="ship_id", nullable=false)
     var ship: ShipPersistenceEntity,
 

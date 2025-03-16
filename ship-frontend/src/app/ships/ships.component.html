@@ -30,8 +30,8 @@
 
         <a *ngIf="ship.shippingState === ShippingState.PREPARING"
            (click)="editShipping(ship)"
-           class="ship__actions-action ship__actions-action-green"
-        >New shipping</a>
+           class="ship__actions-action ship__actions-action-orange"
+        >Edit shipping</a>
 
         <div class="shipping-state__shipping" *ngIf="ship.shippingState === ShippingState.SHIPPING">
           <p>{{ship.name}} is at sea</p>
