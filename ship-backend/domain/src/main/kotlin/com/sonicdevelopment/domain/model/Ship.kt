@@ -10,7 +10,7 @@ class Ship(
     val id: ShipId = ShipId(UUID.randomUUID()),
     name: String? = null,
     val catainId: CatainId,
-    activeShipping: Shipping? = null,
+    private var _activeShipping: Shipping? = null,
     private val cargoLoad: MutableMap<CargoId, Cargo> = mutableMapOf()
 ) {
 
@@ -19,7 +19,7 @@ class Ship(
             field = if(isValidName(newShipName)) newShipName else field
         }
 
-    var activeShipping = activeShipping
+    var activeShipping = _activeShipping
         get() { return field }
 
     fun createNewShipping() {

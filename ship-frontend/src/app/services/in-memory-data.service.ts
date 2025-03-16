@@ -107,7 +107,8 @@ export class InMemoryDataService implements InMemoryDbService {
 
     const shippings: ShippingSummary[] = [
       {
-        id: 12,
+        id: '12',
+        shipId: '13',
         name: 'Dr. Nice',
         cargo: [
           { id: 1, name: 'Ale', weight: 1.0 },
@@ -115,6 +116,7 @@ export class InMemoryDataService implements InMemoryDbService {
           { id: 3, name: 'Cinnamon', weight: 1.0 },
         ],
         sailorsCode: 'Sailing is fun for everyone!',
+        weight: 0.0
       },
     ];
 

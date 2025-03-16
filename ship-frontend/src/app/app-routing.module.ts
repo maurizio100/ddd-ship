@@ -9,7 +9,7 @@ import { NewShipComponent } from './new-ship/new-ship.component';
 const routes: Routes = [
   { path: '', redirectTo: '/ships', pathMatch: 'full' },
   { path: 'ships', component: ShipsComponent },
-  { path: 'detail/:id', component: ShipDetailComponent },
+  { path: 'ships/:id/cargo', component: ShipDetailComponent },
   { path: 'ships/:shipId/shipping/:shippingId', component: DisembarkSummaryComponent },
   { path: 'new-ship', component: NewShipComponent },
 ];

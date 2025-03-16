@@ -21,14 +21,14 @@ import java.util.*
 @RestController
 @CrossOrigin(origins = [])
 @RequestMapping("/web/ships")
-class ShipShippingsController(
+class ShipShippingController(
     private val shippingManagementPort: ShippingManagementPort,
     private val shippingInformationPort: ShippingInformationPort
 ) {
 
-    @GetMapping("/{shipId}/shippings/{shippingsId}")
-    fun getShippingDetails(@PathVariable("shipId") shipId: UUID, shippingsId: UUID): ShippingResponse {
-        return shippingInformationPort.getShipping(ShipId(shipId), ShippingId(shippingsId))?.let {
+    @GetMapping("/{shipId}/shippings/{shippingId}")
+    fun getShippingDetails(@PathVariable("shipId") shipId: UUID, @PathVariable("shippingId") shippingId: UUID): ShippingResponse {
+        return shippingInformationPort.getShipping(ShipId(shipId), ShippingId(shippingId))?.let {
             toShippingResponse(it)
         } ?: throw ResponseStatusException(
             HttpStatus.NOT_FOUND, "Unable to find resource"
@@ -56,7 +56,7 @@ class ShipShippingsController(
     private fun toShippingResponse(shippingDetailsDTO: ShippingDetailsDTO) =
         ShippingResponse(
             id = shippingDetailsDTO.shippingId.id,
-            shipId = shippingDetailsDTO.shippingId.id,
+            shipId = shippingDetailsDTO.shipId.id,
             name = shippingDetailsDTO.shipName,
             sailorsCode = shippingDetailsDTO.shippingQuote?.quote,
             cargo = shippingDetailsDTO.cargo.map {

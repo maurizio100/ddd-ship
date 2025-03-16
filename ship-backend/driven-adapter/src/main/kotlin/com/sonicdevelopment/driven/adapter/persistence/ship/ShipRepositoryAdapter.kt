@@ -54,7 +54,7 @@ class ShipRepositoryAdapter(
     private fun toShip(shipPersistenceEntity: ShipPersistenceEntity): Ship {
         val shippingPersistenceEntity = shippingRepository.findByShip_ShipIdAndShppingStateIn(
             shipPersistenceEntity.shipId,
-            listOf(ShippingStateEnumEntity.PERPARING, ShippingStateEnumEntity.SHIPPING)
+            listOf(ShippingStateEnumEntity.PREPARING, ShippingStateEnumEntity.SHIPPING)
         )
 
         val catain = CatainId(shipPersistenceEntity.catain.catainId)
@@ -66,7 +66,7 @@ class ShipRepositoryAdapter(
                 cargoLoad = it.cargoLoad.associate {
                     cargo -> CargoId(cargo.cargoId) to toCargo(cargo)
                 }.toMutableMap(),
-                activeShipping = toShipping(it),
+                _activeShipping = toShipping(it),
                 catainId = catain
 
             )

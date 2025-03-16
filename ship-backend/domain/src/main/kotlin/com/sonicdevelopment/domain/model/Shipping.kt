@@ -15,8 +15,9 @@ class Shipping(
 
     var shippingQuote = _shippingQuote
         get() = field
+
     fun release(shippingQuote: ShippingQuote) {
-        _shippingState = ShippingState.SHIPPING
-        _shippingQuote = shippingQuote
+        this.shippingState = ShippingState.SHIPPING
+        this.shippingQuote = shippingQuote
     }
 }

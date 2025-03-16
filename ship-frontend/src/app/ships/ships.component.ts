@@ -24,6 +24,6 @@ export class ShipsComponent implements OnInit {
   createShipping(ship: Ship) {
     this.shipService
       .createShipping(ship)
-      .subscribe((shippingSummary) => this.router.navigate([`/detail/${shippingSummary.shipId}`]));
+      .subscribe((shippingSummary) => this.router.navigate([`ships/${shippingSummary.shipId}/cargo`]));
   }
 }
