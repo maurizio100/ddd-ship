@@ -2,6 +2,7 @@ package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
+import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.*
 import java.text.DecimalFormat
 import java.util.*
@@ -10,7 +11,7 @@ class Ship(
     val id: ShipId = ShipId(UUID.randomUUID()),
     name: String? = null,
     val catainId: CatainId,
-    private var _activeShipping: Shipping? = null,
+    var activeShipping: Shipping? = null,
     private val cargoLoad: MutableMap<CargoId, Cargo> = mutableMapOf()
 ) {
 
@@ -19,11 +20,12 @@ class Ship(
             field = if(isValidName(newShipName)) newShipName else field
         }
 
-    var activeShipping = _activeShipping
-        get() { return field }
-
     fun createNewShipping() {
         if (activeShipping == null) {
+            activeShipping = Shipping(ShippingId(UUID.randomUUID()))
+        }
+
+        if (activeShipping?.shippingState == ShippingState.DONE) {
             activeShipping = Shipping(ShippingId(UUID.randomUUID()))
         }
     }

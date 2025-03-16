@@ -66,7 +66,7 @@ class ShipRepositoryAdapter(
                 cargoLoad = it.cargoLoad.associate {
                     cargo -> CargoId(cargo.cargoId) to toCargo(cargo)
                 }.toMutableMap(),
-                _activeShipping = toShipping(it),
+                activeShipping = toShipping(it),
                 catainId = catain
 
             )
@@ -87,8 +87,8 @@ class ShipRepositoryAdapter(
     private fun toShipping(shippingPersistenceEntity: ShippingPersistenceEntity): Shipping {
         return Shipping(
             id = ShippingId(shippingPersistenceEntity.shippingId),
-            _shippingQuote = shippingPersistenceEntity.sailorsCode?.let { ShippingQuote(it) },
-            _shippingState = ShippingState.valueOf(
+            shippingQuote = shippingPersistenceEntity.sailorsCode?.let { ShippingQuote(it) },
+            shippingState = ShippingState.valueOf(
                 shippingPersistenceEntity.shppingState.name
             )
         )
