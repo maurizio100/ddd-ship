@@ -1,0 +1,31 @@
+{
+  "name":"catain_table_fetcher_schemaless",
+  "config":{
+    "slot.name": "catain_table_schemaless",
+    "plugin.name": "pgoutput",
+
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tombstones.on.delete": "false",
+
+    "tasks.max": "1",
+
+    "database.hostname": "hexagonship-db-postgres",
+    "database.port": "5432",
+    "database.user": "hexagonship_user",
+    "database.password": "hexagonship_user",
+    "database.dbname": "hexagonship",
+    "database.server.name": "catain",
+
+    "schema.include.list": "public",
+    "table.include.list": "public.catains",
+    "topic.prefix": "hexagonship-schemaless",
+
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": false,
+    "transforms.unwrap.delete.handling.mode": "rewrite",
+    "transforms.unwrap.add.fields": "op,table,lsn,source.ts_ms",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}

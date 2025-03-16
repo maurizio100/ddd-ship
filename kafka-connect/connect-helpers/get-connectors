@@ -1,0 +1,4 @@
+#! /bin/bash
+
+. $(dirname "$0")/load-env-dev
+curl -s GET ${KAFKA_CONNECT}/connectors
