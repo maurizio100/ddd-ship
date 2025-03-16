@@ -18,6 +18,8 @@
 
     "schema.include.list": "public",
     "table.include.list": "public.shipping_outbox",
+    "topic.prefix": "hexagonship",
+
 
     "transforms": "outbox",
     "transforms.outbox.type" : "io.debezium.transforms.outbox.EventRouter",

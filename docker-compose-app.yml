@@ -69,7 +69,7 @@ services:
     networks:
       - ship-network
     volumes:
-      - "minio-data:/data"
+      - "~/minio/data:/data"
     environment:
       - MINIO_ROOT_USER=hexagonminio
       - MINIO_ROOT_PASSWORD=hexagonminio
