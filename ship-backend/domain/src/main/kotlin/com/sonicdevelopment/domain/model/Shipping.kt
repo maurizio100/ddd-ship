@@ -12,13 +12,6 @@ class Shipping(
 
     var shippingState = _shippingState
         get() = field
-    fun nextShippingState() {
-        _shippingState = when(shippingState) {
-            ShippingState.PREPARING -> ShippingState.SHIPPING
-            ShippingState.SHIPPING -> ShippingState.DONE
-            ShippingState.DONE -> ShippingState.DONE
-        }
-    }
 
     var shippingQuote = _shippingQuote
         get() = field

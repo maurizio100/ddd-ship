@@ -1,19 +1,18 @@
 package com.sonicdevelopment.domain.service
 
-import com.sonicdevelopment.domain.converter.ShipConverter
 import com.sonicdevelopment.domain.model.values.ShipId
-import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
-import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
+import com.sonicdevelopment.domain.model.values.ShippingId
+import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ShippingDetailsDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingInformationPort
 import org.springframework.stereotype.Service
 
 @Service
 class ShippingInformationService(
-    private val shipRepositoryPort: ShipRepositoryPort
+    private val shippingRepositoryPort: ShippingRepositoryPort
 ): ShippingInformationPort {
-    override fun getShipping(shipId: ShipId): ShipDetailDTO? {
-        return shipRepositoryPort.getShipDetails(shipId)?.let {
-            ShipConverter.toShipDetailDTO(it)
-        }
+
+    override fun getShipping(shipId: ShipId, shippingId: ShippingId): ShippingDetailsDTO? {
+        return null
     }
 }
