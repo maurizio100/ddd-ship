@@ -62,6 +62,8 @@ class ShipShippingController(
             cargo = shippingDetailsDTO.cargo.map {
                 CargoResponse(id = it.id.id, name = it.name, weight = it.weight)
             },
-            weight = shippingDetailsDTO.actualWeight
+            weight = shippingDetailsDTO.actualWeight,
+            catainId = shippingDetailsDTO.catainId,
+            catainName = shippingDetailsDTO.catainName
         )
 }

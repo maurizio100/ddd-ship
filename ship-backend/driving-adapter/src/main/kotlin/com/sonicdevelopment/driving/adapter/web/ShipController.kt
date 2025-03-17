@@ -2,6 +2,7 @@ package com.sonicdevelopment.driving.adapter.web
 
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.ShipId
+import com.sonicdevelopment.domain.ports.driven.CatainRepository
 import com.sonicdevelopment.domain.ports.driving.ship.*
 import com.sonicdevelopment.driving.adapter.web.mapper.toShipDetailResponse
 import com.sonicdevelopment.driving.adapter.web.mapper.toShipResponse
@@ -36,8 +37,9 @@ class ShipController (
     @PostMapping
     fun createShip(@RequestBody ship: ShipCreationRequest): ShipOverviewResponse {
         if (ship.catainId == null) throw IllegalArgumentException("No catainid given")
+        val catainId = CatainId(ship.catainId)
 
-        val shipCreationDTO = ShipCreationDataDTO(name = ship.name, catainId = CatainId(ship.catainId))
+        val shipCreationDTO = ShipCreationDataDTO(name = ship.name, catainId = catainId)
         val createdShip = shipManagementPort.createShip(shipCreationDTO)
         return toShipResponse(createdShip)
     }

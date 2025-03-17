@@ -1,8 +1,9 @@
 <section class="page-heading max-width-container">
   <div class="section-grid max-width">
     <h2 class="page-heading__heading">
-      <span class="page-heading__highlight">Black Perl</span>
-      left the harbor!
+      <span class="page-heading__highlight">{{ shipping.name }}</span>
+      left the harbor together with
+      <span class="page-heading__highlight">{{shipping.catainName}}!</span>
     </h2>
   </div>
 </section>
@@ -10,7 +11,7 @@
 <section class="shipping-summary max-width-container">
   <div class="shipping-summary__styling section-grid max-width">
     <div class="shipping-ship">
-      <img src="../../assets/img/ship.jpg" />
+      <img [src]="getImageUrl(shipping.catainId)" />
     </div>
     <div class="shipping-cargo" *ngIf="shipping">
       <app-cargos [shipping]="shipping" [showLoaded]="true"></app-cargos>

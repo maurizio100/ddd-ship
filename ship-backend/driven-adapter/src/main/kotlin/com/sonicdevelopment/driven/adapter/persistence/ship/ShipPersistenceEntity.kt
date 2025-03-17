@@ -18,7 +18,7 @@ class ShipPersistenceEntity(
     @Column(name = "ship_name")
     var shipName: String,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     var catain: CatainPersistenceEntity
 ) {
 }

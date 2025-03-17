@@ -12,7 +12,7 @@ object ShippingEventConverter {
                 shipId = foundShip.id.id, shipName = foundShip.shipName
             ),
             catain = ShippingEvent.CatainEventData(
-                catainId = foundShip.catainId.id, catainName = "catain"
+                catainId = foundShip.catainId.id, catainName = foundShip.catainName
             ),
             shippingEventData = ShippingEvent.ShippingEventData(
                 shippingId = shipping.id.id, shippingQuote = shipping.shippingQuote?.quote,
