@@ -60,7 +60,9 @@ class ShippingRepositoryAdapter(
             cargo = shippingPersistenceEntity.cargoLoad.map {
                 toCargoDTO(it)
             },
-            actualWeight = 0.0f
+            actualWeight = 0.0f,
+            catainId = shippingPersistenceEntity.ship.catain.catainId,
+            catainName = shippingPersistenceEntity.ship.catain.catainName,
         )
 
     private fun toCargoDTO(cargo: CargoPersistenceEntity) =

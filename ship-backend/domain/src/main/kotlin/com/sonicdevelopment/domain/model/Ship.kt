@@ -11,6 +11,7 @@ class Ship(
     val id: ShipId = ShipId(UUID.randomUUID()),
     name: String? = null,
     val catainId: CatainId,
+    val catainName: String,
     var activeShipping: Shipping? = null,
     private val cargoLoad: MutableMap<CargoId, Cargo> = mutableMapOf()
 ) {

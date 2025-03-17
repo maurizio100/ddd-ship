@@ -116,6 +116,8 @@ export class InMemoryDataService implements InMemoryDbService {
         id: '12',
         shipId: '13',
         name: 'Dr. Nice',
+        catainId: '1',
+        catainName: 'the catain',
         cargo: [
           { id: 1, name: 'Ale', weight: 1.0 },
           { id: 2, name: 'Chocolate', weight: 1.0 },

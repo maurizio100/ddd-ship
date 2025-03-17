@@ -17,8 +17,9 @@ object ShippingConverter {
             cargo = ship.loadedCargo.map {
                 toCargoDTO(it)
             },
-            actualWeight = ship.weight
-
+            actualWeight = ship.weight,
+            catainId = ship.catainId.id,
+            catainName = ship.catainName
         )
 
     private fun toCargoDTO(cargo: Cargo) =

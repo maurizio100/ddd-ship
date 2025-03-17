@@ -57,7 +57,7 @@ class ShipRepositoryAdapter(
             listOf(ShippingStateEnumEntity.PREPARING, ShippingStateEnumEntity.SHIPPING)
         )
 
-        val catain = CatainId(shipPersistenceEntity.catain.catainId)
+        val catainId = CatainId(shipPersistenceEntity.catain.catainId)
 
         return shippingPersistenceEntity?.let {
             Ship(
@@ -67,13 +67,16 @@ class ShipRepositoryAdapter(
                     cargo -> CargoId(cargo.cargoId) to toCargo(cargo)
                 }.toMutableMap(),
                 activeShipping = toShipping(it),
-                catainId = catain
+                catainId = catainId,
+                catainName = shipPersistenceEntity.catain.catainName,
 
             )
         } ?: Ship(
             id = ShipId(shipPersistenceEntity.shipId),
             name = shipPersistenceEntity.shipName,
-            catainId = catain
+            catainId = catainId,
+            catainName = shipPersistenceEntity.catain.catainName,
+
         )
     }
 
