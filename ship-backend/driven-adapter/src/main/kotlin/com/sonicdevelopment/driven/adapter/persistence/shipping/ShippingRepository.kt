@@ -1,7 +1,5 @@
 package com.sonicdevelopment.driven.adapter.persistence.shipping
 
-import com.sonicdevelopment.domain.model.values.ShipId
-import com.sonicdevelopment.domain.model.values.ShippingId
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
 

@@ -1,13 +1,10 @@
 networks:
   ship-network:
     driver: bridge
-  kafka_network:
-    name: my_kafka_network  # Joins the already defined public network
-    external: true
 
 volumes:
-  hexagonship-postgres-data:
-    name: hexagonship-postgres-data
+  hexagonship-postgres-data-solo:
+    name: hexagonship-postgres-data-solo
   minio-data:
     name: minio-data
 
@@ -36,7 +33,6 @@ services:
       SPRING_PROFILES_ACTIVE: dev
     networks:
       - ship-network
-      - kafka_network
     ports:
       - "8080:8080"
     depends_on:
@@ -47,7 +43,6 @@ services:
     image: postgres:13.6
     networks:
       - ship-network
-      - kafka_network
     environment:
       - "POSTGRES_DB=hexagonship"
       - "POSTGRES_USER=hexagonship_user"
@@ -55,11 +50,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - "hexagonship-postgres-data:/var/lib/postgresql/data"
-    command:
-      - "postgres"
-      - "-c"
-      - "wal_level=logical"
+      - "hexagonship-postgres-data-solo:/var/lib/postgresql/data"
   minio:
     container_name: hexagonship-minio
     image: bitnami/minio:latest
@@ -69,7 +60,7 @@ services:
     networks:
       - ship-network
     volumes:
-      - "~/minio/data:/data"
+      - "minio-data:/data"
     environment:
       - MINIO_ROOT_USER=hexagonminio
       - MINIO_ROOT_PASSWORD=hexagonminio
