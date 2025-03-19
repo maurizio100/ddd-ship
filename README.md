@@ -57,7 +57,7 @@ If you decide to run the application together with the kafka environment, there 
 little application that consumes outboxed messages from the application.
 You can find it under 
 
-* ship-terminal/src/main/kotlin *
+**ship-terminal/src/main/kotlin**
 
 ## Adjust the Infrastructure for full Experience
 
@@ -66,14 +66,14 @@ You can find it under
 Unfortunately there is no Flyway or other DB migraiton tool in action yet. So, when you start the project for the
 very first time, you need to add the datarecords manually by executing all *.sql files in
 
-* ./driven-adapter/src/main/resources/sql *
+**./driven-adapter/src/main/resources/sql**
 
 ### Cat Images
 
 The images for the cats are also needed to be uploaded manually. The MinIO container startsup together with the application
-and is available on *port 9001*.
+and is available on **port 9001**.
 
-Username and password are *hexagonminio*
+Username and password are **hexagonminio**
 
 ### Add Kafka-Connect configuration files
 
@@ -89,6 +89,6 @@ kafka-connect/connect-helpers/upload-connector kafka-connect/connectors/ship-out
 ### Monitor through Kafka UI
 
 You can monitor toipcs, kafka messages, and health state of your kafka connectors using the also running Kafka-UI.
-You can visit that page under *port 8005*
+You can visit that page under **port 8005**
 
 
