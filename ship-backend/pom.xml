@@ -29,6 +29,7 @@
 		<java.version>17</java.version>
 		<kotlin.version>1.9.22</kotlin.version>
 		<minio.version>8.5.12</minio.version>
+		<flyway.version>11.9.0</flyway.version>
 	</properties>
 
 	<dependencyManagement>
@@ -61,6 +62,18 @@
 				<groupId>com.sonicdevelopment</groupId>
 				<artifactId>integration-test</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-core</artifactId>
+				<version>${flyway.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-database-postgresql</artifactId>
+				<version>${flyway.version}</version>
+				<scope>runtime</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
