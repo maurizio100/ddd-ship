@@ -28,11 +28,9 @@ import { NewShipComponent } from './new-ship/new-ship.component';
     FormsModule,
     HttpClientModule,
     AppRoutingModule,
-    /*
     HttpClientInMemoryWebApiModule.forRoot(InMemoryDataService, {
       dataEncapsulation: false,
     }),
-    */
   ],
   providers: [],
   bootstrap: [AppComponent],

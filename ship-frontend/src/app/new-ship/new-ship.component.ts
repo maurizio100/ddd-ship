@@ -14,8 +14,11 @@ import { Location } from '@angular/common';
 export class NewShipComponent implements OnInit {
   catains: Catain[] = [];
   imageBaseUrl = 'http://localhost:8080/web/catains';
-  public name: string = '';
-  selectedCatain: string = '';
+
+  public shipRequest: NewShipRequest = {
+    name: '',
+    catainId: '',
+  };
 
   constructor(
     private catainService: CatainService,
@@ -39,17 +42,13 @@ export class NewShipComponent implements OnInit {
   }
 
   createShip() {
-    const newShip: NewShipRequest = {
-      name: this.name,
-      catainId: this.selectedCatain,
-    };
-    this.shipService.addShip(newShip).subscribe((ship) => {
+    this.shipService.addShip(this.shipRequest).subscribe((ship) => {
       this.router.navigate(['/ships']);
     });
   }
 
   selectCatain(id: string) {
-    this.selectedCatain = id;
+    this.shipRequest.catainId = id;
   }
 
   cancel() {
