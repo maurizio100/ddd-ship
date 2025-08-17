@@ -13,9 +13,8 @@ import { Location } from '@angular/common';
 })
 export class NewShipComponent implements OnInit {
   catains: Catain[] = [];
-  imageBaseUrl = 'http://localhost:8080/web/catains';
 
-  public shipRequest: NewShipRequest = {
+  shipRequest: NewShipRequest = {
     name: '',
     catainId: '',
   };
@@ -38,7 +37,7 @@ export class NewShipComponent implements OnInit {
   }
 
   getImageUrl(id: string): string {
-    return `${this.imageBaseUrl}/${id}/image`;
+    return this.catainService.getCatainImageUrl(id);
   }
 
   createShip() {
