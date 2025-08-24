@@ -38,5 +38,20 @@ export class ShipsComponent implements OnInit {
     return '/assets/img/ship.jpg';
   }
 
+  canCreateNewShipping(ship: Ship): boolean {
+    return (
+      ship.shippingState === ShippingState.IDLE ||
+      ship.shippingState === ShippingState.DONE
+    );
+  }
+
+  shippingExists(ship: Ship): boolean {
+    return ship.shippingState === ShippingState.PREPARING;
+  }
+
+  isShipAway(ship: Ship): boolean {
+    return ship.shippingState === ShippingState.SHIPPING;
+  }
+
   protected readonly ShippingState = ShippingState;
 }

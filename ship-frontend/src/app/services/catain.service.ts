@@ -9,7 +9,6 @@ import { environment } from '../../environments/environment';
 })
 export class CatainService {
   private catainsUrl = `${environment.baseUrl}/catains`;
-  private imageUrl = `${environment.imageBaseUrl}/catains`;
 
   constructor(private http: HttpClient) {}
 
@@ -22,6 +21,6 @@ export class CatainService {
   }
 
   getCatainImageUrl(id: string): string {
-    return `${this.imageUrl}/${id}/image`;
+    return `${this.catainsUrl}/${id}/image`;
   }
 }

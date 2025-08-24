@@ -43,6 +43,10 @@ class Ship(
         return SailorsCode(currentWeight)
     }
 
+    fun shippingState(): ShippingState {
+        return activeShipping?.shippingState ?: ShippingState.IDLE
+    }
+
     private fun isValidName(name: String?) = name?.let { it.isNotBlank() && it.length < 255} ?: false
 
     companion object {

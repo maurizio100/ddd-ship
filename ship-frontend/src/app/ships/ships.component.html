@@ -23,23 +23,20 @@
       </div>
       <div class="ship__actions">
         <a
-          *ngIf="ship.shippingState === ShippingState.DONE"
+          *ngIf="canCreateNewShipping(ship)"
           (click)="createShipping(ship)"
           class="ship__actions-action ship__actions-action-green"
           >New shipping</a
         >
 
         <a
-          *ngIf="ship.shippingState === ShippingState.PREPARING"
+          *ngIf="shippingExists(ship)"
           (click)="editShipping(ship)"
           class="ship__actions-action ship__actions-action-orange"
           >Edit shipping</a
         >
 
-        <div
-          class="shipping-state__shipping"
-          *ngIf="ship.shippingState === ShippingState.SHIPPING"
-        >
+        <div class="shipping-state__shipping" *ngIf="isShipAway(ship)">
           <p>{{ ship.name }} is at sea</p>
         </div>
       </div>
