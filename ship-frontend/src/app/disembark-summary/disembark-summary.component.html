@@ -13,9 +13,11 @@
     <div class="shipping-ship">
       <img [src]="getImageUrl(shipping.catainId)" />
     </div>
-    <div class="shipping-cargo" *ngIf="shipping">
-      <app-cargos [shipping]="shipping" [showLoaded]="true"></app-cargos>
-    </div>
+    @if (shipping) {
+      <div class="shipping-cargo">
+        <app-cargos [shipping]="shipping" [showLoaded]="true"></app-cargos>
+      </div>
+    }
   </div>
 </section>
 

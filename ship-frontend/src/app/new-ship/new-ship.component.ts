@@ -7,9 +7,10 @@ import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 
 @Component({
-  selector: 'app-new-ship',
-  templateUrl: './new-ship.component.html',
-  styleUrls: ['./new-ship.component.css'],
+    selector: 'app-new-ship',
+    templateUrl: './new-ship.component.html',
+    styleUrls: ['./new-ship.component.css'],
+    standalone: false
 })
 export class NewShipComponent implements OnInit {
   catains: Catain[] = [];
