@@ -7,10 +7,26 @@ on:
 jobs:
 
   build:
-
+    name: Build and push Hexagonship Backend
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build ./ship-backend --file ship-backend/Dockerfile --tag hexagon-ship:$(date +%s)
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push production image
+      uses: docker/build-push-action@v6
+      with:
+        context: ./ship-backend
+        file: ship-backend/Dockerfile
+        tags: ${{ secrets.DOCKERHUB_USER }}/${{ secrets. DOCKERHUB_PROJECT_NAME}}:latest
+        push: true
+        platforms: linux/amd64,linux/arm64
