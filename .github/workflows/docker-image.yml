@@ -21,7 +21,9 @@ jobs:
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     
     - name: Build Docker Image
-      run: docker build ./ship-backend --file ship-backend/Dockerfile --tag ${{ secrets.DOCKERHUB_USER }}/${{ secrets. DOCKERHUB_PROJECT_NAME}}:latest
+      run: docker buildx build ./ship-backend --file ship-backend/Dockerfile --tag ${{ secrets.DOCKERHUB_USER }}/${{ secrets. DOCKERHUB_PROJECT_NAME}}:latest \
+        --cache-to type=gha,scope=image \
+        --cache-from type=gha,scope=image
       
     - name: Docker Push
       run: docker push ${{ secrets.DOCKERHUB_USER }}/${{ secrets. DOCKERHUB_PROJECT_NAME}}:latest
