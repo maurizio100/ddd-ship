@@ -64,10 +64,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "ship-frontend:build:production"
+              "buildTarget": "ship-frontend:build:production"
             },
             "development": {
-              "browserTarget": "ship-frontend:build:development"
+              "buildTarget": "ship-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -75,7 +75,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "ship-frontend:build"
+            "buildTarget": "ship-frontend:build"
           }
         },
         "test": {
