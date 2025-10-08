@@ -13,4 +13,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build . --file ship-backend/Dockerfile --tag hexagon-ship:$(date +%s)
+      run: docker build ./ship-backend --file ship-backend/Dockerfile --tag hexagon-ship:$(date +%s)
