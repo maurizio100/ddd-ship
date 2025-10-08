@@ -5,7 +5,7 @@
       <a
         class="ship__actions-action ship__actions-action-green"
         routerLink="/new-ship"
-      >
+        >
         Create New Ship
       </a>
     </div>
@@ -14,33 +14,37 @@
 
 <section class="ships-list max-width-container">
   <div class="section-grid max-width">
-    <div *ngFor="let ship of ships" class="ship">
-      <div class="ship__image">
-        <img [src]="getImageUrl(ship)" />
-      </div>
-      <div class="ship__stats">
-        <p class="ship__stats-name">{{ ship.name }}</p>
-        <p>{{ ship.catain }}</p>
-      </div>
-      <div class="ship__actions">
-        <a
-          *ngIf="canCreateNewShipping(ship)"
-          (click)="createShipping(ship)"
-          class="ship__actions-action ship__actions-action-green"
-          >New shipping</a
-        >
-
-        <a
-          *ngIf="shippingExists(ship)"
-          (click)="editShipping(ship)"
-          class="ship__actions-action ship__actions-action-orange"
-          >Edit shipping</a
-        >
-
-        <div class="shipping-state__shipping" *ngIf="isShipAway(ship)">
-          <p>{{ ship.name }} is at sea</p>
+    @for (ship of ships; track ship) {
+      <div class="ship">
+        <div class="ship__image">
+          <img [src]="getImageUrl(ship)" />
         </div>
+        <div class="ship__stats">
+          <p class="ship__stats-name">{{ ship.name }}</p>
+          <p>{{ ship.catain }}</p>
+        </div>
+        <div class="ship__actions">
+          @if (canCreateNewShipping(ship)) {
+            <a
+              (click)="createShipping(ship)"
+              class="ship__actions-action ship__actions-action-green"
+              >New shipping</a
+              >
+            }
+            @if (shippingExists(ship)) {
+              <a
+                (click)="editShipping(ship)"
+                class="ship__actions-action ship__actions-action-orange"
+                >Edit shipping</a
+                >
+              }
+              @if (isShipAway(ship)) {
+                <div class="shipping-state__shipping">
+                  <p>{{ ship.name }} is at sea</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
-    </div>
-  </div>
-</section>
+    </section>

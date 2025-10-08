@@ -1,12 +1,14 @@
 <div class="cargo-container">
-    <div (click)="performLoading(cargo)" class="cargo-item" *ngFor="let cargo of cargos"
+  @for (cargo of cargos; track cargo) {
+    <div (click)="performLoading(cargo)" class="cargo-item"
         [ngStyle]="{
             'background-image': 'url(/assets/cargo/' + (cargo.name | lowercase) + '.jpg)',
             'background-size': '80px 80px',
             'background-repeat': 'no-repeat'
 
         }"
-    >
-        <span>{{cargo.name}}<br>{{cargo.weight}}</span>
+      >
+      <span>{{cargo.name}}<br>{{cargo.weight}}</span>
     </div>
+  }
 </div>

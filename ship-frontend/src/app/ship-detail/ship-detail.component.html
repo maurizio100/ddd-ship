@@ -2,9 +2,11 @@
   <div class="section-grid max-width">
     <h2 class="page-heading__heading">
       New shipping for
-      <span class="page-heading__highlight" *ngIf="ship">{{
-        ship.name | uppercase
-      }}</span>
+      @if (ship) {
+        <span class="page-heading__highlight">{{
+          ship.name | uppercase
+        }}</span>
+      }
     </h2>
   </div>
 </section>
@@ -12,13 +14,14 @@
 <section class="shipping-area max-width-container">
   <div class="section-grid max-width">
     <div class="cargo-area">
-      <app-cargos
-        *ngIf="ship"
-        [ship]="ship"
-        [showLoaded]="false"
-        [showLoadObserve]="cargoLoadSubject.asObservable()"
-        (shipUpdated)="onShipLoadUpdated($event)"
-      ></app-cargos>
+      @if (ship) {
+        <app-cargos
+          [ship]="ship"
+          [showLoaded]="false"
+          [showLoadObserve]="cargoLoadSubject.asObservable()"
+          (shipUpdated)="onShipLoadUpdated($event)"
+        ></app-cargos>
+      }
     </div>
     <div class="ship-area">
       <div class="ship-image">
@@ -26,19 +29,22 @@
       </div>
       <div class="ship-cargo">
         <div class="ship-cargo-list">
-          <app-cargos
-            *ngIf="ship"
-            [ship]="ship"
-            [showLoaded]="true"
-            (shipUpdated)="onShipLoadUpdated($event)"
-          ></app-cargos>
+          @if (ship) {
+            <app-cargos
+              [ship]="ship"
+              [showLoaded]="true"
+              (shipUpdated)="onShipLoadUpdated($event)"
+            ></app-cargos>
+          }
         </div>
         <div class="ship-weight">
           <p>
             Current Weight:
-            <span class="ship-weight-status" *ngIf="ship">
-              {{ ship.weight }} / {{ ship.maxweight }}
-            </span>
+            @if (ship) {
+              <span class="ship-weight-status">
+                {{ ship.weight }} / {{ ship.maxweight }}
+              </span>
+            }
           </p>
         </div>
       </div>
