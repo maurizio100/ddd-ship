@@ -3,6 +3,7 @@ import { Cargo } from './cargo';
 export interface Ship {
   id: string;
   name: string;
+  catain: string;
   cargo: Cargo[];
   weight: number;
   maxweight: number;

@@ -6,6 +6,7 @@ import com.sonicdevelopment.domain.model.values.ShipId
 data class ShipDTO(
     val id: ShipId,
     val name: String,
+    val catain: String,
     val shippingState: ShippingState?
 ) {
 }
