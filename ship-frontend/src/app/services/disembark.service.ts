@@ -2,6 +2,7 @@ import { HttpClient, HttpHandler, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Ship } from '../models/ship';
 import { ShippingSummary } from '../models/shipping-summary';
+import { environment } from '../../environments/environment';
 
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -10,7 +11,7 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class DisembarkService {
-  private shippingsUrl = 'http://localhost/web/ships';
+  private shippingsUrl = `${environment.baseUrl}/ships`;
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' }),

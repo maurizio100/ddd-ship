@@ -11,7 +11,8 @@ object ShipConverter {
         ShipDTO(
             id = ship.id,
             name = ship.shipName,
-            shippingState = ship.activeShipping?.shippingState
+            catain = ship.catainName,
+            shippingState = ship.shippingState()
         )
 
     fun toShipDetailDTO(ship: Ship) =

@@ -41,6 +41,10 @@
   border-radius: 7px;
 }
 
+.catain input[type="radio"] {
+  display: none;
+}
+
 .catain:hover {
   cursor: pointer;
   background-color: #CCC;

@@ -10,6 +10,7 @@ fun toShipResponse(ship: ShipDTO) =
     ShipOverviewResponse(
         id = ship.id.id,
         name = ship.name,
+        catain = ship.catain,
         shippingState = ship.shippingState
     )
 fun toShipDetailResponse(ship: ShipDetailDTO) =

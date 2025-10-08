@@ -4,49 +4,68 @@
   </div>
 </section>
 
-<section class="max-width-container ship-name">
-  <div class="section-grid max-width">
-    <input
-      placeholder="Enter shipname"
-      class="ship-name__field"
-      id="new-ship"
-      [(ngModel)]="name"
-    />
-  </div>
-</section>
+<form #shipform="ngForm" (ngSubmit)="createShip()">
+  <section class="max-width-container ship-name">
+    <div class="section-grid max-width">
+      <input
+        name="ship_name"
+        #ship_name="ngModel"
+        required
+        placeholder="Enter shipname"
+        class="ship-name__field"
+        id="new-ship"
+        [(ngModel)]="shipRequest.name"
+        type="text"
+      />
+    </div>
+  </section>
 
-<section class="catain-list max-width-container">
-  <div class="max-width catain-list__container catain-list-border">
-    <h2 class="catain-list__title">Choose Your Catain</h2>
-    <div class="section-grid">
-      <div
-        *ngFor="let catain of catains"
-        class="catain"
-        [ngClass]="{ 'catain-selected': catain.id === this.selectedCatain }"
-        (click)="selectCatain(catain.id)"
-      >
-        <div class="catain__image">
-          <img [src]="getImageUrl(catain.id)" />
-        </div>
-        <div class="catain__name">
-          <p class="catain__name-center">{{ catain.name }}</p>
-        </div>
+  <section class="catain-list max-width-container">
+    <div class="max-width catain-list__container catain-list-border">
+      <h2 class="catain-list__title">Choose Your Catain</h2>
+      <div class="section-grid" role="radiogroup">
+        <label
+          *ngFor="let catain of catains"
+          class="catain"
+          [ngClass]="{
+            'catain-selected': catain.id === shipRequest.catainId
+          }"
+        >
+          <input
+            type="radio"
+            name="catain"
+            [value]="catain.id"
+            [(ngModel)]="shipRequest.catainId"
+            required
+          />
+
+          <div class="catain__image">
+            <img [src]="getImageUrl(catain.id)" />
+          </div>
+          <div class="catain__name">
+            <p class="catain__name-center">{{ catain.name }}</p>
+          </div>
+        </label>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="shipping-cta max-width-container">
-  <div class="section-grid max-width">
-    <div class="shipping-back">
-      <button type="button" class="button__cancel" (click)="cancel()">
-        Cancel
-      </button>
+  <section class="shipping-cta max-width-container">
+    <div class="section-grid max-width">
+      <div class="shipping-back">
+        <button type="button" class="button__cancel" (click)="cancel()">
+          Cancel
+        </button>
+      </div>
+      <div class="shipping-embark">
+        <button
+          type="submit"
+          class="button__disembark"
+          [disabled]="shipform.form.invalid"
+        >
+          Create Ship
+        </button>
+      </div>
     </div>
-    <div class="shipping-embark">
-      <button type="button" class="button__disembark" (click)="createShip()">
-        Create Ship
-      </button>
-    </div>
-  </div>
-</section>
+  </section>
+</form>

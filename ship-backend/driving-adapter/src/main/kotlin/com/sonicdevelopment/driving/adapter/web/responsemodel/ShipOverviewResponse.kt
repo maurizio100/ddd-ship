@@ -6,5 +6,6 @@ import java.util.*
 data class ShipOverviewResponse(
     val id: UUID,
     val name: String,
+    val catain: String,
     val shippingState: ShippingState?
 )

@@ -6,13 +6,14 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Cargo } from '../models/cargo';
 import { NewShipRequest } from '../models/new-ship-request';
-import {ShippingSummary} from "../models/shipping-summary";
+import { ShippingSummary } from '../models/shipping-summary';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ShipService {
-  private shipsUrl = 'http://localhost/web/ships';
+  private shipsUrl = `${environment.baseUrl}/ships`;
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
