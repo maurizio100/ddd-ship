@@ -5,9 +5,10 @@ import { ShippingSummary } from '../models/shipping-summary';
 import {CatainService} from "../services/catain.service";
 
 @Component({
-  selector: 'app-disembark-summary',
-  templateUrl: './disembark-summary.component.html',
-  styleUrls: ['./disembark-summary.component.css'],
+    selector: 'app-disembark-summary',
+    templateUrl: './disembark-summary.component.html',
+    styleUrls: ['./disembark-summary.component.css'],
+    standalone: false
 })
 export class DisembarkSummaryComponent implements OnInit {
   shipping!: ShippingSummary;

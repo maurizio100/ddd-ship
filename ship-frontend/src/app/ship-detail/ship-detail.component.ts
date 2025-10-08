@@ -9,9 +9,10 @@ import { DisembarkService } from '../services/disembark.service';
 import { Subject } from 'rxjs';
 
 @Component({
-  selector: 'app-ship-detail',
-  templateUrl: './ship-detail.component.html',
-  styleUrls: ['./ship-detail.component.css'],
+    selector: 'app-ship-detail',
+    templateUrl: './ship-detail.component.html',
+    styleUrls: ['./ship-detail.component.css'],
+    standalone: false
 })
 export class ShipDetailComponent implements OnInit {
   ship!: Ship;

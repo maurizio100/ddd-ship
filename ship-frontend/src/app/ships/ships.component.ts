@@ -4,9 +4,10 @@ import { ShipService } from '../services/ship-service.service';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-ships',
-  templateUrl: './ships.component.html',
-  styleUrls: ['./ships.component.css'],
+    selector: 'app-ships',
+    templateUrl: './ships.component.html',
+    styleUrls: ['./ships.component.css'],
+    standalone: false
 })
 export class ShipsComponent implements OnInit {
   // shippingState = ShippingState;

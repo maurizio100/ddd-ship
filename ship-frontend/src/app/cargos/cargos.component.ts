@@ -16,9 +16,10 @@ import { ShipService } from '../services/ship-service.service';
 import { ShippingSummary } from '../models/shipping-summary';
 
 @Component({
-  selector: 'app-cargos',
-  templateUrl: './cargos.component.html',
-  styleUrls: ['./cargos.component.css'],
+    selector: 'app-cargos',
+    templateUrl: './cargos.component.html',
+    styleUrls: ['./cargos.component.css'],
+    standalone: false
 })
 export class CargosComponent implements OnInit {
   @Input() ship!: Ship;
