@@ -11,6 +11,7 @@ import { ShipDetailComponent } from './ship-detail/ship-detail.component';
 import { CargosComponent } from './cargos/cargos.component';
 import { DisembarkSummaryComponent } from './disembark-summary/disembark-summary.component';
 import { NewShipComponent } from './new-ship/new-ship.component';
+import { StoreModule } from '@ngrx/store';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -22,5 +23,6 @@ import { NewShipComponent } from './new-ship/new-ship.component';
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         FormsModule,
-        AppRoutingModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
+        AppRoutingModule,
+        StoreModule.forRoot({}, {})], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule {}
