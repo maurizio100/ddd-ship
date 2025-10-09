@@ -1,26 +1,36 @@
-import { Component, OnInit } from '@angular/core';
-import { Ship, ShippingState } from '../models/ship';
-import { ShipService } from '../services/ship-service.service';
-import { Router } from '@angular/router';
+import {Component, OnInit} from '@angular/core';
+import {Ship, ShippingState} from '../models/ship';
+import {ShipService} from '../services/ship.service';
+import {Router} from '@angular/router';
+import {Store} from "@ngrx/store";
+import * as ShipActions from "../ngrx/ship.actions";
+import {selectAllShips} from "../ngrx/ship.selectors";
 
 @Component({
-    selector: 'app-ships',
-    templateUrl: './ships.component.html',
-    styleUrls: ['./ships.component.css'],
-    standalone: false
+  selector: 'app-ships',
+  templateUrl: './ships.component.html',
+  styleUrls: ['./ships.component.css'],
+  standalone: false
 })
 export class ShipsComponent implements OnInit {
   // shippingState = ShippingState;
-  ships: Ship[] = [];
+  ships$ = this.store.select(selectAllShips);
 
-  constructor(private shipService: ShipService, private router: Router) {}
+  constructor(
+    private shipService: ShipService,
+    private router: Router,
+    private store: Store
+  ) {
+  }
 
   ngOnInit(): void {
     this.getShips();
   }
 
   getShips(): void {
-    this.shipService.getShips().subscribe((ships) => (this.ships = ships));
+    this.shipService.getShips().subscribe((ships) => this.store.dispatch(
+      ShipActions.loadShipsSuccess({ships})
+    ));
   }
 
   createShipping(ship: Ship) {

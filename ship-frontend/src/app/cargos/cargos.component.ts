@@ -12,7 +12,7 @@ import { Observable } from 'rxjs';
 import { Cargo } from '../models/cargo';
 import { CargoService } from '../services/cargo.service';
 import { Ship } from '../models/ship';
-import { ShipService } from '../services/ship-service.service';
+import { ShipService } from '../services/ship.service';
 import { ShippingSummary } from '../models/shipping-summary';
 
 @Component({

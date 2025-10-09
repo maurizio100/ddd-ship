@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Catain } from '../models/catain';
 import { CatainService } from '../services/catain.service';
-import { ShipService } from '../services/ship-service.service';
+import { ShipService } from '../services/ship.service';
 import { NewShipRequest } from '../models/new-ship-request';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
+import {Store} from "@ngrx/store";
+import * as ShipActions from "../ngrx/ship.actions";
 
 @Component({
     selector: 'app-new-ship',
@@ -24,7 +26,8 @@ export class NewShipComponent implements OnInit {
     private catainService: CatainService,
     private shipService: ShipService,
     private router: Router,
-    private location: Location
+    private location: Location,
+    private store: Store
   ) {}
 
   ngOnInit(): void {
@@ -43,6 +46,7 @@ export class NewShipComponent implements OnInit {
 
   createShip() {
     this.shipService.addShip(this.shipRequest).subscribe((ship) => {
+      this.store.dispatch(ShipActions.addShipSuccess({ship}))
       this.router.navigate(['/ships']);
     });
   }

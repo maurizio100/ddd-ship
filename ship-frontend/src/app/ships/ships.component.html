@@ -14,7 +14,8 @@
 
 <section class="ships-list max-width-container">
   <div class="section-grid max-width">
-    @for (ship of ships; track ship) {
+    @for (ship of (ships$ | async); track ship) {
+
       <div class="ship">
         <div class="ship__image">
           <img [src]="getImageUrl(ship)" />
