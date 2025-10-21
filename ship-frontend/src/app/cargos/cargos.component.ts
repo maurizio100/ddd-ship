@@ -3,10 +3,7 @@ import {
   OnInit,
   Input,
   Output,
-  EventEmitter,
-  OnChanges,
-  SimpleChange,
-  SimpleChanges,
+  EventEmitter
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Cargo } from '../models/cargo';
@@ -23,8 +20,7 @@ import {LowerCasePipe, NgStyle} from "@angular/common";
   imports: [
     LowerCasePipe,
     NgStyle
-  ],
-  standalone: true
+  ]
 })
 export class CargosComponent implements OnInit {
   @Input() ship!: Ship;

@@ -16,8 +16,7 @@ import {CargosComponent} from "../cargos/cargos.component";
   imports: [
     UpperCasePipe,
     CargosComponent
-  ],
-  standalone: true
+  ]
 })
 export class ShipDetailComponent implements OnInit {
   ship!: Ship;

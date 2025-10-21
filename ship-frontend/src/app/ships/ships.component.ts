@@ -14,8 +14,7 @@ import {AsyncPipe} from "@angular/common";
   imports: [
     AsyncPipe,
     RouterLink
-  ],
-  standalone: true
+  ]
 })
 export class ShipsComponent implements OnInit {
   // shippingState = ShippingState;

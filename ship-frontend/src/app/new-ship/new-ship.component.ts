@@ -18,8 +18,7 @@ import {FormsModule} from "@angular/forms";
   imports: [
     FormsModule,
     NgClass
-  ],
-  standalone: true
+  ]
 })
 export class NewShipComponent implements OnInit {
   private store = inject(Store<Ship>);

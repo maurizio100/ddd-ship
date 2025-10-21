@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import { DisembarkService } from '../services/disembark.service';
 import { ShippingSummary } from '../models/shipping-summary';
-import {CatainService} from "../services/catain.service";
 import {CargosComponent} from "../cargos/cargos.component";
 
 @Component({
@@ -11,8 +10,7 @@ import {CargosComponent} from "../cargos/cargos.component";
   styleUrls: ['./disembark-summary.component.css'],
   imports: [
     CargosComponent
-  ],
-  standalone: true
+  ]
 })
 export class DisembarkSummaryComponent implements OnInit {
   shipping!: ShippingSummary;
@@ -21,8 +19,7 @@ export class DisembarkSummaryComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private disembarkService: DisembarkService,
-    private router: Router,
-    private catainService: CatainService
+    private router: Router
   ) {}
 
   ngOnInit(): void {
