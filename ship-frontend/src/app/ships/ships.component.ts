@@ -1,16 +1,21 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {Ship, ShippingState} from '../models/ship';
 import {ShipService} from '../services/ship.service';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {Store} from "@ngrx/store";
 import * as ShipActions from "../ngrx/ship.actions";
 import {selectAllShips} from "../ngrx/ship.selectors";
+import {AsyncPipe} from "@angular/common";
 
 @Component({
   selector: 'app-ships',
   templateUrl: './ships.component.html',
   styleUrls: ['./ships.component.css'],
-  standalone: false
+  imports: [
+    AsyncPipe,
+    RouterLink
+  ],
+  standalone: true
 })
 export class ShipsComponent implements OnInit {
   // shippingState = ShippingState;

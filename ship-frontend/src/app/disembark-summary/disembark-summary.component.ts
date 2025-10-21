@@ -3,12 +3,16 @@ import {ActivatedRoute, Router} from '@angular/router';
 import { DisembarkService } from '../services/disembark.service';
 import { ShippingSummary } from '../models/shipping-summary';
 import {CatainService} from "../services/catain.service";
+import {CargosComponent} from "../cargos/cargos.component";
 
 @Component({
-    selector: 'app-disembark-summary',
-    templateUrl: './disembark-summary.component.html',
-    styleUrls: ['./disembark-summary.component.css'],
-    standalone: false
+  selector: 'app-disembark-summary',
+  templateUrl: './disembark-summary.component.html',
+  styleUrls: ['./disembark-summary.component.css'],
+  imports: [
+    CargosComponent
+  ],
+  standalone: true
 })
 export class DisembarkSummaryComponent implements OnInit {
   shipping!: ShippingSummary;

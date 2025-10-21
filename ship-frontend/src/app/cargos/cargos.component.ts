@@ -14,12 +14,17 @@ import { CargoService } from '../services/cargo.service';
 import { Ship } from '../models/ship';
 import { ShipService } from '../services/ship.service';
 import { ShippingSummary } from '../models/shipping-summary';
+import {LowerCasePipe, NgStyle} from "@angular/common";
 
 @Component({
-    selector: 'app-cargos',
-    templateUrl: './cargos.component.html',
-    styleUrls: ['./cargos.component.css'],
-    standalone: false
+  selector: 'app-cargos',
+  templateUrl: './cargos.component.html',
+  styleUrls: ['./cargos.component.css'],
+  imports: [
+    LowerCasePipe,
+    NgStyle
+  ],
+  standalone: true
 })
 export class CargosComponent implements OnInit {
   @Input() ship!: Ship;

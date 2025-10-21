@@ -4,7 +4,7 @@ import {ShipService} from "../services/ship.service";
 import * as ShipActions from "./ship.actions";
 import {catchError, exhaustMap, map, of} from "rxjs";
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ShipsEffects {
 
   private actions$ = inject(Actions);

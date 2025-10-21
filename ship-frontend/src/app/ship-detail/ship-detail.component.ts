@@ -1,18 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Location } from '@angular/common';
+import {Location, UpperCasePipe} from '@angular/common';
 import { Router } from '@angular/router';
 
 import { Ship } from '../models/ship';
 import { ShipService } from '../services/ship.service';
 import { DisembarkService } from '../services/disembark.service';
 import { Subject } from 'rxjs';
+import {CargosComponent} from "../cargos/cargos.component";
 
 @Component({
-    selector: 'app-ship-detail',
-    templateUrl: './ship-detail.component.html',
-    styleUrls: ['./ship-detail.component.css'],
-    standalone: false
+  selector: 'app-ship-detail',
+  templateUrl: './ship-detail.component.html',
+  styleUrls: ['./ship-detail.component.css'],
+  imports: [
+    UpperCasePipe,
+    CargosComponent
+  ],
+  standalone: true
 })
 export class ShipDetailComponent implements OnInit {
   ship!: Ship;

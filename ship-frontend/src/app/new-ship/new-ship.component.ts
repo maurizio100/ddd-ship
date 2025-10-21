@@ -3,18 +3,23 @@ import { Catain } from '../models/catain';
 import { CatainService } from '../services/catain.service';
 import { NewShipRequest } from '../models/new-ship-request';
 import { Router } from '@angular/router';
-import { Location } from '@angular/common';
+import {Location, NgClass} from '@angular/common';
 import {Store} from "@ngrx/store";
 import * as ShipActions from "../ngrx/ship.actions";
 import {Ship} from "../models/ship";
 import {Actions, ofType} from "@ngrx/effects";
 import {take} from "rxjs";
+import {FormsModule} from "@angular/forms";
 
 @Component({
-    selector: 'app-new-ship',
-    templateUrl: './new-ship.component.html',
-    styleUrls: ['./new-ship.component.css'],
-    standalone: false
+  selector: 'app-new-ship',
+  templateUrl: './new-ship.component.html',
+  styleUrls: ['./new-ship.component.css'],
+  imports: [
+    FormsModule,
+    NgClass
+  ],
+  standalone: true
 })
 export class NewShipComponent implements OnInit {
   private store = inject(Store<Ship>);
