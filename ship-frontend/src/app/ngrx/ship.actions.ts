@@ -1,9 +1,11 @@
 import {createAction, props} from "@ngrx/store";
 import {Ship} from "../models/ship";
+import {NewShipRequest} from "../models/new-ship-request";
 
 const shipActions = {
   loadShips: '[Ship] Load Ships',
   loadShipsSuccess: '[Ship] Load Ships Success',
+  loadShipsFailed: '[Ship] Load Ships Failed',
   addShip: '[Ship] Add Ship',
   addShipSuccess: '[Ship] Add Ship Success',
   addShipFailure: '[Ship] Add Ship Failure',
@@ -18,14 +20,18 @@ export const loadShipsSuccess = createAction(
   props<{ships: Ship[]}>()
 );
 
+export const loadShipsFailed = createAction(
+  shipActions.loadShipsFailed
+);
+
 export const addShip = createAction(
   shipActions.addShip,
-  props<{ship: Ship}>()
+  props<NewShipRequest>()
 );
 
 export const addShipSuccess = createAction(
   shipActions.addShipSuccess,
-  props<{ship: Ship}>()
+  props<Ship>()
 );
 
 export const addShipFailure = createAction(

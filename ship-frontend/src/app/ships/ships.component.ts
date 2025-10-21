@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {Ship, ShippingState} from '../models/ship';
 import {ShipService} from '../services/ship.service';
 import {Router} from '@angular/router';
@@ -14,23 +14,17 @@ import {selectAllShips} from "../ngrx/ship.selectors";
 })
 export class ShipsComponent implements OnInit {
   // shippingState = ShippingState;
+  private store = inject(Store<{ships: Ship[]}>);
   ships$ = this.store.select(selectAllShips);
 
   constructor(
     private shipService: ShipService,
-    private router: Router,
-    private store: Store
+    private router: Router
   ) {
   }
 
   ngOnInit(): void {
-    this.getShips();
-  }
-
-  getShips(): void {
-    this.shipService.getShips().subscribe((ships) => this.store.dispatch(
-      ShipActions.loadShipsSuccess({ships})
-    ));
+    this.store.dispatch(ShipActions.loadShips());
   }
 
   createShipping(ship: Ship) {

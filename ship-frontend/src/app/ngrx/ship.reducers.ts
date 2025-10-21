@@ -28,7 +28,7 @@ export const shipReducers = createReducer(
       error: null
   })),
 
-  on(ShipActions.addShipSuccess, (state, {ship}) => ({
+  on(ShipActions.addShipSuccess, (state, ship) => ({
     ...state,
     ships: [...state.ships, ship],
     loading: false,

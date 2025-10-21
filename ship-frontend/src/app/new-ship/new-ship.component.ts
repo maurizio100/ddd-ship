@@ -1,12 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { Catain } from '../models/catain';
 import { CatainService } from '../services/catain.service';
-import { ShipService } from '../services/ship.service';
 import { NewShipRequest } from '../models/new-ship-request';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import {Store} from "@ngrx/store";
 import * as ShipActions from "../ngrx/ship.actions";
+import {Ship} from "../models/ship";
+import {Actions, ofType} from "@ngrx/effects";
+import {take} from "rxjs";
 
 @Component({
     selector: 'app-new-ship',
@@ -15,6 +17,9 @@ import * as ShipActions from "../ngrx/ship.actions";
     standalone: false
 })
 export class NewShipComponent implements OnInit {
+  private store = inject(Store<Ship>);
+  private actions$ = inject(Actions);
+
   catains: Catain[] = [];
 
   shipRequest: NewShipRequest = {
@@ -24,10 +29,8 @@ export class NewShipComponent implements OnInit {
 
   constructor(
     private catainService: CatainService,
-    private shipService: ShipService,
     private router: Router,
     private location: Location,
-    private store: Store
   ) {}
 
   ngOnInit(): void {
@@ -45,14 +48,11 @@ export class NewShipComponent implements OnInit {
   }
 
   createShip() {
-    this.shipService.addShip(this.shipRequest).subscribe((ship) => {
-      this.store.dispatch(ShipActions.addShipSuccess({ship}))
-      this.router.navigate(['/ships']);
-    });
-  }
-
-  selectCatain(id: string) {
-    this.shipRequest.catainId = id;
+    this.store.dispatch(ShipActions.addShip(this.shipRequest));
+    this.actions$.pipe(
+      ofType(ShipActions.addShipSuccess),
+      take(1)
+    ).subscribe(() => this.router.navigate(['/ships']));
   }
 
   cancel() {

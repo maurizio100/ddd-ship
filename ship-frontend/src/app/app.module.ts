@@ -15,6 +15,7 @@ import {StoreModule} from '@ngrx/store';
 import {EffectsModule} from '@ngrx/effects';
 import {StoreDevtoolsModule} from '@ngrx/store-devtools';
 import {shipReducers} from "./ngrx/ship.reducers";
+import {ShipsEffects} from "./ngrx/ships.effects";
 
 @NgModule({
   declarations: [
@@ -32,7 +33,6 @@ import {shipReducers} from "./ngrx/ship.reducers";
     StoreModule.forRoot({
       ships: shipReducers
     }, {}),
-    EffectsModule.forRoot([]),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: !isDevMode()})],
   providers: [provideHttpClient(withInterceptorsFromDi())]
 })
