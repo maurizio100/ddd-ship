@@ -20,12 +20,10 @@ export class ShipsComponent implements OnInit {
   // shippingState = ShippingState;
   private store = inject(Store<{ships: Ship[]}>);
   ships$ = this.store.select(selectAllShips);
+  private shipService = inject(ShipService);
+  private router = inject(Router);
 
-  constructor(
-    private shipService: ShipService,
-    private router: Router
-  ) {
-  }
+  constructor() {}
 
   ngOnInit(): void {
     this.store.dispatch(ShipActions.loadShips());

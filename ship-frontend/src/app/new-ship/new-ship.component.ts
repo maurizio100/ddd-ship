@@ -23,6 +23,10 @@ import {FormsModule} from "@angular/forms";
 export class NewShipComponent implements OnInit {
   private store = inject(Store<Ship>);
   private actions$ = inject(Actions);
+  private router = inject(Router);
+  private location = inject(Location);
+  private catainService = inject(CatainService);
+
 
   catains: Catain[] = [];
 
@@ -31,11 +35,7 @@ export class NewShipComponent implements OnInit {
     catainId: '',
   };
 
-  constructor(
-    private catainService: CatainService,
-    private router: Router,
-    private location: Location,
-  ) {}
+  constructor() {}
 
   ngOnInit(): void {
     this.getCatains();
