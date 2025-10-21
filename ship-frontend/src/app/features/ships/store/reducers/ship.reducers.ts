@@ -1,6 +1,6 @@
 import {createReducer, on} from "@ngrx/store";
-import {ShipState} from "./index";
-import * as ShipActions from "./ship.actions";
+import {ShipState} from "../selectors/ship.selectors";
+import * as ShipActions from "../actions/ship.actions";
 
 export const initialState: ShipState = {
   ships: [],

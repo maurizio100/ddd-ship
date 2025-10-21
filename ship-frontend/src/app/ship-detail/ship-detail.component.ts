@@ -4,7 +4,7 @@ import {Location, UpperCasePipe} from '@angular/common';
 import { Router } from '@angular/router';
 
 import { Ship } from '../models/ship';
-import { ShipService } from '../services/ship.service';
+import { ShippingService } from '../services/shipping.service';
 import { DisembarkService } from '../services/disembark.service';
 import { Subject } from 'rxjs';
 import {CargosComponent} from "../cargos/cargos.component";
@@ -24,7 +24,7 @@ export class ShipDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private shipService: ShipService,
+    private shippingService: ShippingService,
     private disembarkService: DisembarkService,
     private location: Location,
     private router: Router
@@ -36,7 +36,7 @@ export class ShipDetailComponent implements OnInit {
 
   getShip(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.shipService.getShip(id).subscribe((ship) => (this.ship = ship));
+    this.shippingService.getShip(id).subscribe((ship) => (this.ship = ship));
   }
 
   disembark(): void {

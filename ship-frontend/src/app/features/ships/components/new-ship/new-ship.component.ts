@@ -1,15 +1,15 @@
 import {Component, inject, OnInit} from '@angular/core';
-import { Catain } from '../models/catain';
-import { CatainService } from '../services/catain.service';
-import { NewShipRequest } from '../models/new-ship-request';
 import { Router } from '@angular/router';
 import {Location, NgClass} from '@angular/common';
 import {Store} from "@ngrx/store";
-import * as ShipActions from "../ngrx/ship.actions";
-import {Ship} from "../models/ship";
 import {Actions, ofType} from "@ngrx/effects";
 import {take} from "rxjs";
 import {FormsModule} from "@angular/forms";
+import {CatainService} from "../../../../services/catain.service";
+import {Ship} from "../../models/ship";
+import {Catain} from "../../../../models/catain";
+import {NewShipRequest} from "../../models/new-ship-request";
+import * as ShipActions from "../../store/actions/ship.actions";
 
 @Component({
   selector: 'app-new-ship',

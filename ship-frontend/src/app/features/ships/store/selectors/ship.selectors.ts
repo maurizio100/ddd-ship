@@ -1,5 +1,11 @@
 import {createFeatureSelector, createSelector} from "@ngrx/store";
-import {ShipState} from ".";
+import {Ship} from "../../models/ship";
+
+export interface ShipState {
+  ships: Ship[];
+  loading: boolean;
+  error: string | null;
+}
 
 export const selectShipsState = createFeatureSelector<ShipState>('ships');
 

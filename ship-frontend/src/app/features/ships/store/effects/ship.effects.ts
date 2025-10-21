@@ -1,11 +1,11 @@
 import {inject, Injectable} from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
-import {ShipService} from "../services/ship.service";
-import * as ShipActions from "./ship.actions";
+import * as ShipActions from "../actions/ship.actions";
 import {catchError, exhaustMap, map, of} from "rxjs";
+import {ShipService} from "../../services/ship.service";
 
 @Injectable()
-export class ShipsEffects {
+export class ShipEffects {
 
   private actions$ = inject(Actions);
   private shipService = inject(ShipService);

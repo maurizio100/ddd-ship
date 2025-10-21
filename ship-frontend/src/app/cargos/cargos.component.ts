@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 import { Cargo } from '../models/cargo';
 import { CargoService } from '../services/cargo.service';
 import { Ship } from '../models/ship';
-import { ShipService } from '../services/ship.service';
+import { ShippingService } from '../services/shipping.service';
 import { ShippingSummary } from '../models/shipping-summary';
 import {LowerCasePipe, NgStyle} from "@angular/common";
 
@@ -36,7 +36,7 @@ export class CargosComponent implements OnInit {
 
   constructor(
     private cargoService: CargoService,
-    private shipServiceService: ShipService
+    private shippingService: ShippingService
   ) {}
 
   ngOnInit(): void {
@@ -72,11 +72,11 @@ export class CargosComponent implements OnInit {
 
   performLoading(cargo: Cargo) {
     if (!this.showLoaded) {
-      this.shipServiceService.loadCargo(this.ship, cargo).subscribe((ship) => {
+      this.shippingService.loadCargo(this.ship, cargo).subscribe((ship) => {
         this.shipUpdated.emit(ship);
       });
     } else {
-      this.shipServiceService
+      this.shippingService
         .unloadCargo(this.ship, cargo)
         .subscribe((ship) => {
           this.shipUpdated.emit(ship);

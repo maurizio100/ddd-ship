@@ -1,6 +1,6 @@
 import {createAction, props} from "@ngrx/store";
-import {Ship} from "../models/ship";
-import {NewShipRequest} from "../models/new-ship-request";
+import {Ship} from "../../models/ship";
+import {NewShipRequest} from "../../models/new-ship-request";
 
 const shipActions = {
   loadShips: '[Ship] Load Ships',

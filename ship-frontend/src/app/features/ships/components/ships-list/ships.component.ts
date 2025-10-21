@@ -1,11 +1,12 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {Ship, ShippingState} from '../models/ship';
-import {ShipService} from '../services/ship.service';
 import {Router, RouterLink} from '@angular/router';
 import {Store} from "@ngrx/store";
-import * as ShipActions from "../ngrx/ship.actions";
-import {selectAllShips} from "../ngrx/ship.selectors";
 import {AsyncPipe} from "@angular/common";
+import {Ship} from "../../models/ship";
+import {selectAllShips} from "../../store/selectors/ship.selectors";
+import {ShipService} from "../../services/ship.service";
+import * as ShipActions from "../../store/actions/ship.actions";
+import {ShippingState} from "../../models/ship";
 
 @Component({
   selector: 'app-ships',
@@ -17,11 +18,11 @@ import {AsyncPipe} from "@angular/common";
   ]
 })
 export class ShipsComponent implements OnInit {
-  // shippingState = ShippingState;
   private store = inject(Store<{ships: Ship[]}>);
-  ships$ = this.store.select(selectAllShips);
   private shipService = inject(ShipService);
   private router = inject(Router);
+
+  ships$ = this.store.select(selectAllShips);
 
   constructor() {}
 
@@ -59,6 +60,4 @@ export class ShipsComponent implements OnInit {
   isShipAway(ship: Ship): boolean {
     return ship.shippingState === ShippingState.SHIPPING;
   }
-
-  protected readonly ShippingState = ShippingState;
 }
