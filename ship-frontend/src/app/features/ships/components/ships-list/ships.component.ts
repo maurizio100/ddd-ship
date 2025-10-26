@@ -2,11 +2,10 @@ import {Component, inject, OnInit} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
 import {Store} from "@ngrx/store";
 import {AsyncPipe} from "@angular/common";
-import {Ship} from "../../models/ship";
+import {Ship, ShippingState} from "../../models/ship";
 import {selectAllShips} from "../../store/selectors/ship.selectors";
 import {ShipService} from "../../services/ship.service";
 import * as ShipActions from "../../store/actions/ship.actions";
-import {ShippingState} from "../../models/ship";
 
 @Component({
   selector: 'app-ships',
@@ -18,9 +17,9 @@ import {ShippingState} from "../../models/ship";
   ]
 })
 export class ShipsComponent implements OnInit {
-  private store = inject(Store<{ships: Ship[]}>);
-  private shipService = inject(ShipService);
-  private router = inject(Router);
+  private readonly store = inject(Store<{ships: Ship[]}>);
+  private readonly shipService = inject(ShipService);
+  private readonly router = inject(Router);
 
   ships$ = this.store.select(selectAllShips);
 

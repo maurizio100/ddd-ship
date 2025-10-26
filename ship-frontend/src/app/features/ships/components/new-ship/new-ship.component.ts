@@ -1,15 +1,16 @@
 import {Component, inject, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
-import {Location, NgClass} from '@angular/common';
+import {AsyncPipe, Location, NgClass} from '@angular/common';
 import {Store} from "@ngrx/store";
 import {Actions, ofType} from "@ngrx/effects";
 import {take} from "rxjs";
 import {FormsModule} from "@angular/forms";
-import {CatainService} from "../../../../services/catain.service";
 import {Ship} from "../../models/ship";
-import {Catain} from "../../../../models/catain";
+import {Catain} from "../../../catains/model/catain";
 import {NewShipRequest} from "../../models/new-ship-request";
 import * as ShipActions from "../../store/actions/ship.actions";
+import * as CatainsActions from "../../../catains/store/catains.actions";
+import {environment} from "../../../../../environments/environment";
 
 @Component({
   selector: 'app-new-ship',
@@ -17,42 +18,36 @@ import * as ShipActions from "../../store/actions/ship.actions";
   styleUrls: ['./new-ship.component.css'],
   imports: [
     FormsModule,
-    NgClass
+    NgClass,
+    AsyncPipe
   ]
 })
 export class NewShipComponent implements OnInit {
-  private store = inject(Store<Ship>);
-  private actions$ = inject(Actions);
-  private router = inject(Router);
-  private location = inject(Location);
-  private catainService = inject(CatainService);
+  private readonly shipStore = inject(Store<Ship>);
+  private readonly catainStore = inject(Store<Catain>);
+  private readonly actions$ = inject(Actions);
+  private readonly router = inject(Router);
+  private readonly location = inject(Location);
 
+  private readonly catainsUrl = `${environment.baseUrl}/catains`
 
-  catains: Catain[] = [];
+  catains$ = this.catainStore.select(state => state.catains.catains);
 
   shipRequest: NewShipRequest = {
     name: '',
     catainId: '',
   };
 
-  constructor() {}
-
   ngOnInit(): void {
-    this.getCatains();
-  }
-
-  getCatains(): void {
-    this.catainService
-      .getCatains()
-      .subscribe((catains) => (this.catains = catains));
+    this.catainStore.dispatch(CatainsActions.loadCatains());
   }
 
   getImageUrl(id: string): string {
-    return this.catainService.getCatainImageUrl(id);
+    return `${this.catainsUrl}/${id}/image`;
   }
 
   createShip() {
-    this.store.dispatch(ShipActions.addShip(this.shipRequest));
+    this.shipStore.dispatch(ShipActions.addShip(this.shipRequest));
     this.actions$.pipe(
       ofType(ShipActions.addShipSuccess),
       take(1)

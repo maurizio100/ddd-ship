@@ -24,7 +24,7 @@
     <div class="max-width catain-list__container catain-list-border">
       <h2 class="catain-list__title">Choose Your Catain</h2>
       <div class="section-grid" role="radiogroup">
-        @for (catain of catains; track catain) {
+        @for (catain of (catains$ | async); track catain) {
           <label
             class="catain"
           [ngClass]="{

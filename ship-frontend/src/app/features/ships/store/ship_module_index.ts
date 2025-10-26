@@ -1,4 +1,3 @@
-
 export * from './actions/ship.actions';
 export * from './reducers/ship.reducers';
 export * from './effects/ship.effects';

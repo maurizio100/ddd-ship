@@ -12,7 +12,7 @@ spring:
     generate-ddl: true
 
 minio:
-  url: http://hexagonship-minio:9000
+  url: http://localhost:9000
   access:
     name: hexagonminio
     secret: hexagonminio
