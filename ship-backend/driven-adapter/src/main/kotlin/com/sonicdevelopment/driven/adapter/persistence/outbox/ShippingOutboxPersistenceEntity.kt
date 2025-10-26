@@ -12,7 +12,7 @@ class ShippingOutboxPersistenceEntity(
     @Id
     @UuidGenerator
     @Column(name = "message_id")
-    var id: UUID = UUID.randomUUID(),
+    var id: UUID? = null,
 
     @Column(name = "aggregate_type")
     var aggregatetype: String,

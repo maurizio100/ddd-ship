@@ -6,11 +6,11 @@ import {
   EventEmitter
 } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Cargo } from '../models/cargo';
-import { CargoService } from '../services/cargo.service';
-import { Ship } from '../models/ship';
-import { ShippingService } from '../services/shipping.service';
-import { ShippingSummary } from '../models/shipping-summary';
+import { Cargo } from '../../models/cargo';
+import { CargoService } from '../../services/cargo.service';
+import { Ship } from '../../models/ship';
+import { ShippingService } from '../../services/shipping.service';
+import { ShippingSummary } from '../../models/shipping-summary';
 import {LowerCasePipe, NgStyle} from "@angular/common";
 
 @Component({

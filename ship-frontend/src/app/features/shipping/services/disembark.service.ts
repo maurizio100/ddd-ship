@@ -2,7 +2,7 @@ import { HttpClient, HttpHandler, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Ship } from '../models/ship';
 import { ShippingSummary } from '../models/shipping-summary';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';

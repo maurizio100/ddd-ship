@@ -1,13 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import {Location, UpperCasePipe} from '@angular/common';
-import { Router } from '@angular/router';
-
-import { Ship } from '../models/ship';
-import { ShippingService } from '../services/shipping.service';
-import { DisembarkService } from '../services/disembark.service';
-import { Subject } from 'rxjs';
+import {Component, inject, OnInit} from "@angular/core";
+import {Location, UpperCasePipe} from "@angular/common";
 import {CargosComponent} from "../cargos/cargos.component";
+import {Ship} from "../../models/ship";
+import {Subject} from "rxjs";
+import {ActivatedRoute, Router} from "@angular/router";
+import {ShippingService} from "../../services/shipping.service";
+import {DisembarkService} from "../../services/disembark.service";
+
 
 @Component({
   selector: 'app-ship-detail',
@@ -22,13 +21,13 @@ export class ShipDetailComponent implements OnInit {
   ship!: Ship;
   cargoLoadSubject = new Subject<Ship>();
 
-  constructor(
-    private route: ActivatedRoute,
-    private shippingService: ShippingService,
-    private disembarkService: DisembarkService,
-    private location: Location,
-    private router: Router
-  ) {}
+  private readonly route = inject(ActivatedRoute);
+  private readonly shippingService = inject(ShippingService);
+  private readonly disembarkService = inject(DisembarkService);
+  private readonly location = inject(Location);
+  private readonly router = inject(Router);
+
+  constructor() {}
 
   ngOnInit(): void {
     this.getShip();

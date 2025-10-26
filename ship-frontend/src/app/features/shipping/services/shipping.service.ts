@@ -5,7 +5,7 @@ import { Ship } from '../models/ship';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Cargo } from '../models/cargo';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import {ShippingSummary} from "../models/shipping-summary";
 
 @Injectable({

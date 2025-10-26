@@ -6,8 +6,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { NewShipRequest } from '../models/new-ship-request';
 import {environment} from "../../../../environments/environment";
-import {Cargo} from "../../../models/cargo";
-import {ShippingSummary} from "../../../models/shipping-summary";
+import {Cargo} from "../../shipping/models/cargo";
+import {ShippingSummary} from "../../shipping/models/shipping-summary";
 
 @Injectable({
   providedIn: 'root',

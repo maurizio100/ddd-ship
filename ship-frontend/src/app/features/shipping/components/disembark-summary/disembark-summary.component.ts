@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import { DisembarkService } from '../services/disembark.service';
-import { ShippingSummary } from '../models/shipping-summary';
+import { DisembarkService } from '../../services/disembark.service';
+import { ShippingSummary } from '../../models/shipping-summary';
 import {CargosComponent} from "../cargos/cargos.component";
 
 @Component({

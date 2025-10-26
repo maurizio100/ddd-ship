@@ -9,15 +9,13 @@ export const routes: Routes = [
         .then(m => m.SHIPS_ROUTES)
   },
   {
-    path: 'ships/:id/cargo', loadComponent: () =>
-      import('./cargos/cargos.component')
-        .then(m => m.CargosComponent)
-  },
-  {
+    path: 'ships/:id/cargo', loadChildren: () =>
+      import('./features/shipping/ShippingRouting')
+        .then(m => m.SHIPPING_ROUTES)
+  }, {
     path: 'ships/:shipId/shipping/:shippingId', loadComponent: () =>
-      import('./disembark-summary/disembark-summary.component')
+      import('./features/shipping/components/disembark-summary/disembark-summary.component')
         .then(m => m.DisembarkSummaryComponent)
-  },
-
+  }
 ];
 
