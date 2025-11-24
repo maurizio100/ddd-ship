@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.outbox
 import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEvent
 import jakarta.persistence.*
 import org.hibernate.annotations.UuidGenerator
+import org.hibernate.annotations.UuidGenerator.*
 import java.util.*
 
 @Entity
@@ -10,7 +11,7 @@ import java.util.*
 class ShippingOutboxPersistenceEntity(
 
     @Id
-    @UuidGenerator
+    @UuidGenerator(style = Style.RANDOM)
     @Column(name = "message_id")
     var id: UUID? = null,
 
@@ -25,6 +26,5 @@ class ShippingOutboxPersistenceEntity(
 
     @Column(name = "payload", columnDefinition = "TEXT")
     @Convert(converter = ShippingEventConverter::class)
-    var payload: ShippingEvent,
-) {
-}
+    var payload: ShippingEvent
+)
