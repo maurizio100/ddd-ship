@@ -53,7 +53,7 @@ services:
       - "hexagonship-postgres-data-solo:/var/lib/postgresql/data"
   minio:
     container_name: hexagonship-minio
-    image: bitnami/minio:latest
+    image: minio/minio:latest
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -65,3 +65,4 @@ services:
       - MINIO_ROOT_USER=hexagonminio
       - MINIO_ROOT_PASSWORD=hexagonminio
       - MINIO_DEFAULT_BUCKETS=catains
+    command: server /data --console-address ":9001"

@@ -7,13 +7,13 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class MinioConfig {
-    @Value("\${minio.url}")
+    @Value($$"${minio.url}")
     private val url: String? = null
 
-    @Value("\${minio.access.name}")
+    @Value($$"${minio.access.name}")
     private val accessKey: String? = null
 
-    @Value("\${minio.access.secret}")
+    @Value($$"${minio.access.secret}")
     private val accessSecret: String? = null
 
     @Bean

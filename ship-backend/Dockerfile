@@ -1,6 +1,5 @@
-FROM maven:3.9-eclipse-temurin-17 as deps
-
-LABEL authors="maurizio"
+# ------------ Build Dependencies ------------
+FROM maven:3.9-eclipse-temurin-21 AS deps
 WORKDIR /app
 
 COPY pom.xml .
@@ -11,22 +10,27 @@ COPY driving-adapter/pom.xml driving-adapter/pom.xml
 
 RUN mvn -B -e -C dependency:go-offline
 
-FROM maven:3.9-eclipse-temurin-17 as builder
+
+# ------------ Build Stage ------------
+FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /app
 
 COPY --from=deps /root/.m2 /root/.m2
 COPY --from=deps /app /app
 
-COPY application/src /app/application/src
-COPY domain/src /app/domain/src
-COPY driven-adapter/src /app/driven-adapter/src
-COPY driving-adapter/src /app/driving-adapter/src
+COPY application/src application/src
+COPY domain/src domain/src
+COPY driven-adapter/src driven-adapter/src
+COPY driving-adapter/src driving-adapter/src
 
-RUN mvn clean install
+RUN mvn clean install -DskipTests
 
-FROM eclipse-temurin:17-jre-jammy
 
-COPY --from=builder /app/application/target/application-1.0.0-SNAPSHOT.jar /application.jar
+# ------------ Runtime Stage ------------
+FROM eclipse-temurin:21-jre
+WORKDIR /
+
+COPY --from=builder /app/application/target/application-1.0.0-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT [ "java", "-jar", "application.jar"]
+ENTRYPOINT ["java", "-jar", "/app.jar"]
