@@ -1,5 +1,5 @@
 {
-  "name": "ship-frontend",
+  "name": "test-angular-20",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -7,6 +7,18 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
   },
   "private": true,
   "dependencies": {

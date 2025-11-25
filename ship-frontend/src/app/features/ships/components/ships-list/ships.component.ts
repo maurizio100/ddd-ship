@@ -42,7 +42,7 @@ export class ShipsComponent implements OnInit {
   }
 
   getImageUrl(ship: Ship) {
-    return '/assets/img/ship.jpg';
+    return '/img/ship.jpg';
   }
 
   canCreateNewShipping(ship: Ship): boolean {

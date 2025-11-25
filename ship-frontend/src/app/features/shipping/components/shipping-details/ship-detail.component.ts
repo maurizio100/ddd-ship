@@ -1,5 +1,5 @@
 import {Component, inject, OnInit} from "@angular/core";
-import {Location, UpperCasePipe} from "@angular/common";
+import {Location, NgOptimizedImage, UpperCasePipe} from "@angular/common";
 import {CargosComponent} from "../cargos/cargos.component";
 import {Ship} from "../../models/ship";
 import {Subject} from "rxjs";
@@ -14,7 +14,8 @@ import {DisembarkService} from "../../services/disembark.service";
   styleUrls: ['./ship-detail.component.css'],
   imports: [
     UpperCasePipe,
-    CargosComponent
+    CargosComponent,
+    NgOptimizedImage
   ]
 })
 export class ShipDetailComponent implements OnInit {

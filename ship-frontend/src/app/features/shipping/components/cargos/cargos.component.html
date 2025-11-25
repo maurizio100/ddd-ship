@@ -2,7 +2,7 @@
   @for (cargo of cargos; track cargo) {
     <div (click)="performLoading(cargo)" class="cargo-item"
         [ngStyle]="{
-            'background-image': 'url(/assets/cargo/' + (cargo.name | lowercase) + '.jpg)',
+            'background-image': 'url(/cargo/' + (cargo.name | lowercase) + '.jpg)',
             'background-size': '80px 80px',
             'background-repeat': 'no-repeat'
 
