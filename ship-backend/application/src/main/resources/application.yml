@@ -18,3 +18,14 @@ minio:
     secret: hexagonminio
   bucket:
     name: catains
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  endpoints:
+    web:
+      exposure:
+        include: health,info

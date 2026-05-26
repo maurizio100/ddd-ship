@@ -1,0 +1,103 @@
+                            ┌──────────────────────────────────────┐
+    Browser ──── :80 ──────►│  (port-forward / NodePort / Ingress) │
+                            └──────────────────┬───────────────────┘
+                                               │
+                                               ▼
+                            ┌──────────────────────────────────────┐
+                            │  Service: frontend                   │
+                            │  type: ClusterIP    port: 80         │
+                            │  selector: app=frontend              │
+                            └──────────────────┬───────────────────┘
+                                               │
+                            ┌──────────────────┴───────────────────┐
+                            │  Deployment: frontend  (replicas: 2) │
+                            │  ┌────────────────────────────────┐  │
+                            │  │ Pod  nginx + Angular static    │  │
+                            │  │   image: ddd-ship-frontend     │  │
+                            │  │   probe: GET /                 │  │
+                            │  └────────────────────────────────┘  │
+                            │  ┌────────────────────────────────┐  │
+                            │  │ Pod  nginx + Angular static    │  │
+                            │  └────────────────────────────────┘  │
+                            └──────────────────┬───────────────────┘
+                                               │
+                                proxy_pass     │   /web → backend:8080
+                                               ▼
+                            ┌──────────────────────────────────────┐
+                            │  Service: hexagonship-backend        │
+                            │  type: ClusterIP    port: 8080       │
+                            │  selector: app=backend               │
+                            └──────────────────┬───────────────────┘
+                                               │
+                            ┌──────────────────┴───────────────────┐
+                            │  Deployment: backend   (replicas: 2) │
+                            │  ┌────────────────────────────────┐  │
+                            │  │ Pod  Spring Boot               │  │
+                            │  │   image: ddd-ship-backend      │  │
+                            │  │   envFrom: backend-config (CM) │  │
+                            │  │   env:                         │  │
+                            │  │     SPRING_DATASOURCE_USERNAME │  │
+                            │  │       ← postgres-credentials   │  │
+                            │  │     SPRING_DATASOURCE_PASSWORD │  │
+                            │  │       ← postgres-credentials   │  │
+                            │  │     MINIO_ACCESS_NAME          │  │
+                            │  │       ← minio-credentials      │  │
+                            │  │     MINIO_ACCESS_SECRET        │  │
+                            │  │       ← minio-credentials      │  │
+                            │  │   probes:                      │  │
+                            │  │     /actuator/health/readiness │  │
+                            │  │     /actuator/health/liveness  │  │
+                            │  └────────────────────────────────┘  │
+                            │  ┌────────────────────────────────┐  │
+                            │  │ Pod  Spring Boot               │  │
+                            │  └────────────────────────────────┘  │
+                            └────────┬────────────────────┬────────┘
+                                     │                    │
+                  jdbc:postgresql:// │                    │ http://minio:9000
+                    postgres:5432    │                    │
+                                     ▼                    ▼
+                ┌──────────────────────────┐   ┌──────────────────────────┐
+                │ Service: postgres        │   │ Service: minio           │
+                │ Headless (clusterIP:None)│   │ Headless (clusterIP:None)│
+                │ port: 5432               │   │ ports: 9000 (api)        │
+                │ selector: app=postgres   │   │        9001 (console)    │
+                └────────────┬─────────────┘   └────────────┬─────────────┘
+                             │                              │
+                ┌────────────┴─────────────┐   ┌────────────┴─────────────┐
+                │ StatefulSet: postgres    │   │ StatefulSet: minio       │
+                │ replicas: 1              │   │ replicas: 1              │
+                │ ┌──────────────────────┐ │   │ ┌──────────────────────┐ │
+                │ │ Pod  postgres-0      │ │   │ │ Pod  minio-0         │ │
+                │ │  image: postgres:13.6│ │   │ │  image: bitnami/minio│ │
+                │ │  args: wal_level=    │ │   │ │  env: MINIO_DEFAULT_ │ │
+                │ │        logical       │ │   │ │       BUCKETS=catains│ │
+                │ │  envFrom:            │ │   │ │  envFrom:            │ │
+                │ │   postgres-          │ │   │ │   minio-credentials  │ │
+                │ │   credentials (Sec.) │ │   │ │   (Secret)           │ │
+                │ │  mount: /var/lib/    │ │   │ │  mount: /data        │ │
+                │ │         postgresql/  │ │   │ │                      │ │
+                │ │         data         │ │   │ │                      │ │
+                │ └──────────┬───────────┘ │   │ └──────────┬───────────┘ │
+                │            ▼             │   │            ▼             │
+                │      ┌───────────┐       │   │      ┌────────────┐      │
+                │      │ PVC       │       │   │      │ PVC        │      │
+                │      │ pgdata-   │       │   │      │ minio-data-│      │
+                │      │ postgres-0│       │   │      │ minio-0    │      │
+                │      │ 5Gi RWO   │       │   │      │ 5Gi RWO    │      │
+                │      └───────────┘       │   │      └────────────┘      │
+                └──────────────────────────┘   └──────────────────────────┘
+
+
+    Shared cluster-scoped config used above:
+
+    ┌─────────────────────────────┐   ┌─────────────────────────────┐
+    │ ConfigMap: backend-config   │   │ Secret: postgres-credentials│
+    │  SPRING_PROFILES_ACTIVE=dev │   │  POSTGRES_DB                │
+    │  SPRING_DATASOURCE_URL=...  │   │  POSTGRES_USER              │
+    │  MINIO_URL=http://minio:9000│   │  POSTGRES_PASSWORD          │
+    │  MINIO_BUCKET_NAME=catains  │   └─────────────────────────────┘
+    └─────────────────────────────┘   ┌─────────────────────────────┐
+                                      │ Secret: minio-credentials   │
+    All objects live in namespace:    │  MINIO_ROOT_USER            │
+         ddd-ship                     │  MINIO_ROOT_PASSWORD        │
+                                      └─────────────────────────────┘
