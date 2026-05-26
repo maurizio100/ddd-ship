@@ -33,15 +33,13 @@ spec:
     spec:
       containers:
         - name: minio
-          image: bitnami/minio:latest
+          image: minio/minio:latest
+          args: ["server", "/data", "--console-address", ":9001"]
           ports:
             - containerPort: 9000
               name: api
             - containerPort: 9001
               name: console
-          env:
-            - name: MINIO_DEFAULT_BUCKETS
-              value: "catains"
           envFrom:
             - secretRef:
                 name: minio-credentials

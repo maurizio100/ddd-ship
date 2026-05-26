@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ddd-ship-backend:latest
+          image: moonrider100/hexagonship-backend:latest
           ports:
             - containerPort: 8080
           envFrom:
