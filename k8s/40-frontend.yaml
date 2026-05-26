@@ -28,6 +28,7 @@ spec:
       containers:
         - name: frontend
           image: ddd-ship-frontend:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
           readinessProbe:
