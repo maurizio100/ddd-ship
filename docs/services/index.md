@@ -12,5 +12,6 @@ in step.
 
 ## Components
 
-_No components documented yet._ Run the `finalize-conventions` skill once the architecture
-has settled on a decomposition.
+- [ship-backend](ship-backend/README.md) — REST API, domain logic, persistence and outbox for Fleet, CargoLoading and Shipping
+- [ship-frontend](ship-frontend/README.md) — Angular/NgRx UI for managing ships, loading Cargo and Releasing
+- [ship-terminal](ship-terminal/README.md) — Kafka consumer that announces departed ships (HarborTerminal)
