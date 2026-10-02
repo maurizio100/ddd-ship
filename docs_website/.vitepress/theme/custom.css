@@ -1,0 +1,287 @@
+/* ────────────────────────────────────────────────────────────────────────
+ * Docs portal — VitePress theme skin
+ * A neutral blue Material-3 skin: shape scale, pale-blue canvas with bordered
+ * white surfaces, restrained elevation, pill buttons. Typeface: Inter.
+ * Re-theme by editing the palette tokens below (--more-* / --vp-c-brand-*).
+ * ──────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* MORE palette ---------------------------------------------------------- */
+  --more-blue:        #00417b;   /* primary-40 — the brand */
+  --more-blue-30:     #0e4782;
+  --more-blue-20:     #00315f;
+  --more-blue-light:  #e5eef5;
+  --more-blue-medium: #c8def1;
+  --more-canvas:      #f2f7fa;   /* WEB page background */
+  --more-fg:          #16212c;   /* root-dark — primary text */
+  --more-fg-2:        #5a5f62;   /* neutral-40 — muted */
+  --more-fg-3:        #72787b;   /* neutral-50 — captions */
+  --more-border:      #dee3e6;   /* neutral-90 — borders do the work */
+  --more-border-2:    #c2c7ca;   /* neutral-80 */
+  --more-sunken:      #ecf1f4;   /* neutral-95 */
+  --more-surface-2:   #f5fafd;   /* neutral-98 */
+  --more-success:     #337432;
+  --more-success-bg:  #c7dbc7;
+  --more-warn:        #e07564;
+  --more-warn-bg:     #f3d8d4;
+  --more-error:       #ba1a1a;
+  --more-error-bg:    #ffdad6;
+
+  /* Typography ------------------------------------------------------------ */
+  --vp-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Brand accent (links, active nav, buttons) ----------------------------- */
+  --vp-c-brand-1: var(--more-blue);
+  --vp-c-brand-2: var(--more-blue-30);
+  --vp-c-brand-3: var(--more-blue-20);
+  --vp-c-brand-soft:   rgba(0, 65, 123, 0.08);
+  --vp-c-brand-softer: rgba(0, 65, 123, 0.05);
+
+  /* Surfaces — white reading column on a pale-blue frame ------------------ */
+  --vp-c-bg:      #ffffff;
+  --vp-c-bg-alt:  var(--more-canvas);
+  --vp-c-bg-soft: var(--more-surface-2);
+  --vp-c-bg-elv:  #ffffff;
+
+  --vp-c-text-1: var(--more-fg);
+  --vp-c-text-2: var(--more-fg-2);
+  --vp-c-text-3: var(--more-fg-3);
+
+  --vp-c-border:  var(--more-border);
+  --vp-c-divider: var(--more-border);
+  --vp-c-gutter:  var(--more-border);
+
+  /* Code ------------------------------------------------------------------ */
+  --vp-code-block-bg: var(--more-surface-2);
+
+  /* Home hero — no gradients (MORE is a "no gradient" system) -------------- */
+  --vp-home-hero-name-color: var(--more-blue);
+  --vp-home-hero-image-background-image: none;
+  --vp-home-hero-image-filter: none;
+
+  /* Restrained shadows (borders do the visual work) ----------------------- */
+  --vp-shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --vp-shadow-2: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --vp-shadow-3: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode — derived from the Material 3 tonal scale around #00417B ------- */
+.dark {
+  --vp-c-brand-1: #81adee;   /* primary-70 */
+  --vp-c-brand-2: #a5c8ff;   /* primary-80 */
+  --vp-c-brand-3: #6692d1;   /* primary-60 */
+  --vp-c-brand-soft:   rgba(129, 173, 238, 0.14);
+  --vp-c-brand-softer: rgba(129, 173, 238, 0.08);
+
+  --vp-c-bg:      #16212c;   /* root-dark */
+  --vp-c-bg-alt:  #101922;
+  --vp-c-bg-soft: #1b2733;
+  --vp-c-bg-elv:  #1b2733;
+
+  --vp-c-text-1: #ecf1f4;
+  --vp-c-text-2: #b3c9dc;
+  --vp-c-text-3: #a7acaf;
+
+  --vp-c-border:  #2c3134;
+  --vp-c-divider: #23303b;
+  --vp-c-gutter:  #0d151d;
+
+  --vp-code-block-bg: #101922;
+}
+
+/* ── Component polish — Material-3 shapes ────────────────────────────────── */
+
+/* Buttons are pill-shaped in stock Material 3 (corner-full). */
+.VPButton {
+  border-radius: 9999px !important;
+}
+
+/* Cards / feature boxes on the home page: 12px card radius + 1px border. */
+.VPFeature {
+  border-radius: 12px;
+  border: 1px solid var(--vp-c-border);
+  background: var(--vp-c-bg);
+  box-shadow: var(--vp-shadow-1);
+  transition: border-color 0.2s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+.VPFeature:hover {
+  border-color: var(--more-blue);
+  box-shadow: var(--vp-shadow-2);
+}
+
+/* Custom containers (tip / info / warning / danger) → 12px, no reliance on
+ * gradients, tinted with the MORE semantic palette. */
+.custom-block {
+  border-radius: 12px;
+  border-width: 1px;
+}
+
+/* Search box + inputs use the Material text-field radius (4px). */
+.VPNavBarSearch .DocSearch-Button,
+.VPLocalSearchBox input {
+  border-radius: 4px;
+}
+
+/* Inline code chips — small radius, brand-tinted. */
+:not(pre) > code {
+  border-radius: 4px;
+}
+
+/* Tables read inside a bordered, 12px "card" like OM data tables.
+ * Use the full content width and wrap cell content so wide tables fit
+ * instead of scrolling horizontally. */
+.vp-doc table {
+  display: table;
+  width: 100%;
+  table-layout: auto;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--vp-c-border);
+}
+.vp-doc th,
+.vp-doc td {
+  /* break-word (not anywhere) keeps short tokens like ADR ids "0001"
+   * intact — it doesn't collapse a cell's min-content to one character —
+   * while still breaking genuinely long words to avoid horizontal scroll. */
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.vp-doc tr:nth-child(2n) {
+  background-color: var(--vp-c-bg-soft);
+}
+
+/* Mermaid diagrams sit on a bordered white surface. */
+.vp-doc div[class*='language-mermaid'],
+.vp-doc .mermaid {
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+/* Slightly heavier logo presence in the navbar. */
+.VPNavBarTitle .logo {
+  height: 22px;
+}
+
+/* ── Wider reading column ────────────────────────────────────────────────
+ * The stock theme caps the prose column at 688px, which clips wide tables.
+ * Widen the overall layout and the content column so tables get more room
+ * before anything has to scroll. */
+:root {
+  --vp-layout-max-width: 1780px;
+  /* Slightly narrower left sidebar → more room for the content column. */
+  --vp-sidebar-width: 256px;
+}
+
+/* Prose column: lift the stock 688px cap and let it fill the space between
+ * the sidebar and the (slimmed) right-hand outline. */
+.VPDoc .content-container,
+.VPDoc.has-aside .content-container {
+  max-width: 1280px !important;
+}
+
+/* Reclaim horizontal space from the right-hand "On this page" gutter. */
+@media (min-width: 1280px) {
+  .VPDoc .aside {
+    max-width: 224px;
+    padding-left: 24px;
+  }
+}
+
+/* ── Mermaid: click-to-zoom lightbox ─────────────────────────────────────
+ * A zoom affordance sits in the top-right of each diagram; clicking the
+ * diagram (or the button) opens a pan/zoom lightbox. Styles for the button
+ * and overlay live here; behaviour is in theme/mermaid-zoom.ts. */
+.vp-doc .mermaid.mm-zoomable {
+  position: relative;
+  cursor: zoom-in;
+}
+.mm-zoom-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--vp-c-text-2);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-border);
+  border-radius: 9999px;
+  box-shadow: var(--vp-shadow-1);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.2, 0, 0, 1),
+    color 0.2s, border-color 0.2s;
+}
+.vp-doc .mermaid.mm-zoomable:hover .mm-zoom-btn,
+.mm-zoom-btn:focus-visible {
+  opacity: 1;
+}
+.mm-zoom-btn:hover {
+  color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
+}
+
+.mm-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--vp-c-bg);
+}
+.mm-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+.mm-stage svg {
+  max-width: 92vw;
+  max-height: 88vh;
+  transform-origin: center center;
+  will-change: transform;
+  user-select: none;
+}
+.mm-toolbar {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 101;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-border);
+  border-radius: 9999px;
+  box-shadow: var(--vp-shadow-3);
+}
+.mm-toolbar button {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--vp-c-text-1);
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.mm-toolbar button:hover {
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}

@@ -1,0 +1,23 @@
+{
+  "name": "docs-site",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Rendered documentation portal for Hexagonship (VitePress).",
+  "type": "module",
+  "scripts": {
+    "postinstall": "node scripts/link-content-node-modules.mjs",
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview",
+    "docs:check": "node scripts/check-mermaid.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.1",
+    "mermaid": "^11.4.1",
+    "vitepress": "^1.6.3",
+    "vitepress-plugin-mermaid": "^2.0.17"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.1.0"
+  }
+}

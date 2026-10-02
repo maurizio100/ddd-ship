@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill",
+      "Edit",
+      "Write",
+      "Bash"
+    ],
+    "ask": [
+      "Bash(gh pr merge:*)"
+    ]
+  }
+}

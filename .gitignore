@@ -34,3 +34,5 @@ build/
 
 .DS_Store
 **/.DS_Store
+# docs portal: symlink created by docs_website postinstall (see docs_website/README.md)
+docs/node_modules
