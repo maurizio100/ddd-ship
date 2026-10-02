@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ddd-ship-ingress
+  namespace: ddd-ship
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /web
+            pathType: Prefix
+            backend:
+              service:
+                name: hexagonship-backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

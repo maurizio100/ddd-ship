@@ -1,0 +1,369 @@
+openapi: 3.0.3
+info:
+  title: Ship Backend API
+  version: 1.0.0
+
+paths:
+  /web/ships:
+    get:
+      summary: Get all ships
+      operationId: getShips
+      tags: [Ships]
+      responses:
+        '200':
+          description: List of ships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShipOverviewResponse'
+    post:
+      summary: Create a ship
+      operationId: createShip
+      tags: [Ships]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipCreationRequest'
+      responses:
+        '200':
+          description: Created ship
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipOverviewResponse'
+
+  /web/ships/{shipId}:
+    parameters:
+      - name: shipId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get ship details
+      operationId: getShip
+      tags: [Ships]
+      responses:
+        '200':
+          description: Ship details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipDetailResponse'
+        '404':
+          description: Ship not found
+    put:
+      summary: Update a ship
+      operationId: updateShip
+      tags: [Ships]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipUpdateRequest'
+      responses:
+        '200':
+          description: Updated ship
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipOverviewResponse'
+        '404':
+          description: Ship not found
+    delete:
+      summary: Delete a ship
+      operationId: deleteShip
+      tags: [Ships]
+      responses:
+        '204':
+          description: Ship deleted
+
+  /web/ships/{shipId}/cargos:
+    parameters:
+      - name: shipId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Load cargo onto a ship
+      operationId: loadCargo
+      tags: [Ship Cargo]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CargoLoadRequest'
+      responses:
+        '200':
+          description: Updated ship details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipDetailResponse'
+        '404':
+          description: Ship or cargo not found
+
+  /web/ships/{shipId}/cargos/{cargoId}:
+    parameters:
+      - name: shipId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: cargoId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Unload cargo from a ship
+      operationId: unloadCargo
+      tags: [Ship Cargo]
+      responses:
+        '200':
+          description: Updated ship details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipDetailResponse'
+        '404':
+          description: Ship or cargo not found
+
+  /web/ships/{shipId}/shippings/{shippingId}:
+    parameters:
+      - name: shipId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: shippingId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get shipping details
+      operationId: getShippingDetails
+      tags: [Shippings]
+      responses:
+        '200':
+          description: Shipping details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingResponse'
+        '404':
+          description: Shipping not found
+
+  /web/ships/{shipId}/shippings:
+    parameters:
+      - name: shipId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Create a shipping for a ship
+      operationId: createShipping
+      tags: [Shippings]
+      responses:
+        '200':
+          description: Created shipping
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingResponse'
+        '404':
+          description: Ship not found
+    put:
+      summary: Release (complete) a shipping
+      operationId: releaseShipping
+      tags: [Shippings]
+      responses:
+        '200':
+          description: Released shipping
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingResponse'
+        '404':
+          description: Ship not found
+
+  /web/cargos:
+    get:
+      summary: Get all available cargos
+      operationId: getCargos
+      tags: [Cargos]
+      responses:
+        '200':
+          description: List of cargos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CargoResponse'
+
+  /web/catains:
+    get:
+      summary: Get all captains
+      operationId: getCatains
+      tags: [Catains]
+      responses:
+        '200':
+          description: List of captains
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CatainResponse'
+
+  /web/catains/{catainId}/image:
+    parameters:
+      - name: catainId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get captain image
+      operationId: getCatainImage
+      tags: [Catains]
+      responses:
+        '200':
+          description: Captain image binary
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+components:
+  schemas:
+    ShipCreationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        catainId:
+          type: string
+          format: uuid
+          description: ID of the captain to assign
+
+    ShipUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    CargoLoadRequest:
+      type: object
+      properties:
+        cargoId:
+          type: string
+          format: uuid
+
+    ShipOverviewResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        catain:
+          type: string
+          description: Captain name
+        shippingState:
+          $ref: '#/components/schemas/ShippingState'
+
+    ShipDetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cargo:
+          type: array
+          items:
+            $ref: '#/components/schemas/CargoResponse'
+        weight:
+          type: number
+          format: float
+          description: Current cargo weight
+        maxweight:
+          type: number
+          format: float
+          description: Maximum cargo capacity (15.0)
+
+    CargoResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        weight:
+          type: number
+          format: float
+
+    CatainResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+
+    ShippingResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        shipId:
+          type: string
+          format: uuid
+        catainId:
+          type: string
+          format: uuid
+        catainName:
+          type: string
+        name:
+          type: string
+          description: Ship name
+        cargo:
+          type: array
+          items:
+            $ref: '#/components/schemas/CargoResponse'
+        sailorsCode:
+          type: string
+          nullable: true
+          description: Generated sailors code (only set when shipping is released)
+        weight:
+          type: number
+          format: float
+
+    ShippingState:
+      type: string
+      enum: [IDLE, PREPARING, SHIPPING, DONE]
