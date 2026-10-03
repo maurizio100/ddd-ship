@@ -41,12 +41,53 @@ Run from the repo root. Build the backend and frontend images the first time (th
    ```
    Both publish to `hexagonship-shipping`; each has its own connector name, `database.hostname`
    (`<slug>-db-postgres`) and replication slot.
+   They set `publication.autocreate.mode` to `filtered`, so the `dbz_publication` Debezium creates
+   covers only `public.shipping_outbox`.
 
 ## Expected result
 
 - Each backend logs its consumer group `ship-backend-<Harbor Name>` (`ship-backend-Tortuga`, `ship-backend-Port Royal`); both groups show in Kafka UI (`localhost:8005`).
 - `hexagonship-harbor` shows `cleanup.policy=compact` in Kafka UI.
 - A Release in either Harbor produces a message on `hexagonship-shipping`.
+
+## Fix a database whose publication covers all tables
+
+A Harbor database whose connector was registered before the outbox connectors set
+`publication.autocreate.mode` has a `dbz_publication` created `FOR ALL TABLES`. With `filtered`,
+Debezium cannot narrow such a publication, so recreate it by hand before uploading the updated
+connector. `<slug>` is `tortuga` or `port-royal`.
+
+1. Check the publication. If `puballtables` shows `t`, run the steps below.
+   ```bash
+   docker exec <slug>-db-postgres psql -U hexagonship_user -d hexagonship -c "SELECT pubname, puballtables FROM pg_publication;"
+   ```
+2. Stop writes, so no change falls between dropping and recreating the publication:
+   ```bash
+   docker compose -p <slug> stop backend
+   ```
+3. Delete the connector. Its replication slot and offsets survive.
+   ```bash
+   kafka-connect/connect-helpers/delete-connector shipping-outbox-<slug>
+   ```
+4. Recreate the publication in one transaction:
+   ```bash
+   docker exec <slug>-db-postgres psql -U hexagonship_user -d hexagonship -c "BEGIN; DROP PUBLICATION dbz_publication; CREATE PUBLICATION dbz_publication FOR TABLE public.shipping_outbox; COMMIT;"
+   ```
+5. Upload the updated connector and start the backend again:
+   ```bash
+   kafka-connect/connect-helpers/upload-connector kafka-connect/connectors/shipping-outbox-<slug>.json
+   docker compose -p <slug> start backend
+   ```
+6. Verify that only the outbox is published, and that the connector is `RUNNING`:
+   ```bash
+   docker exec <slug>-db-postgres psql -U hexagonship_user -d hexagonship -c "SELECT * FROM pg_publication_tables;"
+   kafka-connect/connect-helpers/get-connector-status shipping-outbox-<slug>
+   ```
+
+The same steps apply to the single-Harbor stack: container `hexagonship-db-postgres`, connector
+`shipping-outbox` (`kafka-connect/connectors/ship-outbox-connector.json`), and its backend container
+`hexagonship-backend`. A `ships_cargos` set to `REPLICA IDENTITY FULL` by hand needs nothing more:
+Flyway's `V12__ships_cargos_primary_key.sql` gives it a primary key and sets its replica identity back to it.
 
 ## Frontend to backend
 
