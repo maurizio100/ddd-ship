@@ -10,6 +10,20 @@
       </a>
     </div>
   </div>
+  <div class="section-grid max-width arrival-notices" role="status" aria-live="polite" data-testid="ships-arrival-notices">
+    @for (notice of arrivalNotices(); track notice.shipId) {
+      <div class="arrival-notice">
+        <p class="arrival-notice__text" data-testid="ships-arrival-notice">{{ notice.shipName }} arrived from {{ notice.originHarbor }}</p>
+        <button
+          type="button"
+          class="arrival-notice__dismiss"
+          aria-label="Dismiss"
+          data-testid="ships-arrival-notice-dismiss"
+          (click)="dismiss(notice)"
+          >&times;</button>
+      </div>
+    }
+  </div>
 </section>
 
 <section class="ships-list max-width-container">

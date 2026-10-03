@@ -11,6 +11,32 @@
   background-color: white;
 }
 
+/* Ships that have just arrived; the region is always rendered so screen readers announce new notices */
+
+.arrival-notice {
+  grid-column: span 12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.3em 0.8em;
+  background-color: #bbffff;
+  border: 1px dashed black;
+  border-radius: 5px;
+}
+
+.arrival-notice__text {
+  margin: 0;
+}
+
+.arrival-notice__dismiss {
+  border: none;
+  background: none;
+  padding: 0 0.3em;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
 .ship {
   grid-column: span 3;
   max-height: 320px;

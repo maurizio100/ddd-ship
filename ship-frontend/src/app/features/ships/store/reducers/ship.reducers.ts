@@ -41,4 +41,22 @@ export const shipReducers = createReducer(
     loading: false,
     error: error
   })),
+
+  on(ShipActions.shipArrived, (state, {shipId, shipName, originHarbor}) => ({
+    ...state,
+    arrivalNotices: [
+      ...state.arrivalNotices.filter(notice => notice.shipId !== shipId),
+      {shipId, shipName, originHarbor}
+    ]
+  })),
+
+  on(ShipActions.shipLeft, (state, {shipId}) => ({
+    ...state,
+    ships: state.ships.filter(ship => ship.id !== shipId)
+  })),
+
+  on(ShipActions.dismissArrivalNotice, (state, {shipId}) => ({
+    ...state,
+    arrivalNotices: state.arrivalNotices.filter(notice => notice.shipId !== shipId)
+  })),
 )
