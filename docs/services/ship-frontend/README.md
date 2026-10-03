@@ -9,7 +9,7 @@ decides whether a load or a Release is allowed. The harbor terminal is not part 
 - **Building block:** ship-frontend ([05-building-blocks.md](../../arc42/05-building-blocks.md), Level 1)
 - **Code lives in:** `ship-frontend/`
 - **Tech:** Angular 20 (standalone components), NgRx store + effects, TypeScript 5.9, served by nginx
-- **Build & test:** `cd ship-frontend && npm test -- --watch=false --browsers=ChromeHeadless`
+- **Build & test:** `cd ship-frontend && npm test -- --watch=false --browsers=ChromeHeadless`; production bundle guard: `cd ship-frontend && npm run build:check`
 - **Talks to:** ship-backend (REST `/web`, including the Catain Images)
 
 ## Routing
