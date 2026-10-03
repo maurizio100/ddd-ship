@@ -22,9 +22,8 @@ RUN npm run build
 
 FROM nginx:${NGINX_VERSION} AS runner
 
-COPY nginx.conf /etc/nginx/nginx.conf
+ENV BACKEND_URL=http://hexagonship-backend:8080
+
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 
 COPY --from=builder /app/dist/*/browser /usr/share/nginx/html
-
-ENTRYPOINT ["nginx", "-c", "/etc/nginx/nginx.conf"]
-CMD ["-g", "daemon off;"]

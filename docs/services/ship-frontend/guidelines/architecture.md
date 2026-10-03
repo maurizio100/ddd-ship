@@ -26,10 +26,19 @@ actions), never through another feature's components or services.
 
 ## Routing
 
+### Application routes
+
 - `app.routes.ts` lazy-loads each feature's `<Feature>Routing.ts` (`loadChildren`) or a single page
   (`loadComponent`). Feature routes register their store providers on the route (`providers:`).
 - URLs follow the backend resource shape: `/ships`, `/ships/:id/cargo`,
   `/ships/:shipId/shipping/:shippingId`.
+
+### Backend proxy
+
+- The `/web` endpoint is proxied to the backend via nginx. The proxy is configured in
+  `nginx/default.conf.template` and its upstream is set by the `BACKEND_URL` environment variable.
+- All requests to `/web/...` are forwarded to the backend with forwarded headers (`Host`,
+  `X-Forwarded-For`, `X-Forwarded-Proto`) to preserve the client's identity and protocol.
 
 ## Components
 

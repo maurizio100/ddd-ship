@@ -50,10 +50,9 @@ Run from the repo root. Build the backend and frontend images the first time (th
 
 ## Frontend to backend
 
-The Angular production build calls the relative path `/web`, but the frontend image's `nginx.conf`
-does not proxy it (Kubernetes does that via the Ingress). The Compose setups therefore do not give
-a working UI on the frontend port alone; use the backend directly on its port (`http://localhost:8080/web`,
-`http://localhost:8081/web`). Adding an nginx proxy is a frontend change outside this story.
+The Angular production build calls the relative path `/web`. Each frontend proxies this to its own
+Harbor's backend via nginx, configured with the `BACKEND_URL` environment variable. The frontend
+port (80 or 81) gives you the full working UI.
 
 ## Stop
 
