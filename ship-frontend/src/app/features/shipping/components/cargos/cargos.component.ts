@@ -53,7 +53,10 @@ export class CargosComponent implements OnInit {
       this.header = 'Available Cargo';
       this.getCargos();
       // Every load or unload changes the Harbor's Stock, so fetch the Available Cargo again.
-      this.showLoadObserve.subscribe(() => this.getCargos());
+      this.showLoadObserve.subscribe(() => {
+        this.loadRejection.set(null);
+        this.getCargos();
+      });
     }
   }
 
@@ -83,8 +86,11 @@ export class CargosComponent implements OnInit {
           this.loadRejection.set(null);
           this.shipUpdated.emit(ship);
         },
-        error: (error: HttpErrorResponse) =>
-          this.loadRejection.set(error.error?.detail ?? LOAD_REJECTED),
+        error: (error: HttpErrorResponse) => {
+          this.loadRejection.set(error.error?.detail ?? LOAD_REJECTED);
+          // The Stock may have run out meanwhile, so do not keep offering stale Cargo.
+          this.getCargos();
+        },
       });
     } else {
       this.shippingService
