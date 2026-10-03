@@ -67,7 +67,10 @@ describe('ShipsComponent (The fleet shows where an arrived ship came from)', () 
       providers: [
         provideRouter([]),
         provideMockStore({ initialState: { ships: { ships, loading: false, error: null } } }),
-        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+        {
+          provide: ShipService,
+          useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']),
+        },
       ],
     });
     fixture = TestBed.createComponent(ShipsComponent);
@@ -77,7 +80,8 @@ describe('ShipsComponent (The fleet shows where an arrived ship came from)', () 
   const all = (testId: string): HTMLElement[] =>
     Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
 
-  const arrivedFrom = (): string[] => all('ship-arrived-from').map((badge) => badge.textContent!.trim());
+  const arrivedFrom = (): string[] =>
+    all('ship-arrived-from').map((badge) => badge.textContent!.trim());
 
   it('An arrived ship shows its Origin Harbor', () => {
     render([anAvailableShip({ arrivedFrom: 'Tortuga' })]);

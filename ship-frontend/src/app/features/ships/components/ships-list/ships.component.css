@@ -13,7 +13,7 @@
 
 .ship {
   grid-column: span 3;
-  max-height: 300px;
+  max-height: 320px;
   display: flex;
   flex-direction: column;
   gap: 0.2em;
@@ -29,7 +29,17 @@
   border: 1px dashed black;
   border-radius: 5px;
   width: 100%;
-  max-height: 100px;
+  max-height: 115px;
+}
+
+.ship__stats-arrived-from {
+  display: inline-block;
+  margin: 0;
+  padding: 0 0.4em;
+  font-size: 0.8em;
+  background-color: #bbffff;
+  border: 1px dashed black;
+  border-radius: 5px;
 }
 
 .ship__stats-name {
@@ -68,7 +78,7 @@
 }
 
 .ships-list>.section-grid {
-  grid-auto-rows: 17em;
+  grid-auto-rows: 19em;
 }
 
 .shipping-state__shipping {
