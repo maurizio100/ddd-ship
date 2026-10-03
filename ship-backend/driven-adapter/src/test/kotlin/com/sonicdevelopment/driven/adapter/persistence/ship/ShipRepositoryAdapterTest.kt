@@ -93,6 +93,43 @@ class ShipRepositoryAdapterTest {
     }
 
     @Test
+    fun `deleting a ship that left the fleet leaves its row and its DONE Shipping in place`() {
+        val blackPearl = aShipAtSea("Black Pearl")
+        val voyage = blackPearl.activeShipping!!
+        blackPearl.endShipping(voyage.id)
+        shippings.updateActiveShipping(blackPearl)
+        ships.removeFromFleet(blackPearl.id)
+        flushAndClear()
+
+        val deleted = ships.delete(blackPearl.id)
+        flushAndClear()
+
+        deleted shouldBe false
+        rowsFor(blackPearl.id) shouldBe 1
+        shippings.getShippingInformation(blackPearl.id, voyage.id)!!.shippingState shouldBe ShippingState.DONE
+    }
+
+    @Test
+    fun `deleting a ship in the fleet removes it with its Shippings`() {
+        val blackPearl = aShipAtSea("Black Pearl")
+        val voyage = blackPearl.activeShipping!!
+
+        val deleted = ships.delete(blackPearl.id)
+        flushAndClear()
+
+        deleted shouldBe true
+        rowsFor(blackPearl.id) shouldBe 0
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM shippings WHERE shipping_id = ?", Int::class.java, voyage.id.id
+        ) shouldBe 0
+    }
+
+    @Test
+    fun `deleting an unknown ship reports that there was none`() {
+        ships.delete(ShipId(UUID.randomUUID())) shouldBe false
+    }
+
+    @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun `removeFromFleet requires a transaction`() {
         shouldThrow<IllegalTransactionStateException> {

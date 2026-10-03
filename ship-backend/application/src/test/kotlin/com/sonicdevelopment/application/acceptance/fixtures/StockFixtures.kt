@@ -10,7 +10,7 @@ const val STARTING_STOCK = 3
 
 /** Truncates what the scenarios change; the reference tables (`cargos`, `catains`, `quotes`) stay. */
 fun JdbcTemplate.truncateMutableTables() {
-    execute("TRUNCATE TABLE ships_cargos, shippings, ships, shipping_outbox, inbox_events, known_harbors")
+    execute("TRUNCATE TABLE ships_cargos, shippings, ships, shipping_outbox, inbox_events, known_harbors, arrivals")
 }
 
 /** Puts the Stock back to the Starting Stock: [STARTING_STOCK] of every catalog Cargo. */
