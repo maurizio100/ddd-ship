@@ -33,6 +33,7 @@ export function aShip(overrides: Partial<Ship> = {}): Ship {
     weight: 0,
     maxweight: 15,
     shippingState: ShippingState.PREPARING,
+    arrivedFrom: null,
     ...overrides,
   };
 }
@@ -44,6 +45,7 @@ export function anAvailableShip(overrides: Partial<AvailableShip> = {}): Availab
     name: 'Black Pearl',
     catain: 'Furry Jones',
     shippingState: AvailableShipShippingState.IDLE,
+    arrivedFrom: null,
     ...overrides,
   };
 }
