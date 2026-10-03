@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 
 import { EVENT_SOURCE_FACTORY, FleetEventsService } from './fleet-events.service';
 import { FleetEvent } from '../models/fleet-event';
@@ -8,6 +8,7 @@ import { environment } from '../../../../environments/environment';
 class FakeEventSource {
   readonly listeners = new Map<string, (event: MessageEvent) => void>();
   closed = false;
+  readyState = 1;
 
   constructor(readonly url: string) {}
 
@@ -17,6 +18,10 @@ class FakeEventSource {
 
   close(): void {
     this.closed = true;
+  }
+
+  emit(type: string): void {
+    this.listeners.get(type)!(new Event(type) as MessageEvent);
   }
 
   push(type: string, data: unknown): void {
@@ -71,6 +76,38 @@ describe('FleetEventsService', () => {
 
     subscription.unsubscribe();
 
+    expect(opened[0].closed).toBeTrue();
+  });
+
+  it('tells when the stream opens', () => {
+    const received: FleetEvent[] = [];
+    const subscription = service.events().subscribe((event) => received.push(event));
+
+    opened[0].emit('open');
+
+    expect(received).toEqual([{ type: 'connected' }]);
+    subscription.unsubscribe();
+  });
+
+  it('keeps the observable alive while the browser reconnects by itself', () => {
+    let failed = false;
+    const subscription = service.events().subscribe({ error: () => (failed = true) });
+
+    opened[0].readyState = 0; // CONNECTING: the browser retries
+    opened[0].emit('error');
+
+    expect(failed).toBeFalse();
+    subscription.unsubscribe();
+  });
+
+  it('errors when the browser gives up on the stream (CLOSED), and closes the source', () => {
+    let failed = false;
+    service.events().subscribe({ error: () => (failed = true) });
+
+    opened[0].readyState = 2; // CLOSED, e.g. a 502 while the backend restarts
+    opened[0].emit('error');
+
+    expect(failed).toBeTrue();
     expect(opened[0].closed).toBeTrue();
   });
 });

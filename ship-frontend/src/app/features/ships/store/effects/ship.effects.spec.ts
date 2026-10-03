@@ -3,7 +3,7 @@ import { provideMockActions } from '@ngrx/effects/testing';
 import { Action } from '@ngrx/store';
 import { Observable, of, ReplaySubject, Subject } from 'rxjs';
 
-import { ARRIVAL_NOTICE_MS, ShipEffects } from './ship.effects';
+import { ARRIVAL_NOTICE_MS, FLEET_RECONNECT_DELAY_MS, ShipEffects } from './ship.effects';
 import * as ShipActions from '../actions/ship.actions';
 import { FleetEventsService } from '../../services/fleet-events.service';
 import { ShipService } from '../../services/ship.service';
@@ -83,4 +83,41 @@ describe('ShipEffects (fleet events)', () => {
     expect(shipService.getShips).toHaveBeenCalledTimes(2);
     expect(emitted).toEqual([ShipActions.loadShipsSuccess({ ships: [anAvailableShip()] })]);
   });
+
+  it('refetchOnShipLeft$ reloads the fleet so a stale in-flight load cannot resurrect the ship', () => {
+    const emitted: Action[] = [];
+    effects.refetchOnShipLeft$.subscribe((action) => emitted.push(action));
+
+    actions$.next(ShipActions.shipLeft({ shipId: 'id-2', shipName: 'Interceptor', destinationHarbor: 'Nassau' }));
+
+    expect(emitted).toEqual([ShipActions.loadShips()]);
+  });
+
+  it('watchFleet$ reloads the fleet whenever the stream (re)opens', () => {
+    const emitted: Action[] = [];
+    effects.watchFleet$.subscribe((action) => emitted.push(action));
+
+    actions$.next(ShipActions.watchFleet());
+    pushed.next({ type: 'connected' });
+
+    expect(emitted).toEqual([ShipActions.loadShips()]);
+  });
+
+  it('watchFleet$ resubscribes after a failed stream once the delay has passed', fakeAsync(() => {
+    const emitted: Action[] = [];
+    const sources = [new Subject<FleetEvent>(), new Subject<FleetEvent>()];
+    const fleetEventsService = TestBed.inject(FleetEventsService) as jasmine.SpyObj<FleetEventsService>;
+    fleetEventsService.events.and.returnValues(sources[0], sources[1]);
+    const subscription = effects.watchFleet$.subscribe((action) => emitted.push(action));
+
+    actions$.next(ShipActions.watchFleet());
+    sources[0].error(new Error('stream closed'));
+    expect(fleetEventsService.events).toHaveBeenCalledTimes(1);
+    tick(FLEET_RECONNECT_DELAY_MS);
+    expect(fleetEventsService.events).toHaveBeenCalledTimes(2);
+    sources[1].next({ type: 'connected' });
+
+    expect(emitted).toEqual([ShipActions.loadShips()]);
+    subscription.unsubscribe();
+  }));
 });
