@@ -58,8 +58,8 @@ class Ship(
 
     private var currentWeight: Float = calculateWeight()
     fun addCargo(cargo: Cargo) {
-        if (cargoLoad.contains(cargo.id)) throw ItemAlreadyLoadedException("The cargo is already loaded on the ship!")
-        if (isShipLoadToHeavy(cargo)) throw ShipTooHeavyException("The ship gets too heavy with that cargo!")
+        if (cargoLoad.contains(cargo.id)) throw ItemAlreadyLoadedException("${cargo.name} is already loaded on the ship")
+        if (isShipLoadToHeavy(cargo)) throw ShipTooHeavyException("Loading ${cargo.name} would exceed the Max Weight of $MAX_WEIGHT")
 
         cargoLoad[cargo.id] = cargo
         currentWeight += cargo.weight
@@ -68,13 +68,16 @@ class Ship(
     private fun isShipLoadToHeavy(cargo: Cargo) =
         (currentWeight + cargo.weight)  > MAX_WEIGHT
 
-    fun removeCargo(cargo: Cargo) {
-        cargoLoad.remove(cargo.id)
+    /** Unloads [cargo]; returns whether it was on board. The Current Weight changes only if it was. */
+    fun removeCargo(cargo: Cargo): Boolean {
+        if (cargoLoad.remove(cargo.id) == null) return false
+
         if (currentWeight < cargo.weight) {
             currentWeight = 0.0F
         } else {
             currentWeight -= cargo.weight
         }
+        return true
     }
 
     val weight: Float

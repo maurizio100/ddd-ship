@@ -57,6 +57,9 @@ test. Adapter tests are written when the story touches that adapter.
   `KafkaListenerEndpointRegistry`.
 - Before each acceptance or driven-adapter test, truncate the mutable tables (`ships_cargos`,
   `shippings`, `ships`, `shipping_outbox`, `inbox_events`, `known_harbors`). Reference tables (`cargos`, `catains`, `quotes`) are left
-  intact.
+  intact. `stocks` is not truncated but reset to the Starting Stock (`resetStockToStartingStock()`),
+  since an empty Stock would make every Cargo unavailable.
+- A scenario about a Harbor opening for the first time creates a fresh database in the shared
+  Postgres container and runs Flyway against it, rather than relying on the already-migrated one.
 - Tests don't depend on the wall clock. Code that reads the time (the Sailors Code uses the current
   minute) takes a `java.time.Clock`, and tests pass a fixed one.

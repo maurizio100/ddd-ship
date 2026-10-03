@@ -71,6 +71,22 @@
   inbox record of the event. A Harbor's own name is never stored.
 - It is not in the Debezium connector's `table.include.list` and is never published.
 
+## Stock
+
+- `stocks` holds this Harbor's Stock: one row per Cargo, with a surrogate `id` from `stocks_seq`,
+  `cargo_id` referencing `cargos(id)` (`uq_stocks_cargo_id`) and `stock_quantity`.
+- The Starting Stock is seeded by a migration (`V7__stocks.sql`), which Flyway applies once per
+  database, i.e. when the Harbor opens for the first time. Don't seed it from code or check for an
+  empty table.
+- It is written only through `StockRepositoryPort`, in the caller's transaction
+  (`Propagation.MANDATORY`), so a Stock change commits or rolls back with the cargo load.
+- Taking from Stock is one conditional statement (`UPDATE … SET stock_quantity = stock_quantity - 1
+  WHERE … AND stock_quantity > 0`); zero updated rows means out of Stock. Never read the quantity,
+  change it in memory and save it back: concurrent loads would lose updates.
+  `ck_stocks_stock_quantity_not_negative` backs the "never below 0" rule up.
+- Putting into Stock is `INSERT … ON CONFLICT (cargo_id) DO UPDATE`, so a Cargo without a row gets one.
+- It is not in the Debezium connector's `table.include.list` and is never published.
+
 ## Binary data
 
 - Binary data (Catain Images) goes to MinIO, never into the database.

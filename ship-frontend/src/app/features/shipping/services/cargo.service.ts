@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Cargo } from '../models/cargo';
+import { AvailableCargo } from '../models/cargo';
 import { environment } from '../../../../environments/environment';
 
 import { Observable } from 'rxjs';
@@ -17,7 +17,7 @@ export class CargoService {
 
   constructor(private http: HttpClient) {}
 
-  getCargos(): Observable<Cargo[]> {
-    return this.http.get<Cargo[]>(this.cargosUrl);
+  getCargos(): Observable<AvailableCargo[]> {
+    return this.http.get<AvailableCargo[]>(this.cargosUrl);
   }
 }
