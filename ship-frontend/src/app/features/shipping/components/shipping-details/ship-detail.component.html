@@ -54,13 +54,39 @@
 
 <section class="shipping-cta max-width-container">
   <div class="section-grid max-width">
+    <div class="shipping-destination">
+      @if (knownHarbors().length > 0) {
+        <label for="shipping-destination-harbor">Destination Harbor</label>
+        <select
+          id="shipping-destination-harbor"
+          data-testid="shipping-destination-harbor"
+          (change)="chooseDestinationHarbor($any($event.target).value)"
+        >
+          <option value="" [selected]="!destinationHarbor()" disabled>Choose a Destination Harbor</option>
+          @for (harbor of knownHarbors(); track harbor) {
+            <option data-testid="shipping-destination-harbor-option" [value]="harbor">{{ harbor }}</option>
+          }
+        </select>
+      } @else {
+        <p class="shipping-no-known-harbor" data-testid="shipping-no-known-harbor">No Known Harbor to sail to yet</p>
+      }
+      @if (releaseRejection(); as rejection) {
+        <p class="shipping-release-rejection" data-testid="shipping-release-rejection" role="alert">{{ rejection }}</p>
+      }
+    </div>
     <div class="shipping-back">
       <button type="button" class="button__cancel" (click)="cancel()">
         Cancel
       </button>
     </div>
     <div class="shipping-embark">
-      <button type="button" class="button__disembark" (click)="disembark()">
+      <button
+        type="button"
+        class="button__disembark"
+        data-testid="shipping-release-button"
+        [disabled]="!destinationHarbor()"
+        (click)="disembark()"
+      >
         Start Journey
       </button>
     </div>

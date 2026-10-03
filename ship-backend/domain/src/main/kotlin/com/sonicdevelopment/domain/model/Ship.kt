@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.enums.ShippingState
@@ -35,8 +36,10 @@ class Ship(
         throw IllegalArgumentException()
     }
 
-    fun release(shippingQuote: ShippingQuote) {
-        activeShipping?.release(shippingQuote)
+    fun release(shippingQuote: ShippingQuote, destinationHarbor: HarborName) {
+        val preparing = activeShipping?.takeIf { it.shippingState == ShippingState.PREPARING }
+            ?: throw ShippingNotPreparingException("$shipName is not being prepared")
+        preparing.release(shippingQuote, destinationHarbor)
     }
 
     fun createSailorsCode(): SailorsCode {

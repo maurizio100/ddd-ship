@@ -9,5 +9,5 @@ export interface ShippingSummary {
     cargo: Cargo[];
     sailorsCode: string;
     weight: number;
-
+    destinationHarbor: string | null;
 }

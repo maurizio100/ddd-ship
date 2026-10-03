@@ -93,7 +93,8 @@ class ShipRepositoryAdapter(
             shippingQuote = shippingPersistenceEntity.sailorsCode?.let { ShippingQuote(it) },
             shippingState = ShippingState.valueOf(
                 shippingPersistenceEntity.shppingState.name
-            )
+            ),
+            destinationHarbor = shippingPersistenceEntity.destinationHarbor?.let { HarborName(it) }
         )
     }
 }

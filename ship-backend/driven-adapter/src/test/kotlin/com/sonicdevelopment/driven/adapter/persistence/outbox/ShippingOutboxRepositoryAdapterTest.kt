@@ -5,6 +5,7 @@ import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShippingQuote
 import com.sonicdevelopment.driven.adapter.PostgresTestcontainer
 import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEvent
@@ -44,7 +45,7 @@ class ShippingOutboxRepositoryAdapterTest {
     fun `writes shipping-published with an unchanged payload`() {
         val ship = aReleasedShip()
 
-        shippingOutbox.broadcastShipping(ship)
+        shippingOutbox.broadcastShipping(ship, HarborName("Tortuga"))
         entityManager.flush()
 
         val row = jdbcTemplate.queryForMap("SELECT aggregate_type, aggregate_id, event_type, payload FROM shipping_outbox")
@@ -54,14 +55,17 @@ class ShippingOutboxRepositoryAdapterTest {
         val payload = row["payload"] as String
         ObjectMapper().readTree(payload).fieldNames().asSequence().toList() shouldContainExactlyInAnyOrder
             listOf("shipEventData", "shippingEventData", "catain")
-        ObjectMapper().readValue(payload, ShippingEvent::class.java) shouldBe ShippingEventConverter.toShippingEvent(ship)
+        ObjectMapper().readValue(payload, ShippingEvent::class.java) shouldBe ShippingEventConverter.toShippingEvent(ship, HarborName("Tortuga"))
+        val shippingEventData = ObjectMapper().readTree(payload)["shippingEventData"]
+        shippingEventData["originHarbor"].asText() shouldBe "Tortuga"
+        shippingEventData["destinationHarbor"].asText() shouldBe "Port Royal"
     }
 
     private fun aReleasedShip(): Ship {
         val ship = Ship(name = "Black Pearl", catainId = CatainId(UUID.randomUUID()), catainName = "Jack Sparrow")
         ship.addCargo(Cargo(CargoId(UUID.randomUUID()), "Rum", 5.0f))
         ship.createNewShipping()
-        ship.release(ShippingQuote("Fair winds"))
+        ship.release(ShippingQuote("Fair winds"), HarborName("Port Royal"))
         return ship
     }
 }

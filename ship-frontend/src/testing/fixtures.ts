@@ -1,5 +1,7 @@
 import { AvailableCargo, Cargo } from '../app/features/shipping/models/cargo';
+import { KnownHarbors } from '../app/features/shipping/models/known-harbors';
 import { Ship, ShippingState } from '../app/features/shipping/models/ship';
+import { ShippingSummary } from '../app/features/shipping/models/shipping-summary';
 
 export function aCargo(overrides: Partial<Cargo> = {}): Cargo {
   return {
@@ -27,6 +29,29 @@ export function aShip(overrides: Partial<Ship> = {}): Ship {
     weight: 0,
     maxweight: 15,
     shippingState: ShippingState.PREPARING,
+    ...overrides,
+  };
+}
+
+export function aShippingSummary(overrides: Partial<ShippingSummary> = {}): ShippingSummary {
+  return {
+    id: '9b2e4d6f-0000-4000-8000-000000000003',
+    shipId: '5f1d7c2e-0000-4000-8000-000000000001',
+    catainId: '3c4d5e6f-0000-4000-8000-000000000002',
+    catainName: 'Furry Jones',
+    name: 'Black Pearl',
+    cargo: [],
+    sailorsCode: 'Fair winds',
+    weight: 0,
+    destinationHarbor: 'Port Royal',
+    ...overrides,
+  };
+}
+
+export function someKnownHarbors(overrides: Partial<KnownHarbors> = {}): KnownHarbors {
+  return {
+    harborName: 'Tortuga',
+    knownHarbors: ['Nassau', 'Port Royal'],
     ...overrides,
   };
 }

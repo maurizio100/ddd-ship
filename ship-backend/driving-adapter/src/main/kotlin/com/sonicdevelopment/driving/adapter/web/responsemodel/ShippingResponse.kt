@@ -10,5 +10,6 @@ data class ShippingResponse(
     val name: String,
     val cargo: List<CargoResponse>,
     val sailorsCode: String?,
-    val weight: Float
+    val weight: Float,
+    val destinationHarbor: String? = null
 )

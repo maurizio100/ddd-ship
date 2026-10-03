@@ -35,6 +35,9 @@ class ShippingPersistenceEntity(
 
     @Column(name = "shipping_state")
     @Enumerated(EnumType.STRING)
-    var shppingState: ShippingStateEnumEntity
+    var shppingState: ShippingStateEnumEntity,
+
+    @Column(name = "destination_harbor")
+    var destinationHarbor: String? = null
 )
 
