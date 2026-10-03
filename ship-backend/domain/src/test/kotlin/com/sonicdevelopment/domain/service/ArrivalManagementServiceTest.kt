@@ -15,6 +15,7 @@ import com.sonicdevelopment.domain.model.values.ShippingQuote
 import com.sonicdevelopment.domain.ports.driven.ArrivalRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import com.sonicdevelopment.domain.ports.driven.CatainRepository
+import com.sonicdevelopment.domain.ports.driven.FleetEventsPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
@@ -49,11 +50,12 @@ class ArrivalManagementServiceTest {
     private val outbox = mockk<ShippingOutboxRepository>(relaxed = true)
     private val shippings = mockk<ShippingRepositoryPort>(relaxed = true)
     private val arrivals = mockk<ArrivalRepositoryPort>()
+    private val fleetEvents = mockk<FleetEventsPort>(relaxed = true)
 
-    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, stock, outbox, shippings, arrivals)
+    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, stock, outbox, shippings, arrivals, fleetEvents)
 
     /** The Origin side of the Arrival runs at "Tortuga", where the ship was Released. */
-    private val tortugaService = ArrivalManagementService(tortuga, inbox, ships, catains, cargoQuery, stock, outbox, shippings, arrivals)
+    private val tortugaService = ArrivalManagementService(tortuga, inbox, ships, catains, cargoQuery, stock, outbox, shippings, arrivals, fleetEvents)
 
     private val eventId = EventId(UUID.randomUUID())
     private val rum = aCargo(name = "Rum")
