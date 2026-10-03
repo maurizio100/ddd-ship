@@ -51,6 +51,11 @@ With that all is up and running.
 
 When the application is started up, you can visit it directly under "localhost"
 
+### Two Harbors
+
+To run two Harbors ("Tortuga" and "Port Royal") against one Kafka, see
+[docs/services/ship-backend/how-to-run-two-harbors.md](docs/services/ship-backend/how-to-run-two-harbors.md).
+
 ### Ship - Terminal
 
 If you decide to run the application together with the kafka environment, there is a 
