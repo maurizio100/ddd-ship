@@ -64,9 +64,16 @@ driven.adapter
   calls `InboxRepositoryPort.recordConsumedEvent` first. If that returns `false` the event was already
   consumed, and the service returns without any effect. The inbox row and the state change commit
   together ([ADR-0004](../../../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)).
+- Every consumed event is inbox-recorded this way, including `harbor-opened`. Where the same fact can
+  arrive under a new event id (a Harbor that opens again writes a new outbox row), the effect is
+  additionally idempotent on its business key: Known Harbors are stored once per Harbor Name.
+- A `@KafkaListener` that has an `id` (needed to start or stop it through
+  `KafkaListenerEndpointRegistry`) must set `idIsGroup = false`. Otherwise the id replaces the
+  Harbor's consumer group.
 - The backend must start with Kafka unreachable. Where no Kafka runs (app-only Compose, k8s),
   `SPRING_KAFKA_LISTENER_AUTO_STARTUP=false` keeps the listeners idle. Don't add anything that blocks
-  startup on the broker, such as `NewTopic` beans or a missing-topics check.
+  startup on the broker, such as `NewTopic` beans or a missing-topics check. Work done on startup
+  (opening the Harbor) only writes to the outbox and never talks to Kafka.
 - The consumer group is `ship-backend-<Harbor Name>`, derived from `harbor.name` (`HARBOR_NAME`),
   which every instance must set
   ([ADR-0003](../../../adr/0003-run-each-ship-backend-instance-as-one-harbor.md)).

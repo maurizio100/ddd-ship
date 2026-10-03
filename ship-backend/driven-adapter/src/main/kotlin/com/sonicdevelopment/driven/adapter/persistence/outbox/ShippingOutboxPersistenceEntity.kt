@@ -1,6 +1,5 @@
 package com.sonicdevelopment.driven.adapter.persistence.outbox
 
-import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEvent
 import jakarta.persistence.*
 import org.hibernate.annotations.UuidGenerator
 import org.hibernate.annotations.UuidGenerator.*
@@ -24,7 +23,7 @@ class ShippingOutboxPersistenceEntity(
     @Column(name = "event_type")
     var type: String,
 
+    /** JSON of a `<Name>Event` from `outbox/events`, serialized by the outbox adapter that writes the row. */
     @Column(name = "payload", columnDefinition = "TEXT")
-    @Convert(converter = ShippingEventConverter::class)
-    var payload: ShippingEvent
+    var payload: String
 )

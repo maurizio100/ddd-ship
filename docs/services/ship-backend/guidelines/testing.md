@@ -46,8 +46,17 @@ test. Adapter tests are written when the story touches that adapter.
   `@AutoConfigureTestDatabase(replace = NONE)`, since H2 is on the compile classpath.
 - Application tests run with an unreachable Kafka (`spring.kafka.bootstrap-servers=localhost:1`) and
   a `harbor.name`, unless they test messaging.
+- Messaging acceptance tests import the singleton `KafkaTestcontainer` (`apache/kafka`, one per JVM,
+  topics created up front) when a scenario is about consumer-group or read-from-the-beginning
+  behaviour a mocked listener cannot show. Another Harbor's event is simulated by producing the
+  record Debezium would relay (`id` and `eventType` headers, payload as a JSON string literal), and
+  "processed" is awaited with Awaitility on the event id in `inbox_events`. Each Harbor is its own
+  `@Nested` class with its own `harbor.name` and `@DirtiesContext(AFTER_CLASS)`, so two Harbor
+  listeners never run at the same time. To observe a Harbor that opens later, set
+  `spring.kafka.listener.auto-startup=false` and start its container through
+  `KafkaListenerEndpointRegistry`.
 - Before each acceptance or driven-adapter test, truncate the mutable tables (`ships_cargos`,
-  `shippings`, `ships`, `shipping_outbox`, `inbox_events`). Reference tables (`cargos`, `catains`, `quotes`) are left
+  `shippings`, `ships`, `shipping_outbox`, `inbox_events`, `known_harbors`). Reference tables (`cargos`, `catains`, `quotes`) are left
   intact.
 - Tests don't depend on the wall clock. Code that reads the time (the Sailors Code uses the current
   minute) takes a `java.time.Clock`, and tests pass a fixed one.
