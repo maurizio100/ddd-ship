@@ -47,6 +47,9 @@ import org.springframework.stereotype.Service
  * this Harbor's fleet (its record and Shippings are kept). Events for another Origin Harbor, or for a ship
  * not in the fleet, are recorded and ignored. The Shipping id guards against a late Ship Arrived: only the
  * ship's Active Shipping with that id, still at sea, ends, so a later voyage is never ended by it.
+ *
+ * Both sides tell the Users at this Harbor that the fleet changed (ship arrived, ship left) through
+ * [FleetEventsPort], which takes effect only once the transaction commits; an ignored event tells nothing.
  */
 @Service
 class ArrivalManagementService(
@@ -94,6 +97,7 @@ class ArrivalManagementService(
         )
         shipRepositoryPort.saveNewShip(fromShip(ship))
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)
+        fleetEventsPort.announceShipArrived(ship, originHarbor)
     }
 
     @Transactional
@@ -105,5 +109,6 @@ class ArrivalManagementService(
 
         shippingRepositoryPort.updateActiveShipping(ship)
         shipRepositoryPort.removeFromFleet(ship.id)
+        fleetEventsPort.announceShipLeft(ship, shipArrived.destinationHarbor)
     }
 }
