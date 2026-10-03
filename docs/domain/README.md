@@ -2,6 +2,8 @@
 
 Hexagonship is a playful harbor: ships commanded by cat Catains are loaded with Cargo and Released on
 a Shipping, and each departure is announced to a harbor terminal. Derived from the code (no workshop yet).
+Planned: several Harbors, each with its own fleet and Stock, between which ships sail (harbor-voyages
+ideation, 2026-10-03; marked "Planned" in the context files).
 
 | Where | What |
 |---|---|

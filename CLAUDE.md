@@ -31,7 +31,10 @@ them with **Cargo** up to a Max Weight of 15.0, and **Releases** them on a **Shi
 is published and announced on a harbor terminal. Bounded contexts: **Fleet**, **CargoLoading**,
 **Shipping**, **HarborTerminal**. Core flow: create ship (Fleet) → new Shipping → load Cargo
 (CargoLoading) → Release → Sailors Code + Shipping Quote → `shipping-published` via outbox/Kafka →
-HarborTerminal. Full model (derived from code, candidates for review): `docs/domain/`.
+HarborTerminal. Planned (not built yet): each backend instance is a **Harbor** with its own fleet and
+**Stock**; a Release names a Destination Harbor, whose backend handles the **Arrival** (Cargo into its
+Stock, ship into its fleet) and answers with `ship-arrived`, which sets the origin's Shipping to `DONE`.
+Full model (derived from code, candidates for review): `docs/domain/`.
 
 ## Where things live
 

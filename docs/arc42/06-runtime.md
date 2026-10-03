@@ -67,4 +67,47 @@ sequenceDiagram
     T->>T: print ship, Catain, weight, cargo
 ```
 
+## 6.4 Arrival at the Destination Harbor (planned)
+
+Per [ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md) and
+[ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md). Not built yet.
+
+```mermaid
+sequenceDiagram
+    participant A as Origin Harbor backend
+    participant K as Kafka
+    participant B as Destination Harbor backend
+    participant DBB as Destination PostgreSQL
+    A->>K: shipping-published (Origin and Destination Harbor) via outbox
+    K->>B: consume (group of Harbor B)
+    B->>B: ignore unless addressed to this Harbor
+    rect rgb(240,240,240)
+    Note over B,DBB: one DB transaction
+    B->>DBB: skip if event id already in inbox
+    B->>DBB: insert inbox row
+    B->>DBB: Unloading on Arrival - add Cargo to Stock
+    B->>DBB: take ship (Ship Id, name, Catain) into fleet
+    B->>DBB: insert outbox row (ship-arrived)
+    end
+    K->>A: ship-arrived
+    A->>A: inbox check, Shipping to DONE, remove ship from fleet
+```
+
+## 6.5 Harbor startup and discovery (planned)
+
+Per [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md). Not built yet.
+
+```mermaid
+sequenceDiagram
+    participant H as Harbor backend
+    participant DB as PostgreSQL
+    participant K as Kafka
+    H->>DB: insert outbox row (harbor-opened, Harbor Name)
+    DB->>K: Debezium to hexagonship-harbor (compacted)
+    K->>H: read hexagonship-harbor from the beginning
+    H->>DB: store Known Harbors
+```
+
+A Release then offers the Known Harbors other than the current one as Destination Harbor.
+
 > TODO: error scenarios (Debezium down, consumer offline) once the quality scenarios in chapter 10 are set.

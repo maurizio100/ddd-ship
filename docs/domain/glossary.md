@@ -8,7 +8,9 @@ Terms with one identical meaning in two or more contexts.
 |------|------------|----------|-------|
 | Cargo | A good (e.g. Ale, Rum, Silk) with a name and a Weight that can be carried by a ship. | CargoLoading, Shipping, HarborTerminal | Two Cargo with the same name are considered equal. |
 | Catain | The cat who commands a ship, chosen from a fixed roster when the ship is created. | Fleet, Shipping, HarborTerminal | Canonical. Alias: "Captain" (terminal output, `TASK_add-new-ship.md`). |
+| Harbor | One running Hexagonship — a ship-backend with its own database — with its own fleet and Stock, known by its Harbor Name. | Fleet, CargoLoading, Shipping | Planned (harbor-voyages, 2026-10-03). Each backend instance is one Harbor. Not to be confused with HarborTerminal, the departure board for all Harbors. |
 | Ship | A vessel in the fleet, identified by an id, with a Ship Name and a Catain. | Fleet, CargoLoading, Shipping, HarborTerminal | |
+| Ship Id | The identity of a ship that it keeps for its whole life, across every Harbor it sails to. | Fleet, Shipping | Planned (harbor-voyages). Not the database id, which is local to one Harbor. |
 | Shipping | One voyage of a ship, from preparation through Release. | Shipping, HarborTerminal | |
 | Shipping Published | The event announcing that a ship has been Released, carrying ship, Catain, weight, Shipping Quote and Cargo list. | Shipping, HarborTerminal | Event type `shipping-published`, topic `hexagonship-shipping`. |
 
@@ -27,7 +29,7 @@ Every context's own glossary.
 
 | Context | Terms |
 |---|---|
-| [CargoLoading](contexts/CargoLoading/glossary.md) | Available Cargo, weights and limits |
+| [CargoLoading](contexts/CargoLoading/glossary.md) | Available Cargo, Stock, weights and limits |
 | [Fleet](contexts/Fleet/glossary.md) | Ship registry and Catain roster |
 | [HarborTerminal](contexts/HarborTerminal/glossary.md) | Departure board wording |
-| [Shipping](contexts/Shipping/glossary.md) | Voyage lifecycle, Release, Sailors Code |
+| [Shipping](contexts/Shipping/glossary.md) | Voyage lifecycle, Release, Sailors Code, Harbors and Arrival |
