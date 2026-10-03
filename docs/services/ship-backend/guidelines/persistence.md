@@ -35,8 +35,17 @@
 - Any state change that has to be published writes a row to `shipping_outbox` through a driven port,
   **in the same transaction** as the change ([ADR-0002](../../../adr/0002-transactional-outbox-via-debezium.md)).
 - Row fields: `aggregate_type` sets the topic (`hexagonship-<aggregate_type>`). `aggregate_id` is
-  the aggregate's UUID. `event_type` is kebab-case past tense (`shipping-published`). `payload` is
-  the JSON of a `<Name>Event` class in `persistence/outbox/events`.
+  the aggregate's UUID and becomes the Kafka key. `event_type` is kebab-case past tense
+  (`shipping-published`). `payload` is the JSON of a `<Name>Event` class in
+  `persistence/outbox/events`.
+- `payload` is a plain `String` on `ShippingOutboxPersistenceEntity`. Each outbox adapter serializes
+  its own `<Name>Event` with a plain `ObjectMapper()`, so the published JSON does not depend on the
+  application's Jackson configuration.
+- The table is shared by all outbox events despite its name. Harbor events use
+  `aggregate_type = 'harbor'` (topic `hexagonship-harbor`, compacted), and their `aggregate_id` is the
+  UUIDv5 of the Harbor Name in the fixed namespace `d5a17a2e-8e74-5937-8c7d-101e395ae650`. Every
+  Harbor must use the same namespace, so a Harbor keeps one key across restarts and compaction
+  keeps one record per Harbor.
 - Changing an event payload changes a public contract: only add fields, and never rename or remove one.
 
 ## Inbox
@@ -49,5 +58,19 @@
 - It is written only through `InboxRepositoryPort`, which runs in the caller's transaction
   (`Propagation.MANDATORY`) and records with `INSERT … ON CONFLICT DO NOTHING`, so the check and the
   record are one statement.
+- It also records a Harbor's own events that Debezium relays back to it (its own `harbor-opened`),
+  since every Harbor consumes the topics it publishes to.
 - It is not in the Debezium connector's `table.include.list` and is never published.
+
+## Known Harbors
+
+- `known_harbors` holds the Harbor Names this Harbor has learned of, with a surrogate `id` from
+  `known_harbors_seq`. `uq_known_harbors_harbor_name` makes each Harbor Name appear once.
+- It is written only through `KnownHarborRepositoryPort.rememberHarbor`, in the caller's transaction
+  (`Propagation.MANDATORY`) with `INSERT … ON CONFLICT (harbor_name) DO NOTHING`, together with the
+  inbox record of the event. A Harbor's own name is never stored.
+- It is not in the Debezium connector's `table.include.list` and is never published.
+
+## Binary data
+
 - Binary data (Catain Images) goes to MinIO, never into the database.
