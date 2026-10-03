@@ -44,3 +44,36 @@ fun aShippingPublishedRecord(
         headers().add("eventType", "shipping-published".toByteArray(Charsets.UTF_8))
     }
 }
+
+/**
+ * The record Debezium's outbox EventRouter emits when [destinationHarbor] announces that the ship
+ * [shipName] of the Shipping [shippingId] has arrived: keyed by the Shipping id, `id` and `eventType`
+ * headers, and the payload in the `ShipArrivedEvent` JSON shape as a JSON string literal.
+ */
+fun aShipArrivedRecord(
+    shipId: UUID = UUID.randomUUID(),
+    shipName: String = "Black Pearl",
+    shippingId: UUID = UUID.randomUUID(),
+    originHarbor: String = "Tortuga",
+    destinationHarbor: String = "Port Royal",
+    eventId: UUID = UUID.randomUUID(),
+): ProducerRecord<String, String> {
+    val payload = ObjectMapper().writeValueAsString(
+        mapOf(
+            "shipId" to shipId,
+            "shipName" to shipName,
+            "shippingId" to shippingId,
+            "originHarbor" to originHarbor,
+            "destinationHarbor" to destinationHarbor,
+        )
+    )
+    return ProducerRecord<String, String>(
+        KafkaTestcontainer.SHIPPING_TOPIC,
+        null,
+        shippingId.toString(),
+        ObjectMapper().writeValueAsString(payload),
+    ).apply {
+        headers().add("id", eventId.toString().toByteArray(Charsets.UTF_8))
+        headers().add("eventType", "ship-arrived".toByteArray(Charsets.UTF_8))
+    }
+}

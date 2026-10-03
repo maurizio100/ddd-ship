@@ -21,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActionsDsl
+import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.put
 import java.util.*
 
@@ -99,6 +100,19 @@ class ShipShippingControllerTest {
         release("""{"destinationHarbor":"Port Royal"}""").andExpect {
             status { isNotFound() }
             content { contentType(MediaType.APPLICATION_PROBLEM_JSON) }
+        }
+    }
+
+    @Test
+    fun `the Shipping details include the Shipping State`() {
+        val done = aReleasedShipping(HarborName("Port Royal")).copy(shippingState = ShippingState.DONE)
+        every { shippingInformationPort.getShipping(ShipId(shipId), done.shippingId) } returns done
+
+        mockMvc.get("/web/ships/$shipId/shippings/${done.shippingId.id}").andExpect {
+            status { isOk() }
+            jsonPath("$.id") { value(done.shippingId.id.toString()) }
+            jsonPath("$.shippingState") { value("DONE") }
+            jsonPath("$.destinationHarbor") { value("Port Royal") }
         }
     }
 
