@@ -107,6 +107,39 @@ class ShipArrivesAtItsDestinationHarborAcceptanceTest {
         }
 
         @Test
+        fun `A failed Arrival leaves no trace, not even in the inbox`() {
+            // Given a ship whose Catain is unknown at "Port Royal" is announced to "Port Royal"
+            val unknownCatain = aShippingPublishedRecord(
+                shipName = "Ghost Ship",
+                catainId = UUID.randomUUID(),
+                cargoIds = listOf(jdbcTemplate.cargoIdOf("Rum")),
+                originHarbor = "Tortuga",
+                destinationHarbor = "Port Royal",
+            )
+            val failedEventId = UUID.fromString(String(unknownCatain.headers().lastHeader("id").value()))
+            kafkaTemplate.send(unknownCatain).get()
+
+            // When the Harbor has given up on it: a later record on the single partition is consumed
+            // (the default error handler retries a failing record a few times without delay, then skips it)
+            val marker = aShippingPublishedRecord(
+                catainId = whiskersId(),
+                originHarbor = "Tortuga",
+                destinationHarbor = "Nassau",
+            )
+            kafkaTemplate.send(marker).get()
+            awaitConsumed(UUID.fromString(String(marker.headers().lastHeader("id").value())))
+
+            // Then the inbox holds no row for the failed event, so a redelivery is not dropped as a duplicate
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM inbox_events WHERE event_id = ?", Int::class.java, failedEventId
+            ) shouldBe 0
+            // And the Stock and the fleet of "Port Royal" are unchanged
+            stock().values.forEach { it shouldBe STARTING_STOCK }
+            availableShips().shouldBeEmpty()
+            shipArrivedRows().shouldBeEmpty()
+        }
+
+        @Test
         fun `A Harbor ignores ships sailing to another Harbor`() {
             // Given the ship "Flying Dutchman" was Released at "Tortuga" to "Nassau"
             val flyingDutchman = aShippingPublishedRecord(
