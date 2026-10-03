@@ -21,8 +21,8 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 ### Planned: ships moving between Harbors (harbor-voyages ideation, 2026-10-03)
 Not implemented yet. Each Harbor has its own fleet.
 - Every ship has a Ship Id that is not its database id and stays the same at every Harbor.
-- The Catain roster is the same at every Harbor, so a ship's Catain always exists wherever it arrives.
-- On Arrival the ship, with its Ship Name and Catain, joins the Destination Harbor's fleet.
+- The Catain roster is the same at every Harbor, so a ship's Catain always exists wherever it arrives. Every Harbor names each Catain by the same Catain id (seeded with fixed ids by `V9__same_reference_ids_at_every_harbor.sql`). *Built by STORY-006.*
+- On Arrival the ship, with its Ship Id, Ship Name and Catain, joins the Destination Harbor's fleet, with no Loaded Cargo and no Active Shipping (`ArrivalManagementService`, Shipping). *Built by STORY-006.*
 - When the Origin Harbor learns of the Arrival (Ship Arrived), it removes the ship from its fleet.
 
 ## Tactical model
