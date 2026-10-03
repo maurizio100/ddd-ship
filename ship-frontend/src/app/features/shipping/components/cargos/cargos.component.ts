@@ -3,15 +3,19 @@ import {
   OnInit,
   Input,
   Output,
-  EventEmitter
+  EventEmitter,
+  signal
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Cargo } from '../../models/cargo';
+import { AvailableCargo, Cargo } from '../../models/cargo';
 import { CargoService } from '../../services/cargo.service';
 import { Ship } from '../../models/ship';
 import { ShippingService } from '../../services/shipping.service';
 import { ShippingSummary } from '../../models/shipping-summary';
 import {LowerCasePipe, NgStyle} from "@angular/common";
+
+const LOAD_REJECTED = 'The Cargo could not be loaded';
 
 @Component({
   selector: 'app-cargos',
@@ -30,9 +34,10 @@ export class CargosComponent implements OnInit {
 
   @Output() shipUpdated = new EventEmitter<Ship>();
 
-  allCargo: Cargo[] = [];
-  cargos: Cargo[] = [];
+  allCargo: AvailableCargo[] = [];
+  cargos: (Cargo & Partial<AvailableCargo>)[] = [];
   header: String = 'Available Cargo';
+  loadRejection = signal<string | null>(null);
 
   constructor(
     private cargoService: CargoService,
@@ -47,7 +52,8 @@ export class CargosComponent implements OnInit {
     } else {
       this.header = 'Available Cargo';
       this.getCargos();
-      this.showLoadObserve.subscribe((s) => this.prepareAvailableCargo());
+      // Every load or unload changes the Harbor's Stock, so fetch the Available Cargo again.
+      this.showLoadObserve.subscribe(() => this.getCargos());
     }
   }
 
@@ -72,8 +78,13 @@ export class CargosComponent implements OnInit {
 
   performLoading(cargo: Cargo) {
     if (!this.showLoaded) {
-      this.shippingService.loadCargo(this.ship, cargo).subscribe((ship) => {
-        this.shipUpdated.emit(ship);
+      this.shippingService.loadCargo(this.ship, cargo).subscribe({
+        next: (ship) => {
+          this.loadRejection.set(null);
+          this.shipUpdated.emit(ship);
+        },
+        error: (error: HttpErrorResponse) =>
+          this.loadRejection.set(error.error?.detail ?? LOAD_REJECTED),
       });
     } else {
       this.shippingService

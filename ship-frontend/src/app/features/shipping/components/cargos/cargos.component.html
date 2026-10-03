@@ -1,6 +1,10 @@
+@if (loadRejection(); as rejection) {
+  <p class="load-rejection" data-testid="load-rejection" role="alert">{{ rejection }}</p>
+}
 <div class="cargo-container">
-  @for (cargo of cargos; track cargo) {
+  @for (cargo of cargos; track cargo.id) {
     <div (click)="performLoading(cargo)" class="cargo-item"
+        [attr.data-testid]="showLoaded ? 'loaded-cargo' : 'available-cargo'"
         [ngStyle]="{
             'background-image': 'url(/cargo/' + (cargo.name | lowercase) + '.jpg)',
             'background-size': '80px 80px',
@@ -8,7 +12,10 @@
 
         }"
       >
-      <span>{{cargo.name}}<br>{{cargo.weight}}</span>
+      @if (!showLoaded) {
+        <span class="cargo-stock" data-testid="cargo-stock" title="In Stock">{{cargo.stock}}</span>
+      }
+      <span><span data-testid="cargo-name">{{cargo.name}}</span><br>{{cargo.weight}}</span>
     </div>
   }
 </div>
