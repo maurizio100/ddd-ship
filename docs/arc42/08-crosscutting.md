@@ -17,7 +17,7 @@ ship's identity across all Harbors and travels in events; the surrogate key neve
 - Reference data (Cargo catalog, Catain roster, Shipping Quotes) is seeded by migrations `V2`–`V4`.
 - Binary data (Catain Images) lives in MinIO, not in the database.
 - Each Harbor's **Stock** lives in its own database, in `stocks` (one row per catalog Cargo). `V7__stocks.sql` seeds the Starting Stock (3 of every Cargo); Flyway applies it once per database, i.e. when the Harbor opens for the first time. The Stock is changed only through `StockRepositoryPort`, inside the caller's transaction, and never drops below 0 (a conditional `UPDATE … WHERE stock_quantity > 0` backed by a `CHECK` constraint). It is not published.
-- Planned: per-Harbor tables for the inbox of consumed event ids ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and the Known Harbors ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
+- Each Harbor also has an inbox of consumed event ids in `inbox_events` (`V5`, [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and its Known Harbors in `known_harbors` (`V6`, [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
 
 ## 8.3 Transactions and event publication
 
