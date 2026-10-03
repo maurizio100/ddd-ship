@@ -19,6 +19,10 @@ class ShipPersistenceEntity(
     var shipName: String,
 
     @ManyToOne(fetch = FetchType.EAGER)
-    var catain: CatainPersistenceEntity
+    var catain: CatainPersistenceEntity,
+
+    /** Whether the ship is in this Harbor's fleet; a ship that sailed to another Harbor keeps its row. */
+    @Column(name = "ship_in_fleet")
+    var inFleet: Boolean = true
 ) {
 }

@@ -16,6 +16,7 @@ import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingStateEnu
 import jakarta.persistence.EntityNotFoundException
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Propagation
 
 @Component
 class ShipRepositoryAdapter(
@@ -23,9 +24,18 @@ class ShipRepositoryAdapter(
     private val shippingRepository: ShippingRepository,
     private val catainRepository: CatainPersistenceEntityRepository
 ): ShipRepositoryPort {
+    /** Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row. */
     override fun saveNewShip(ship: InitialShipInformation) {
         val catain = catainRepository.findByCatainId(ship.catainId.id) ?: throw EntityNotFoundException()
-        shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
+        val known = shipPersistenceEntityRepository.findByShipId(ship.shipId.id)
+        if (known == null) {
+            shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
+            return
+        }
+        known.shipName = ship.shipName
+        known.catain = catain
+        known.inFleet = true
+        shipPersistenceEntityRepository.save(known)
     }
 
     private fun createShipEntity(ship: InitialShipInformation, catain: CatainPersistenceEntity) =
@@ -41,16 +51,19 @@ class ShipRepositoryAdapter(
         shipPersistenceEntityRepository.deleteByShipId(shipId.id)
     }
 
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.MANDATORY)
     override fun removeFromFleet(shipId: ShipId) {
-        TODO("STORY-007")
+        val ship = shipPersistenceEntityRepository.findByShipId(shipId.id) ?: return
+        ship.inFleet = false
+        shipPersistenceEntityRepository.save(ship)
     }
 
     override fun getAllShips(): List<Ship> {
-        return shipPersistenceEntityRepository.findAll().map { toShip(it) }
+        return shipPersistenceEntityRepository.findAllByInFleetTrue().map { toShip(it) }
     }
 
     override fun getShipDetails(shipId: ShipId): Ship? {
-        return shipPersistenceEntityRepository.findByShipId(shipId.id)?.let {
+        return shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id)?.let {
             toShip(it)
         }
     }

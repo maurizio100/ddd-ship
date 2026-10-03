@@ -8,4 +8,6 @@ import java.util.UUID
 interface ShipPersistenceEntityRepository: JpaRepository<ShipPersistenceEntity, Long> {
     fun deleteByShipId(shipId: UUID)
     fun findByShipId(shipId: UUID): ShipPersistenceEntity?
+    fun findAllByInFleetTrue(): List<ShipPersistenceEntity>
+    fun findByShipIdAndInFleetTrue(shipId: UUID): ShipPersistenceEntity?
 }
