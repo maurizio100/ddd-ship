@@ -7,6 +7,10 @@
   `V<n>__<snake_case_description>.sql` with the next free integer `<n>`.
 - Never edit a migration that has been merged; add a new one.
 - Reference data (Cargo catalog, Catain roster, Shipping Quotes) is seeded by migrations, not by code.
+- The business ids of Cargo and Catains (`cargo_id`, `catain_id`) are fixed literal UUIDs, identical at
+  every Harbor (`V9__same_reference_ids_at_every_harbor.sql`), and unique (`uq_cargos_cargo_id`,
+  `uq_catains_catain_id`): an arriving ship names its Catain and Loaded Cargo by id. Never seed them
+  with `gen_random_uuid()` or any other random value.
 
 ## Tables and columns
 
@@ -46,6 +50,8 @@
   UUIDv5 of the Harbor Name in the fixed namespace `d5a17a2e-8e74-5937-8c7d-101e395ae650`. Every
   Harbor must use the same namespace, so a Harbor keeps one key across restarts and compaction
   keeps one record per Harbor.
+- `ship-arrived` uses `aggregate_type = 'shipping'` (topic `hexagonship-shipping`) and the Shipping id
+  as `aggregate_id`, the same key as the `shipping-published` it answers, so both stay ordered per Shipping.
 - Changing an event payload changes a public contract: only add fields, and never rename or remove one.
 
 ## Inbox

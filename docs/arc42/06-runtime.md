@@ -68,10 +68,13 @@ sequenceDiagram
     T->>T: print ship, Catain, weight, cargo
 ```
 
-## 6.4 Arrival at the Destination Harbor (planned)
+## 6.4 Arrival at the Destination Harbor (Destination side built)
 
 Per [ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md) and
-[ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md). Not built yet.
+[ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md). The
+Destination side is built by STORY-006 (`ShippingEventListener` → `ArrivalManagementService`); the
+Origin side (consuming `ship-arrived`) is planned for STORY-007. Besides the inbox, a ship whose Ship Id
+is already in the fleet is skipped, so a re-published Release under a new event id has no effect.
 
 ```mermaid
 sequenceDiagram
@@ -81,11 +84,12 @@ sequenceDiagram
     participant DBB as Destination PostgreSQL
     A->>K: shipping-published (Origin and Destination Harbor) via outbox
     K->>B: consume (group of Harbor B)
-    B->>B: ignore unless addressed to this Harbor
     rect rgb(240,240,240)
     Note over B,DBB: one DB transaction
     B->>DBB: skip if event id already in inbox
     B->>DBB: insert inbox row
+    B->>B: ignore unless addressed to this Harbor
+    B->>DBB: skip if Ship Id already in fleet
     B->>DBB: Unloading on Arrival - add Cargo to Stock
     B->>DBB: take ship (Ship Id, name, Catain) into fleet
     B->>DBB: insert outbox row (ship-arrived)
