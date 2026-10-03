@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driving.adapter.web.responsemodel
 
+import com.sonicdevelopment.domain.model.enums.ShippingState
 import java.util.*
 
 data class ShippingResponse(
@@ -11,5 +12,6 @@ data class ShippingResponse(
     val cargo: List<CargoResponse>,
     val sailorsCode: String?,
     val weight: Float,
+    val shippingState: ShippingState,
     val destinationHarbor: String? = null
 )

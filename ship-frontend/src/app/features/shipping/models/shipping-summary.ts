@@ -1,4 +1,5 @@
 import { Cargo } from "./cargo";
+import { ShippingState } from "./ship";
 
 export interface ShippingSummary {
     id: string;
@@ -10,4 +11,5 @@ export interface ShippingSummary {
     sailorsCode: string;
     weight: number;
     destinationHarbor: string | null;
+    shippingState?: ShippingState | null;
 }

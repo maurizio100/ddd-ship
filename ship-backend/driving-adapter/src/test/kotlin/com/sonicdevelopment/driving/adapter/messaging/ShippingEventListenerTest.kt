@@ -8,6 +8,7 @@ import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ShipArrivedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import io.mockk.confirmVerified
 import io.mockk.mockk
@@ -53,14 +54,35 @@ class ShippingEventListenerTest {
     }
 
     @Test
-    fun `ignores other event types (ship-arrived)`() {
+    fun `delegates ship-arrived to receiveShipArrived`() {
+        val eventId = UUID.randomUUID()
+
         listener.onShippingEvent(
             aRecord(
+                id = eventId,
                 eventType = "ship-arrived",
                 payload = """{"shipId":"$shipId","shipName":"Black Pearl","shippingId":"$shippingId",""" +
                     """"originHarbor":"Tortuga","destinationHarbor":"Port Royal"}"""
             )
         )
+
+        verify(exactly = 1) {
+            arrivalManagementPort.receiveShipArrived(
+                EventId(eventId),
+                ShipArrivedDTO(
+                    shipId = ShipId(shipId),
+                    shippingId = ShippingId(shippingId),
+                    originHarbor = HarborName("Tortuga"),
+                    destinationHarbor = HarborName("Port Royal"),
+                )
+            )
+        }
+        confirmVerified(arrivalManagementPort)
+    }
+
+    @Test
+    fun `ignores other event types`() {
+        listener.onShippingEvent(aRecord(eventType = "harbor-opened", payload = """{"harborName":"Nassau"}"""))
 
         confirmVerified(arrivalManagementPort)
     }

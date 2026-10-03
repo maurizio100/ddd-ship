@@ -54,6 +54,8 @@ class ShipController (
 
     @DeleteMapping("/{shipId}")
     fun deleteShip(@PathVariable("shipId") shipId:UUID) {
-        shipManagementPort.deleteShip(ShipId(shipId))
+        if (!shipManagementPort.deleteShip(ShipId(shipId))) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
+        }
     }
 }

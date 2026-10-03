@@ -14,8 +14,9 @@ import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingPersiste
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepository
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingStateEnumEntity
 import jakarta.persistence.EntityNotFoundException
-import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class ShipRepositoryAdapter(
@@ -23,9 +24,18 @@ class ShipRepositoryAdapter(
     private val shippingRepository: ShippingRepository,
     private val catainRepository: CatainPersistenceEntityRepository
 ): ShipRepositoryPort {
+    /** Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row. */
     override fun saveNewShip(ship: InitialShipInformation) {
         val catain = catainRepository.findByCatainId(ship.catainId.id) ?: throw EntityNotFoundException()
-        shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
+        val known = shipPersistenceEntityRepository.findByShipId(ship.shipId.id)
+        if (known == null) {
+            shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
+            return
+        }
+        known.shipName = ship.shipName
+        known.catain = catain
+        known.inFleet = true
+        shipPersistenceEntityRepository.save(known)
     }
 
     private fun createShipEntity(ship: InitialShipInformation, catain: CatainPersistenceEntity) =
@@ -35,18 +45,28 @@ class ShipRepositoryAdapter(
             catain = catain
         )
 
+    /** Only a ship in the fleet is deleted; a ship that left keeps its row and its Shippings as history. */
     @Transactional
-    override fun delete(shipId: ShipId) {
+    override fun delete(shipId: ShipId): Boolean {
+        shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id) ?: return false
         shippingRepository.deleteByShip_shipId(shipId.id)
         shipPersistenceEntityRepository.deleteByShipId(shipId.id)
+        return true
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun removeFromFleet(shipId: ShipId) {
+        val ship = shipPersistenceEntityRepository.findByShipId(shipId.id) ?: return
+        ship.inFleet = false
+        shipPersistenceEntityRepository.save(ship)
     }
 
     override fun getAllShips(): List<Ship> {
-        return shipPersistenceEntityRepository.findAll().map { toShip(it) }
+        return shipPersistenceEntityRepository.findAllByInFleetTrue().map { toShip(it) }
     }
 
     override fun getShipDetails(shipId: ShipId): Ship? {
-        return shipPersistenceEntityRepository.findByShipId(shipId.id)?.let {
+        return shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id)?.let {
             toShip(it)
         }
     }

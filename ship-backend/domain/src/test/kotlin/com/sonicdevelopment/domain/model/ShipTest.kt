@@ -6,10 +6,13 @@ import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
+import java.util.*
 
 class ShipTest {
 
@@ -78,5 +81,48 @@ class ShipTest {
         shouldThrow<ShippingNotPreparingException> {
             ship.release(ShippingQuote("Fair winds"), HarborName("Port Royal"))
         }.message shouldBe "Black Pearl is not being prepared"
+    }
+
+    @Test
+    fun `ending a voyage sets its Shipping to DONE`() {
+        val ship = aShip()
+        ship.release(ShippingQuote("Fair winds"), HarborName("Port Royal"))
+        val voyage = ship.activeShipping!!
+
+        val ended = ship.endShipping(voyage.id)
+
+        ended shouldBe true
+        voyage.shippingState shouldBe ShippingState.DONE
+        ship.shippingState() shouldBe ShippingState.DONE
+    }
+
+    @Test
+    fun `only the Active Shipping at sea with that id can end`() {
+        val atSea = aShip()
+        atSea.release(ShippingQuote("Fair winds"), HarborName("Port Royal"))
+        val beingPrepared = aShip()
+        val withoutShipping = aShip(activeShipping = null)
+
+        atSea.endShipping(ShippingId(UUID.randomUUID())) shouldBe false
+        beingPrepared.endShipping(beingPrepared.activeShipping!!.id) shouldBe false
+        withoutShipping.endShipping(ShippingId(UUID.randomUUID())) shouldBe false
+
+        atSea.shippingState() shouldBe ShippingState.SHIPPING
+        beingPrepared.shippingState() shouldBe ShippingState.PREPARING
+        withoutShipping.shippingState() shouldBe ShippingState.IDLE
+        withoutShipping.activeShipping shouldBe null
+    }
+
+    @Test
+    fun `a ship whose Shipping is DONE can get a new Shipping`() {
+        val ship = aShip()
+        ship.release(ShippingQuote("Fair winds"), HarborName("Port Royal"))
+        val voyage = ship.activeShipping!!
+        ship.endShipping(voyage.id)
+
+        ship.createNewShipping()
+
+        ship.shippingState() shouldBe ShippingState.PREPARING
+        ship.activeShipping!!.id shouldNotBe voyage.id
     }
 }

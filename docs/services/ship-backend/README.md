@@ -5,6 +5,8 @@ Cargo, and preparing and Releasing Shippings. It owns the PostgreSQL schema (thr
 Catain Images in MinIO, and on Release it writes the Shipping Published event to the transactional
 outbox. A ship Released to this Harbor arrives by itself: on consuming its Shipping Published the
 backend unloads its Cargo into the Stock, takes it into the fleet and writes Ship Arrived to the outbox.
+When it consumes Ship Arrived for a ship it Released, it sets that Shipping to `DONE` and the ship
+leaves its fleet.
 It does not publish to Kafka itself (Debezium does that), and it renders no UI.
 
 - **Bounded context(s):** Fleet, CargoLoading, Shipping

@@ -83,6 +83,8 @@ paths:
       responses:
         '204':
           description: Ship deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /web/ships/{shipId}/cargos:
     parameters:
@@ -456,6 +458,7 @@ components:
 
     ShippingResponse:
       type: object
+      required: [shippingState]
       properties:
         id:
           type: string
@@ -482,6 +485,8 @@ components:
         weight:
           type: number
           format: float
+        shippingState:
+          $ref: '#/components/schemas/ShippingState'
         destinationHarbor:
           type: string
           nullable: true

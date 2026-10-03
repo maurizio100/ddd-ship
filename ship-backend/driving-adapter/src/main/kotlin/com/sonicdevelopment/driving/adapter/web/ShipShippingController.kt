@@ -71,6 +71,7 @@ class ShipShippingController(
                 CargoResponse(id = it.id.id, name = it.name, weight = it.weight)
             },
             weight = shippingDetailsDTO.actualWeight,
+            shippingState = shippingDetailsDTO.shippingState,
             catainId = shippingDetailsDTO.catainId,
             catainName = shippingDetailsDTO.catainName,
             destinationHarbor = shippingDetailsDTO.destinationHarbor?.name

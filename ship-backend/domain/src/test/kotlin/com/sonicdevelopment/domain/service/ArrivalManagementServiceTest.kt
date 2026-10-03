@@ -4,19 +4,24 @@ import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.Catain
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.CatainImageId
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
+import com.sonicdevelopment.domain.model.values.ShippingQuote
+import com.sonicdevelopment.domain.ports.driven.ArrivalRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import com.sonicdevelopment.domain.ports.driven.CatainRepository
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
+import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ShipArrivedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -26,6 +31,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -41,8 +47,13 @@ class ArrivalManagementServiceTest {
     private val cargoQuery = mockk<CargoQueryPort>()
     private val stock = mockk<StockRepositoryPort>(relaxed = true)
     private val outbox = mockk<ShippingOutboxRepository>(relaxed = true)
+    private val shippings = mockk<ShippingRepositoryPort>(relaxed = true)
+    private val arrivals = mockk<ArrivalRepositoryPort>()
 
-    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, stock, outbox)
+    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, stock, outbox, shippings, arrivals)
+
+    /** The Origin side of the Arrival runs at "Tortuga", where the ship was Released. */
+    private val tortugaService = ArrivalManagementService(tortuga, inbox, ships, catains, cargoQuery, stock, outbox, shippings, arrivals)
 
     private val eventId = EventId(UUID.randomUUID())
     private val rum = aCargo(name = "Rum")
@@ -62,6 +73,7 @@ class ArrivalManagementServiceTest {
     fun knownReferenceData() {
         every { inbox.recordConsumedEvent(eventId) } returns true
         every { ships.getShipDetails(any()) } returns null
+        every { arrivals.recordArrival(any(), any()) } returns true
         every { catains.findCatainById(whiskers.catainId) } returns whiskers
         every { cargoQuery.findCargo(rum.id) } returns rum
         every { cargoQuery.findCargo(silk.id) } returns silk
@@ -88,6 +100,48 @@ class ArrivalManagementServiceTest {
         announced.captured.catainName shouldBe "Whiskers"
         announced.captured.activeShipping shouldBe null
         announced.captured.loadedCargo.shouldBeEmpty()
+        verify(exactly = 1) { arrivals.recordArrival(blackPearl.shippingId, blackPearl.shipId) }
+        verify(exactly = 0) { shippings.updateActiveShipping(any()) }
+    }
+
+    @Test
+    fun `a Shipping that has already arrived does not arrive again, even after the ship left the fleet`() {
+        // re-published under a new event id; the ship has sailed on, so it is in no fleet here
+        every { arrivals.recordArrival(blackPearl.shippingId, blackPearl.shipId) } returns false
+
+        service.receiveShippingPublished(eventId, blackPearl)
+
+        verify(exactly = 1) { inbox.recordConsumedEvent(eventId) }
+        verify(exactly = 0) { catains.findCatainById(any()) }
+        assertNoArrival()
+    }
+
+    @Test
+    fun `a ship returning before this Harbor learned of its earlier Arrival elsewhere ends that voyage and stays in the fleet`() {
+        // Released here to "Nassau"; its Ship Arrived from there has not been consumed yet
+        val stillAtSea = aShip(id = blackPearl.shipId, name = "Black Pearl").apply {
+            release(ShippingQuote("Fair winds"), HarborName("Nassau"))
+        }
+        val earlierVoyage = stillAtSea.activeShipping!!
+        every { ships.getShipDetails(blackPearl.shipId) } returns stillAtSea
+        val ended = slot<Ship>()
+        every { shippings.updateActiveShipping(capture(ended)) } answers {
+            ended.captured.activeShipping!!.id shouldBe earlierVoyage.id
+            ended.captured.activeShipping!!.shippingState shouldBe ShippingState.DONE
+            Unit
+        }
+        val saved = slot<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+
+        service.receiveShippingPublished(eventId, blackPearl)
+
+        verify(exactly = 1) { shippings.updateActiveShipping(any()) }
+        earlierVoyage.shippingState shouldBe ShippingState.DONE
+        verify(exactly = 1) { stock.putIntoStock(rum.id, 1) }
+        verify(exactly = 1) { stock.putIntoStock(silk.id, 1) }
+        saved.captured.shipId shouldBe blackPearl.shipId
+        verify(exactly = 1) { outbox.announceShipArrived(any(), blackPearl.shippingId, tortuga, portRoyal) }
+        verify(exactly = 0) { ships.removeFromFleet(any()) }
     }
 
     @Test
@@ -118,12 +172,20 @@ class ArrivalManagementServiceTest {
     }
 
     @Test
-    fun `a ship already in the fleet does not arrive again`() {
+    fun `a ship already in the fleet and not at sea does not arrive again`() {
+        // an Arrival handled before the arrivals were recorded, re-published under a new event id
         every { ships.getShipDetails(blackPearl.shipId) } returns aShip(id = blackPearl.shipId, activeShipping = null)
 
         service.receiveShippingPublished(eventId, blackPearl)
 
+        every { ships.getShipDetails(blackPearl.shipId) } returns aShip(id = blackPearl.shipId)
+        val otherEventId = EventId(UUID.randomUUID())
+        every { inbox.recordConsumedEvent(otherEventId) } returns true
+
+        service.receiveShippingPublished(otherEventId, blackPearl)
+
         verify(exactly = 1) { inbox.recordConsumedEvent(eventId) }
+        verify(exactly = 0) { shippings.updateActiveShipping(any()) }
         assertNoArrival()
     }
 
@@ -143,6 +205,108 @@ class ArrivalManagementServiceTest {
             service.receiveShippingPublished(eventId, blackPearl)
         }.message shouldContain silk.id.id.toString()
         assertNoArrival()
+    }
+
+    @Test
+    fun `Ship Arrived for this Harbor sets the Shipping to DONE and removes the ship from the fleet`() {
+        val ship = aShipAtSea()
+        every { ships.getShipDetails(ship.id) } returns ship
+        val updated = slot<Ship>()
+        every { shippings.updateActiveShipping(capture(updated)) } answers {
+            updated.captured.activeShipping!!.shippingState shouldBe ShippingState.DONE
+            Unit
+        }
+
+        tortugaService.receiveShipArrived(eventId, shipArrived(ship))
+
+        verifyOrder {
+            inbox.recordConsumedEvent(eventId)
+            shippings.updateActiveShipping(ship)
+            ships.removeFromFleet(ship.id)
+        }
+        updated.captured.activeShipping!!.id shouldBe ship.activeShipping!!.id
+        ship.shippingState() shouldBe ShippingState.DONE
+    }
+
+    @Test
+    fun `an already consumed Ship Arrived has no effect`() {
+        val ship = aShipAtSea()
+        every { ships.getShipDetails(ship.id) } returns ship
+        every { inbox.recordConsumedEvent(eventId) } returns false
+
+        tortugaService.receiveShipArrived(eventId, shipArrived(ship))
+
+        verify(exactly = 0) { ships.getShipDetails(any()) }
+        ship.shippingState() shouldBe ShippingState.SHIPPING
+        assertVoyageNotEnded()
+    }
+
+    @Test
+    fun `Ship Arrived for another Origin Harbor or without one has no effect but is recorded`() {
+        val ship = aShipAtSea()
+        every { ships.getShipDetails(ship.id) } returns ship
+        val otherEventId = EventId(UUID.randomUUID())
+        every { inbox.recordConsumedEvent(otherEventId) } returns true
+
+        tortugaService.receiveShipArrived(eventId, shipArrived(ship).copy(originHarbor = HarborName("Nassau")))
+        tortugaService.receiveShipArrived(otherEventId, shipArrived(ship).copy(originHarbor = null))
+
+        verify(exactly = 1) { inbox.recordConsumedEvent(eventId) }
+        verify(exactly = 1) { inbox.recordConsumedEvent(otherEventId) }
+        ship.shippingState() shouldBe ShippingState.SHIPPING
+        assertVoyageNotEnded()
+    }
+
+    @Test
+    fun `Ship Arrived for a ship not in the fleet has no effect`() {
+        val ship = aShipAtSea()
+        every { ships.getShipDetails(ship.id) } returns null
+
+        tortugaService.receiveShipArrived(eventId, shipArrived(ship))
+
+        verify(exactly = 1) { inbox.recordConsumedEvent(eventId) }
+        assertVoyageNotEnded()
+    }
+
+    @Test
+    fun `Ship Arrived for a Shipping that is not the ship's voyage at sea has no effect`() {
+        // the ship sails again on a newer Shipping
+        val sailingAgain = aShipAtSea()
+        every { ships.getShipDetails(sailingAgain.id) } returns sailingAgain
+        val earlierVoyage = ShippingId(UUID.randomUUID())
+
+        tortugaService.receiveShipArrived(eventId, shipArrived(sailingAgain).copy(shippingId = earlierVoyage))
+
+        sailingAgain.shippingState() shouldBe ShippingState.SHIPPING
+        assertVoyageNotEnded()
+
+        // that Shipping is already DONE
+        val alreadyDone = aShipAtSea()
+        alreadyDone.endShipping(alreadyDone.activeShipping!!.id)
+        every { ships.getShipDetails(alreadyDone.id) } returns alreadyDone
+        val otherEventId = EventId(UUID.randomUUID())
+        every { inbox.recordConsumedEvent(otherEventId) } returns true
+
+        tortugaService.receiveShipArrived(otherEventId, shipArrived(alreadyDone))
+
+        alreadyDone.shippingState() shouldBe ShippingState.DONE
+        assertVoyageNotEnded()
+    }
+
+    private fun aShipAtSea(): Ship = aShip(name = "Black Pearl").apply {
+        release(ShippingQuote("Fair winds"), portRoyal)
+    }
+
+    private fun shipArrived(ship: Ship) = ShipArrivedDTO(
+        shipId = ship.id,
+        shippingId = ship.activeShipping!!.id,
+        originHarbor = tortuga,
+        destinationHarbor = portRoyal,
+    )
+
+    private fun assertVoyageNotEnded() {
+        verify(exactly = 0) { shippings.updateActiveShipping(any()) }
+        verify(exactly = 0) { ships.removeFromFleet(any()) }
     }
 
     private fun assertNoArrival() {

@@ -2,6 +2,10 @@ import { AvailableCargo, Cargo } from '../app/features/shipping/models/cargo';
 import { KnownHarbors } from '../app/features/shipping/models/known-harbors';
 import { Ship, ShippingState } from '../app/features/shipping/models/ship';
 import { ShippingSummary } from '../app/features/shipping/models/shipping-summary';
+import {
+  Ship as AvailableShip,
+  ShippingState as AvailableShipShippingState,
+} from '../app/features/ships/models/ship';
 
 export function aCargo(overrides: Partial<Cargo> = {}): Cargo {
   return {
@@ -29,6 +33,17 @@ export function aShip(overrides: Partial<Ship> = {}): Ship {
     weight: 0,
     maxweight: 15,
     shippingState: ShippingState.PREPARING,
+    ...overrides,
+  };
+}
+
+/** A ship as listed among the Available Ships (ships feature), with no Active Shipping. */
+export function anAvailableShip(overrides: Partial<AvailableShip> = {}): AvailableShip {
+  return {
+    id: '5f1d7c2e-0000-4000-8000-000000000001',
+    name: 'Black Pearl',
+    catain: 'Furry Jones',
+    shippingState: AvailableShipShippingState.IDLE,
     ...overrides,
   };
 }

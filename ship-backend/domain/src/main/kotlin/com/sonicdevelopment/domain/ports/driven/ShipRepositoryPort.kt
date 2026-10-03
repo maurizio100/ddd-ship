@@ -18,5 +18,9 @@ interface ShipRepositoryPort {
     }
     fun getAllShips(): List<Ship>
     fun getShipDetails(shipId: ShipId): Ship?
-    fun delete(shipId: ShipId)
+    /** Deletes a ship in this Harbor's fleet; returns `false` for a ship that is not (unknown or left). */
+    fun delete(shipId: ShipId): Boolean
+
+    /** The ship leaves this Harbor's fleet; its Shippings are kept; runs in the caller's transaction. */
+    fun removeFromFleet(shipId: ShipId)
 }
