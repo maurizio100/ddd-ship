@@ -68,13 +68,22 @@ sequenceDiagram
     T->>T: print ship, Catain, weight, cargo
 ```
 
-## 6.4 Arrival at the Destination Harbor (Destination side built)
+## 6.4 Arrival at the Destination Harbor (both sides built)
 
 Per [ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md) and
 [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md). The
-Destination side is built by STORY-006 (`ShippingEventListener` → `ArrivalManagementService`); the
-Origin side (consuming `ship-arrived`) is planned for STORY-007. Besides the inbox, a ship whose Ship Id
-is already in the fleet is skipped, so a re-published Release under a new event id has no effect.
+Destination side is built by STORY-006 (`ShippingEventListener` → `ArrivalManagementService`), the
+Origin side (consuming `ship-arrived` through the same listener) by STORY-007. Besides the inbox, a ship
+whose Ship Id is already in the fleet is skipped, so a re-published Release under a new event id has no
+effect. On the Origin side only the ship's Active Shipping with the reported Shipping id, still at sea,
+ends, so a re-published or late `ship-arrived` never ends a later voyage. The ship leaves the fleet but
+keeps its row, and a later Arrival of the same Ship Id takes it back in.
+
+A return trip relies on order: the former Origin Harbor must process `ship-arrived` before the return
+Release, or it skips the returning ship as already in its fleet. Between two Harbors both events come
+from the same Destination Harbor's outbox in commit order over the single-partition
+`hexagonship-shipping`, so the order holds; on a round trip through three or more Harbors it does not
+(R-10).
 
 ```mermaid
 sequenceDiagram
@@ -94,8 +103,16 @@ sequenceDiagram
     B->>DBB: take ship (Ship Id, name, Catain) into fleet
     B->>DBB: insert outbox row (ship-arrived)
     end
-    K->>A: ship-arrived
-    A->>A: inbox check, Shipping to DONE, remove ship from fleet
+    K->>A: ship-arrived (consume, group of Harbor A)
+    rect rgb(240,240,240)
+    Note over A: one DB transaction at the Origin Harbor
+    A->>A: skip if event id already in inbox, else insert inbox row
+    A->>A: ignore unless this Harbor is the Origin Harbor
+    A->>A: ignore unless the Ship Id is in the fleet
+    A->>A: ignore unless that Shipping id is the Active Shipping, still at sea
+    A->>A: set the Shipping to DONE
+    A->>A: ship leaves the fleet (row and Shippings kept)
+    end
 ```
 
 ## 6.5 Harbor startup and discovery (planned)

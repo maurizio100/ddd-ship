@@ -54,6 +54,20 @@
   as `aggregate_id`, the same key as the `shipping-published` it answers, so both stay ordered per Shipping.
 - Changing an event payload changes a public contract: only add fields, and never rename or remove one.
 
+## Fleet
+
+- `ships.ship_in_fleet` (`V10__ships_in_fleet.sql`) marks whether a ship is in this Harbor's fleet. A
+  ship that leaves (its Origin Harbor learned of its Arrival elsewhere) is set to `false` and never
+  deleted: its Shippings, now `DONE`, and their Loaded Cargo are history, and `shippings.ship_id` is a
+  NOT NULL foreign key to it.
+- Every fleet query (`getAllShips`, `getShipDetails`) reads only ships in the fleet, so a ship that
+  left is "not found" for every User command. Shipping details (`getShippingInformation`) do not
+  filter, so a past Shipping stays readable.
+- `saveNewShip` saves by Ship Id: a known Ship Id (a ship that comes back, or a rename) updates its
+  one row and puts it back in the fleet instead of inserting a second row.
+- `removeFromFleet` runs in the caller's transaction (`Propagation.MANDATORY`), together with the inbox
+  record and the Shipping going `DONE`.
+
 ## Inbox
 
 - `inbox_events` holds the ids of events consumed from other Harbors
