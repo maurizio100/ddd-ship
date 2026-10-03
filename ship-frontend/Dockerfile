@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY . .
 
-RUN npm run build
+RUN npm run build:check
 
 # =========================================
 # Stage 2: Prepare Nginx to Serve Static Files
