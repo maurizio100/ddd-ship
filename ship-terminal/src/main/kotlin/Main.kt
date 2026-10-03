@@ -70,6 +70,8 @@ fun shouldAnnounce(eventType: String?, event: ShippingEvent?): Boolean {
     return eventType == SHIPPING_PUBLISHED && event != null
 }
 
+private val logger = System.getLogger("ship-terminal")
+
 fun handleRecord(record: ConsumerRecord<String, ShippingEvent?>): Boolean {
     val eventType = eventTypeOf(record)
     val event = record.value()
@@ -77,8 +79,13 @@ fun handleRecord(record: ConsumerRecord<String, ShippingEvent?>): Boolean {
     return if (shouldAnnounce(eventType, event)) {
         printShippingEvent(event!!)
         true
+    } else if (eventType == SHIPPING_PUBLISHED) {
+        logger.log(
+            System.Logger.Level.WARNING,
+            "Could not read $SHIPPING_PUBLISHED record at offset ${record.offset()} of ${record.topic()}-${record.partition()}"
+        )
+        false
     } else {
-        val logger = System.getLogger("ship-terminal")
         logger.log(System.Logger.Level.DEBUG, "Skipping event type '$eventType'")
         false
     }
