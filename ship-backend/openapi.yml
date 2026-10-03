@@ -109,8 +109,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ShipDetailResponse'
+        '400':
+          description: cargoId is missing
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Ship or cargo not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The load is rejected and neither the ship nor the Stock changes: the ship would exceed its
+            Max Weight (title "Ship too heavy"), the Cargo is already loaded (title "Cargo already loaded"),
+            or the Harbor's Stock holds none of it (title "Cargo out of Stock"). `detail` names the Cargo.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /web/ships/{shipId}/cargos/{cargoId}:
     parameters:
@@ -205,18 +224,19 @@ paths:
 
   /web/cargos:
     get:
-      summary: Get all available cargos
+      summary: Get the Available Cargo of this Harbor
+      description: The catalog Cargo this Harbor's Stock holds at least one of, each with its Stock.
       operationId: getCargos
       tags: [Cargos]
       responses:
         '200':
-          description: List of cargos
+          description: The Available Cargo
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CargoResponse'
+                  $ref: '#/components/schemas/AvailableCargoResponse'
 
   /web/catains:
     get:
@@ -338,6 +358,38 @@ components:
         weight:
           type: number
           format: float
+
+    AvailableCargoResponse:
+      type: object
+      required: [id, name, weight, stock]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        weight:
+          type: number
+          format: float
+        stock:
+          type: integer
+          minimum: 1
+          description: How many of this Cargo the Harbor's Stock holds
+
+    ProblemDetail:
+      type: object
+      description: RFC 9457 Problem Details
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
 
     CatainResponse:
       type: object

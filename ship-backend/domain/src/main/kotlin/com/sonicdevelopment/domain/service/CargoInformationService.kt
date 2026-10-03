@@ -11,5 +11,17 @@ class CargoInformationService(
     private val cargoQueryPort: CargoQueryPort,
     private val stockRepositoryPort: StockRepositoryPort
 ): CargoInformationPort {
-    override fun getAvailableCargo(): List<AvailableCargoDTO> = TODO("STORY-004")
+
+    /** The Available Cargo: the catalog Cargo this Harbor's Stock holds at least one of, in catalog order. */
+    override fun getAvailableCargo(): List<AvailableCargoDTO> {
+        val stock = stockRepositoryPort.getStock()
+        return cargoQueryPort.findAllCargo().mapNotNull { cargo ->
+            val quantity = stock[cargo.id] ?: 0
+            if (quantity > 0) {
+                AvailableCargoDTO(id = cargo.id, name = cargo.name, weight = cargo.weight, stock = quantity)
+            } else {
+                null
+            }
+        }
+    }
 }
