@@ -18,4 +18,4 @@ Terms specific to this context. Shared terms and cross-context collisions are in
 | Ship Arrived | The event a Destination Harbor publishes after an Arrival, telling the Origin Harbor that the voyage is over. | Planned (harbor-voyages). Event type `ship-arrived`. The Origin Harbor then sets the Shipping to `DONE` and removes the ship from its fleet. |
 | Shipping Quote | A seafaring quote assigned to a Shipping on Release. | Also called Quote; 15 seeded. |
 | Shipping State | The stage of a Shipping: `IDLE`, `PREPARING`, `SHIPPING`, `DONE`. | `IDLE` means "no Active Shipping"; `DONE` is never set — needs review. Planned (harbor-voyages): set to `DONE` when the Origin Harbor receives Ship Arrived. |
-| Shipping Summary | What the user sees after Release: ship, Catain, Loaded Cargo, Weight and Sailors Code. | |
+| Shipping Summary | What the user sees after Release: ship, Catain, Destination Harbor, Loaded Cargo, Weight and Sailors Code. | Destination Harbor shown since STORY-005. |

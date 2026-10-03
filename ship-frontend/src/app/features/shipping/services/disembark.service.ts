@@ -1,7 +1,8 @@
-import { HttpClient, HttpHandler, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Ship } from '../models/ship';
 import { ShippingSummary } from '../models/shipping-summary';
+import { ReleaseShippingRequest } from '../models/release-shipping-request';
 import { environment } from '../../../../environments/environment';
 
 import { Observable } from 'rxjs';
@@ -22,7 +23,7 @@ export class DisembarkService {
   releaseShip(ship: Ship, destinationHarbor: string): Observable<ShippingSummary> {
     const url = `${this.shippingsUrl}/${ship.id}/shippings`;
     return this.http
-      .put<ShippingSummary>(url, this.httpOptions)
+      .put<ShippingSummary>(url, { destinationHarbor } as ReleaseShippingRequest, this.httpOptions)
       .pipe(
         tap((shippingSummary: ShippingSummary) =>
           console.log(`created shipping for ship ${shippingSummary.name}`)

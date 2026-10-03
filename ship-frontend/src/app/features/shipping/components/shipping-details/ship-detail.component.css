@@ -47,6 +47,20 @@
   color: blue;
 }
 
+.shipping-destination {
+  grid-column: 1/10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.shipping-release-rejection {
+  flex-basis: 100%;
+  color: firebrick;
+  font-weight: bold;
+}
+
 .shipping-back {
   grid-column: 10/11;
 }

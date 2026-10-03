@@ -4,6 +4,10 @@
       <span class="page-heading__highlight">{{ shipping.name }}</span>
       left the harbor together with
       <span class="page-heading__highlight">{{shipping.catainName}}!</span>
+      @if (shipping.destinationHarbor) {
+        <span data-testid="shipping-summary-destination-harbor">bound for
+          <span class="page-heading__highlight">{{ shipping.destinationHarbor }}</span></span>
+      }
     </h2>
   </div>
 </section>
