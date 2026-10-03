@@ -9,6 +9,7 @@ import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoLoadManagementPort
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
 import org.springframework.stereotype.Service
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Service
 class CargoLoadManagementService(
     private val shipRepositoryPort: ShipRepositoryPort,
     private val cargoPersistencePort: CargoPersistencePort,
-    private val cargoQueryPort: CargoQueryPort
+    private val cargoQueryPort: CargoQueryPort,
+    private val stockRepositoryPort: StockRepositoryPort
 ) : CargoLoadManagementPort {
     override fun addCargo(shipId: ShipId, cargoId: CargoId): ShipDetailDTO? {
         val ship = shipRepositoryPort.getShipDetails(shipId) ?: return null

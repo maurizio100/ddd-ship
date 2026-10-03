@@ -68,13 +68,14 @@ class Ship(
     private fun isShipLoadToHeavy(cargo: Cargo) =
         (currentWeight + cargo.weight)  > MAX_WEIGHT
 
-    fun removeCargo(cargo: Cargo) {
+    fun removeCargo(cargo: Cargo): Boolean {
         cargoLoad.remove(cargo.id)
         if (currentWeight < cargo.weight) {
             currentWeight = 0.0F
         } else {
             currentWeight -= cargo.weight
         }
+        return true
     }
 
     val weight: Float

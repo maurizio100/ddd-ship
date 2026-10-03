@@ -1,6 +1,6 @@
 package com.sonicdevelopment.driving.adapter.web
 
-import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
+import com.sonicdevelopment.domain.ports.driving.cargo.AvailableCargoDTO
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoInformationPort
 import com.sonicdevelopment.driving.adapter.web.responsemodel.CargoResponse
 import org.springframework.web.bind.annotation.CrossOrigin
@@ -18,7 +18,7 @@ class CargoController(
     fun getCargos(): List<CargoResponse> =
         cargoInformationPort.getAvailableCargo().map {toCargoResponse(it)}
 
-    private fun toCargoResponse(cargo: CargoDTO) =
+    private fun toCargoResponse(cargo: AvailableCargoDTO) =
         CargoResponse(
             id = cargo.id.id,
             name = cargo.name,
