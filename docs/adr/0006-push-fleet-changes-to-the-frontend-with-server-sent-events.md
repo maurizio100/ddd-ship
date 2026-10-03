@@ -44,6 +44,10 @@ We will push fleet changes from ship-backend to ship-frontend with **Server-Sent
 - Events are not persisted or replayed (`Last-Event-ID`): a tab that was disconnected catches up only
   with the next event's refetch, or a reload.
 
+- Sends to the open streams are blocking servlet writes. They run on one sender thread owned by
+  `FleetEventEmitters`, which keeps their order and keeps a stalled browser from stalling the Kafka listener
+  that handled the Arrival; an event that waits behind a stalled stream is delayed for the other tabs too.
+
 ### Neutral
 - These fleet events are not domain events and not outbox events; they never leave the Harbor.
 
