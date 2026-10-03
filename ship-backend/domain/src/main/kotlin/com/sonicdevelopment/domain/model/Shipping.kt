@@ -18,7 +18,8 @@ class Shipping(
         this.destinationHarbor = destinationHarbor
     }
 
+    /** The voyage is over. Only [Ship.endShipping] calls this, and only for a Shipping at sea. */
     fun end() {
-        TODO("STORY-007")
+        this.shippingState = ShippingState.DONE
     }
 }

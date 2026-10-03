@@ -42,9 +42,16 @@ class Ship(
         preparing.release(shippingQuote, destinationHarbor)
     }
 
-    /** The voyage is over: its ship has arrived at the Destination Harbor. */
+    /**
+     * The voyage is over: its ship has arrived at the Destination Harbor. Ends the Active Shipping only if it
+     * is [shippingId] and at sea; returns whether it did, and changes nothing otherwise.
+     */
     fun endShipping(shippingId: ShippingId): Boolean {
-        TODO("STORY-007")
+        val atSea = activeShipping
+            ?.takeIf { it.id == shippingId && it.shippingState == ShippingState.SHIPPING }
+            ?: return false
+        atSea.end()
+        return true
     }
 
     fun createSailorsCode(): SailorsCode {

@@ -18,7 +18,9 @@ import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
 /**
- * The Arrival: a ship Released to this Harbor arrives by itself when its Shipping Published is consumed.
+ * Both sides of the Arrival.
+ *
+ * **Destination side.** A ship Released to this Harbor arrives by itself when its Shipping Published is consumed.
  *
  * Two guards make it take effect at most once per ship. The inbox drops a redelivered event (same
  * EventId). A re-publication of the same Release arrives under a new EventId, so the Ship Id is the
@@ -28,6 +30,12 @@ import org.springframework.stereotype.Service
  * Otherwise, in one transaction with the inbox record: one of each Loaded Cargo goes into the Stock,
  * the ship joins the fleet with its Ship Id, Ship Name and Catain and no Shipping, and Ship Arrived is
  * written to the outbox for the Origin Harbor.
+ *
+ * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
+ * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
+ * this Harbor's fleet (its record and Shippings are kept). Events for another Origin Harbor, or for a ship
+ * not in the fleet, are recorded and ignored. The Shipping id guards against a late Ship Arrived: only the
+ * ship's Active Shipping with that id, still at sea, ends, so a later voyage is never ended by it.
  */
 @Service
 class ArrivalManagementService(
@@ -69,6 +77,12 @@ class ArrivalManagementService(
 
     @Transactional
     override fun receiveShipArrived(eventId: EventId, shipArrived: ShipArrivedDTO) {
-        TODO("STORY-007")
+        if (!inboxRepositoryPort.recordConsumedEvent(eventId)) return
+        if (shipArrived.originHarbor != currentHarbor) return
+        val ship = shipRepositoryPort.getShipDetails(shipArrived.shipId) ?: return
+        if (!ship.endShipping(shipArrived.shippingId)) return
+
+        shippingRepositoryPort.updateActiveShipping(ship)
+        shipRepositoryPort.removeFromFleet(ship.id)
     }
 }
