@@ -1,13 +1,16 @@
 import {inject, Injectable} from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
 import * as ShipActions from "../actions/ship.actions";
-import {catchError, exhaustMap, map, mergeMap, of, switchMap, takeUntil, timer} from "rxjs";
+import {catchError, defer, exhaustMap, map, mergeMap, of, retry, switchMap, takeUntil, timer} from "rxjs";
 import {ShipService} from "../../services/ship.service";
 import {FleetEventsService} from "../../services/fleet-events.service";
 import {FleetEvent} from "../../models/fleet-event";
 
 /** How long the User is told that a ship has arrived. */
 export const ARRIVAL_NOTICE_MS = 8000;
+
+/** How long to wait before opening a new fleet-events stream after the browser gave up on the last one. */
+export const FLEET_RECONNECT_DELAY_MS = 3000;
 
 @Injectable()
 export class ShipEffects {
@@ -44,7 +47,8 @@ export class ShipEffects {
   watchFleet$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(ShipActions.watchFleet),
-      switchMap(() => this.fleetEventsService.events().pipe(
+      switchMap(() => defer(() => this.fleetEventsService.events()).pipe(
+        retry({delay: FLEET_RECONNECT_DELAY_MS}),
         map(toAction),
         takeUntil(this.actions$.pipe(ofType(ShipActions.stopWatchingFleet)))
       ))
@@ -54,6 +58,14 @@ export class ShipEffects {
   refetchOnArrival$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(ShipActions.shipArrived),
+      map(() => ShipActions.loadShips())
+    )
+  });
+
+  /** A load still in flight may predate the departure; a newer one cancels it, so the ship stays gone. */
+  refetchOnShipLeft$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(ShipActions.shipLeft),
       map(() => ShipActions.loadShips())
     )
   });
@@ -69,7 +81,12 @@ export class ShipEffects {
 }
 
 function toAction(event: FleetEvent) {
-  return event.type === 'ship-arrived'
-    ? ShipActions.shipArrived(event.ship)
-    : ShipActions.shipLeft(event.ship);
+  switch (event.type) {
+    case 'ship-arrived':
+      return ShipActions.shipArrived(event.ship);
+    case 'ship-left':
+      return ShipActions.shipLeft(event.ship);
+    case 'connected':
+      return ShipActions.loadShips();
+  }
 }

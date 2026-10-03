@@ -11,8 +11,10 @@ export const EVENT_SOURCE_FACTORY = new InjectionToken<(url: string) => EventSou
 
 /**
  * This Harbor's fleet changes as the backend pushes them (`GET /web/fleet-events`, Server-Sent Events).
- * Each subscription opens its own EventSource and closes it on unsubscribe. The browser reconnects a dropped
- * stream by itself, so an error does not end the observable.
+ * Each subscription opens its own EventSource and closes it on unsubscribe. While the browser is reconnecting a
+ * dropped stream by itself (readyState CONNECTING) nothing is emitted. When it gives up (readyState CLOSED, which
+ * is what a non-200 answer such as a 502 from the proxy causes) the observable errors, so the subscriber can
+ * open a new stream.
  */
 @Injectable({
   providedIn: 'root'
@@ -23,6 +25,13 @@ export class FleetEventsService {
   events(): Observable<FleetEvent> {
     return new Observable<FleetEvent>((subscriber) => {
       const source = this.eventSourceFactory(`${environment.baseUrl}/fleet-events`);
+      source.addEventListener('open', () => subscriber.next({type: 'connected'}));
+      source.addEventListener('error', () => {
+        if (source.readyState === EventSource.CLOSED) {
+          source.close();
+          subscriber.error(new Error('The fleet-events stream was closed'));
+        }
+      });
       source.addEventListener('ship-arrived', (event) =>
         subscriber.next({type: 'ship-arrived', ship: JSON.parse((event as MessageEvent).data) as ShipArrived}));
       source.addEventListener('ship-left', (event) =>

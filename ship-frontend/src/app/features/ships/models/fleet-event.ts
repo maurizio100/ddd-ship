@@ -15,7 +15,9 @@ export interface ShipLeft {
 /** A fleet change pushed by the backend over `GET /web/fleet-events`. */
 export type FleetEvent =
   | { type: 'ship-arrived'; ship: ShipArrived }
-  | { type: 'ship-left'; ship: ShipLeft };
+  | { type: 'ship-left'; ship: ShipLeft }
+  /** The stream has just (re)opened: anything missed meanwhile has to be fetched. */
+  | { type: 'connected' };
 
 /** What the User is told about a ship that has just arrived. */
 export interface ArrivalNotice {
