@@ -9,8 +9,10 @@ import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation.Companion.fromShip
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
+import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ShipArrivedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
@@ -36,6 +38,7 @@ class ArrivalManagementService(
     private val cargoQueryPort: CargoQueryPort,
     private val stockRepositoryPort: StockRepositoryPort,
     private val shippingOutboxRepository: ShippingOutboxRepository,
+    private val shippingRepositoryPort: ShippingRepositoryPort,
 ) : ArrivalManagementPort {
 
     @Transactional
@@ -62,5 +65,10 @@ class ArrivalManagementService(
         )
         shipRepositoryPort.saveNewShip(fromShip(ship))
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)
+    }
+
+    @Transactional
+    override fun receiveShipArrived(eventId: EventId, shipArrived: ShipArrivedDTO) {
+        TODO("STORY-007")
     }
 }

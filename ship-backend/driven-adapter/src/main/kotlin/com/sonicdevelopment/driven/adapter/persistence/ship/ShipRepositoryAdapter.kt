@@ -41,6 +41,10 @@ class ShipRepositoryAdapter(
         shipPersistenceEntityRepository.deleteByShipId(shipId.id)
     }
 
+    override fun removeFromFleet(shipId: ShipId) {
+        TODO("STORY-007")
+    }
+
     override fun getAllShips(): List<Ship> {
         return shipPersistenceEntityRepository.findAll().map { toShip(it) }
     }

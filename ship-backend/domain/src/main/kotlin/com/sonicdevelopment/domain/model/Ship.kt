@@ -42,6 +42,11 @@ class Ship(
         preparing.release(shippingQuote, destinationHarbor)
     }
 
+    /** The voyage is over: its ship has arrived at the Destination Harbor. */
+    fun endShipping(shippingId: ShippingId): Boolean {
+        TODO("STORY-007")
+    }
+
     fun createSailorsCode(): SailorsCode {
         return SailorsCode(currentWeight)
     }

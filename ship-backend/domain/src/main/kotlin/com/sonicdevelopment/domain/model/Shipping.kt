@@ -17,4 +17,8 @@ class Shipping(
         this.shippingQuote = shippingQuote
         this.destinationHarbor = destinationHarbor
     }
+
+    fun end() {
+        TODO("STORY-007")
+    }
 }

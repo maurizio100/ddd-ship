@@ -16,6 +16,7 @@ import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
+import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import io.kotest.assertions.throwables.shouldThrow
@@ -41,8 +42,9 @@ class ArrivalManagementServiceTest {
     private val cargoQuery = mockk<CargoQueryPort>()
     private val stock = mockk<StockRepositoryPort>(relaxed = true)
     private val outbox = mockk<ShippingOutboxRepository>(relaxed = true)
+    private val shippings = mockk<ShippingRepositoryPort>(relaxed = true)
 
-    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, stock, outbox)
+    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, stock, outbox, shippings)
 
     private val eventId = EventId(UUID.randomUUID())
     private val rum = aCargo(name = "Rum")
