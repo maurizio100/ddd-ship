@@ -3,6 +3,12 @@ package com.sonicdevelopment.application.acceptance.fixtures
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonicdevelopment.application.KafkaTestcontainer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpMethod
+import org.springframework.http.ResponseEntity
+import org.springframework.jdbc.core.JdbcTemplate
 import java.util.*
 
 /**
@@ -24,3 +30,19 @@ fun aHarborOpenedRecord(
         headers().add("eventType", "harbor-opened".toByteArray(Charsets.UTF_8))
     }
 }
+
+/** This Harbor knows the Harbors [names], as if it had learned of them from their Harbor Opened. */
+fun JdbcTemplate.givenKnownHarbors(vararg names: String) {
+    names.forEach {
+        update("INSERT INTO known_harbors (id, harbor_name) VALUES (nextval('known_harbors_seq'), ?)", it)
+    }
+}
+
+/** The User Releases the ship [shipId] to [destinationHarbor]. */
+fun TestRestTemplate.release(shipId: UUID, destinationHarbor: String): ResponseEntity<Map<*, *>> =
+    exchange(
+        "/web/ships/$shipId/shippings",
+        HttpMethod.PUT,
+        HttpEntity(mapOf("destinationHarbor" to destinationHarbor)),
+        object : ParameterizedTypeReference<Map<*, *>>() {},
+    )

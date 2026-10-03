@@ -56,6 +56,9 @@ class ShippingOutboxRepositoryAdapterTest {
         ObjectMapper().readTree(payload).fieldNames().asSequence().toList() shouldContainExactlyInAnyOrder
             listOf("shipEventData", "shippingEventData", "catain")
         ObjectMapper().readValue(payload, ShippingEvent::class.java) shouldBe ShippingEventConverter.toShippingEvent(ship, HarborName("Tortuga"))
+        val shippingEventData = ObjectMapper().readTree(payload)["shippingEventData"]
+        shippingEventData["originHarbor"].asText() shouldBe "Tortuga"
+        shippingEventData["destinationHarbor"].asText() shouldBe "Port Royal"
     }
 
     private fun aReleasedShip(): Ship {
