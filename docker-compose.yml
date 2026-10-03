@@ -31,6 +31,9 @@ services:
       context: ship-backend/.
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      HARBOR_NAME: "Hexagon Harbor"
+      # App only, no Kafka: keep Kafka listeners idle.
+      SPRING_KAFKA_LISTENER_AUTO_STARTUP: "false"
     networks:
       - ship-network
     ports:

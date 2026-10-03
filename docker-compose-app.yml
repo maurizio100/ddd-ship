@@ -34,6 +34,7 @@ services:
       context: ship-backend/.
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      HARBOR_NAME: "Hexagon Harbor"
     networks:
       - ship-network
       - kafka_network
