@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.outbox
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEventConverter
 import org.springframework.stereotype.Component
@@ -31,4 +32,11 @@ class ShippingOutboxRepositoryAdapter(
         )
     }
 
+    override fun announceShipArrived(
+        ship: Ship,
+        shippingId: ShippingId,
+        originHarbor: HarborName,
+        destinationHarbor: HarborName
+    ) {
+    }
 }
