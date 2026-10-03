@@ -43,6 +43,8 @@ _No entries yet._
 
 ### Value objects
 - **EventId** — identity of an event consumed from another Harbor: the publishing Harbor's outbox `message_id` (UUID). A Harbor records each consumed EventId through the driven port `InboxRepositoryPort`, in the same transaction as the state change the event causes, so a redelivered event never takes effect twice (ADR-0004). Technical identity, not a ubiquitous-language term. *Introduced by STORY-001.*
+- **HarborName** — the unique name a Harbor is known by among all Harbors; must not be blank. The current Harbor's name comes from `harbor.name` (one Harbor per ship-backend instance, ADR-0003). Equality by name. *Introduced by STORY-003.*
 
 ### Domain services
-_No entries yet._
+- **HarborManagementService** (implements `HarborManagementPort`) — `openHarbor` writes Harbor Opened with the current Harbor Name to the outbox through `HarborOutboxRepositoryPort`, once per startup. `learnAboutHarbor` records the EventId through `InboxRepositoryPort` first (an already consumed event has no effect), ignores the Harbor's own name, and adds any other Harbor to the Known Harbors through `KnownHarborRepositoryPort`, which stores each Harbor Name at most once. Invariants: a Harbor is never one of its own Known Harbors; a Harbor that opens again (new EventId) is still known only once. Known Harbors is a set of Harbor Names, not an aggregate. *Introduced by STORY-003.*
+- **HarborInformationService** (implements `HarborInformationPort`) — gives the current Harbor Name and its Known Harbors, ordered by name. *Introduced by STORY-003.*

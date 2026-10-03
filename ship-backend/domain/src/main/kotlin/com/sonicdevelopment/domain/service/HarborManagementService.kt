@@ -6,14 +6,31 @@ import com.sonicdevelopment.domain.ports.driven.HarborOutboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
+import jakarta.transaction.Transactional
+import org.springframework.stereotype.Service
 
+@Service
 class HarborManagementService(
     private val currentHarbor: HarborName,
     private val knownHarborRepositoryPort: KnownHarborRepositoryPort,
     private val harborOutboxRepositoryPort: HarborOutboxRepositoryPort,
     private val inboxRepositoryPort: InboxRepositoryPort
 ) : HarborManagementPort {
-    override fun openHarbor(): Unit = TODO()
 
-    override fun learnAboutHarbor(eventId: EventId, harborName: HarborName): Unit = TODO()
+    @Transactional
+    override fun openHarbor() {
+        harborOutboxRepositoryPort.publishHarborOpened(currentHarbor)
+    }
+
+    /**
+     * A Harbor never knows itself, and knows every other Harbor once: a re-opening Harbor sends a new
+     * event, so the inbox alone cannot dedupe it; [KnownHarborRepositoryPort] keeps each name once.
+     */
+    @Transactional
+    override fun learnAboutHarbor(eventId: EventId, harborName: HarborName) {
+        if (!inboxRepositoryPort.recordConsumedEvent(eventId)) return
+        if (harborName == currentHarbor) return
+
+        knownHarborRepositoryPort.rememberHarbor(harborName)
+    }
 }

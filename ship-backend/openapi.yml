@@ -254,6 +254,19 @@ paths:
                 type: string
                 format: binary
 
+  /web/harbors:
+    get:
+      summary: Get this Harbor's Harbor Name and its Known Harbors
+      operationId: getKnownHarbors
+      tags: [Harbors]
+      responses:
+        '200':
+          description: The current Harbor and the other Harbors it has learned of
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnownHarbors'
+
 components:
   schemas:
     ShipCreationRequest:
@@ -334,6 +347,19 @@ components:
           format: uuid
         name:
           type: string
+
+    KnownHarbors:
+      type: object
+      required: [harborName, knownHarbors]
+      properties:
+        harborName:
+          type: string
+          description: Harbor Name of the Harbor answering
+        knownHarbors:
+          type: array
+          description: Harbor Names of the other Harbors it has learned of, ordered by name; never its own
+          items:
+            type: string
 
     ShippingResponse:
       type: object
