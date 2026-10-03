@@ -73,17 +73,19 @@ sequenceDiagram
 Per [ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md) and
 [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md). The
 Destination side is built by STORY-006 (`ShippingEventListener` → `ArrivalManagementService`), the
-Origin side (consuming `ship-arrived` through the same listener) by STORY-007. Besides the inbox, a ship
-whose Ship Id is already in the fleet is skipped, so a re-published Release under a new event id has no
-effect. On the Origin side only the ship's Active Shipping with the reported Shipping id, still at sea,
+Origin side (consuming `ship-arrived` through the same listener) by STORY-007. Besides the inbox, the
+Destination Harbor records each handled Arrival by the Origin's Shipping id (`arrivals`), so a
+re-published Release under a new event id has no effect, even after the ship has sailed on and left its
+fleet. On the Origin side only the ship's Active Shipping with the reported Shipping id, still at sea,
 ends, so a re-published or late `ship-arrived` never ends a later voyage. The ship leaves the fleet but
 keeps its row, and a later Arrival of the same Ship Id takes it back in.
 
-A return trip relies on order: the former Origin Harbor must process `ship-arrived` before the return
-Release, or it skips the returning ship as already in its fleet. Between two Harbors both events come
-from the same Destination Harbor's outbox in commit order over the single-partition
-`hexagonship-shipping`, so the order holds; on a round trip through three or more Harbors it does not
-(R-10).
+A return trip does not rely on order. If the returning ship's Release reaches the former Origin Harbor
+before the `ship-arrived` of its earlier voyage (possible on a round trip through three or more Harbors,
+R-10), the ship is still in that Harbor's fleet, at sea: the Arrival ends that earlier voyage implicitly
+(`DONE`) and the ship stays in the fleet. The late `ship-arrived` then finds no voyage at sea with its
+Shipping id and has no effect, so the ship is not removed. A ship in the fleet that is not at sea does not
+arrive again.
 
 ```mermaid
 sequenceDiagram
@@ -98,7 +100,9 @@ sequenceDiagram
     B->>DBB: skip if event id already in inbox
     B->>DBB: insert inbox row
     B->>B: ignore unless addressed to this Harbor
-    B->>DBB: skip if Ship Id already in fleet
+    B->>DBB: skip if Shipping id already in arrivals, else insert arrivals row
+    B->>DBB: skip if Ship Id in fleet and not at sea
+    B->>DBB: if Ship Id in fleet at sea - end that earlier voyage (DONE)
     B->>DBB: Unloading on Arrival - add Cargo to Stock
     B->>DBB: take ship (Ship Id, name, Catain) into fleet
     B->>DBB: insert outbox row (ship-arrived)

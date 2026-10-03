@@ -83,6 +83,8 @@ paths:
       responses:
         '204':
           description: Ship deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /web/ships/{shipId}/cargos:
     parameters:

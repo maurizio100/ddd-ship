@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.ports.driven.ArrivalRepositoryPort
@@ -23,10 +24,17 @@ import org.springframework.stereotype.Service
  *
  * **Destination side.** A ship Released to this Harbor arrives by itself when its Shipping Published is consumed.
  *
- * Two guards make it take effect at most once per ship. The inbox drops a redelivered event (same
- * EventId). A re-publication of the same Release arrives under a new EventId, so the Ship Id is the
- * business key: a ship at sea is not in this Harbor's fleet unless it has already arrived here.
+ * Two guards make it take effect at most once per Release. The inbox drops a redelivered event (same
+ * EventId). A re-publication of the same Release arrives under a new EventId, so the Origin Harbor's
+ * Shipping id is the business key: each handled Arrival is recorded by it, and an Arrival whose Shipping
+ * has already arrived is skipped, even after the ship has sailed on and left this Harbor's fleet.
  * Events addressed to another Harbor, or without a Destination Harbor, are recorded and ignored.
+ *
+ * A ship already in the fleet arrives only if it is still at sea from here: it came back before this
+ * Harbor learned of its earlier Arrival elsewhere (arc42 R-10). That earlier voyage ends implicitly
+ * (`DONE`) and the ship stays in the fleet, so the late Ship Arrived for it finds nothing at sea and has
+ * no effect. A ship in the fleet that is not at sea does not arrive again: an Arrival handled before the
+ * Arrivals were recorded, re-published.
  *
  * Otherwise, in one transaction with the inbox record: one of each Loaded Cargo goes into the Stock,
  * the ship joins the fleet with its Ship Id, Ship Name and Catain and no Shipping, and Ship Arrived is
@@ -55,7 +63,10 @@ class ArrivalManagementService(
     override fun receiveShippingPublished(eventId: EventId, shippingPublished: ShippingPublishedDTO) {
         if (!inboxRepositoryPort.recordConsumedEvent(eventId)) return
         if (shippingPublished.destinationHarbor != currentHarbor) return
-        if (shipRepositoryPort.getShipDetails(shippingPublished.shipId) != null) return
+        if (!arrivalRepositoryPort.recordArrival(shippingPublished.shippingId, shippingPublished.shipId)) return
+        val inFleet = shipRepositoryPort.getShipDetails(shippingPublished.shipId)
+        val earlierVoyage = inFleet?.activeShipping?.takeIf { it.shippingState == ShippingState.SHIPPING }
+        if (inFleet != null && earlierVoyage == null) return
 
         val catain = catainRepository.findCatainById(shippingPublished.catainId)
             ?: throw IllegalStateException("Unknown Catain ${shippingPublished.catainId.id} on arriving ship ${shippingPublished.shipId.id}")
@@ -66,6 +77,10 @@ class ArrivalManagementService(
         val originHarbor = shippingPublished.originHarbor
             ?: throw IllegalStateException("Arriving ship ${shippingPublished.shipId.id} has no Origin Harbor")
 
+        if (inFleet != null && earlierVoyage != null) {
+            inFleet.endShipping(earlierVoyage.id)
+            shippingRepositoryPort.updateActiveShipping(inFleet)
+        }
         cargo.forEach { stockRepositoryPort.putIntoStock(it.id, 1) }
         val ship = Ship(
             id = shippingPublished.shipId,

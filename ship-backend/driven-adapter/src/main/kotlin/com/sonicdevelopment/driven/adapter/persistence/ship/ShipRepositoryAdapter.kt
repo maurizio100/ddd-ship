@@ -14,9 +14,9 @@ import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingPersiste
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepository
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingStateEnumEntity
 import jakarta.persistence.EntityNotFoundException
-import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class ShipRepositoryAdapter(
@@ -45,14 +45,16 @@ class ShipRepositoryAdapter(
             catain = catain
         )
 
+    /** Only a ship in the fleet is deleted; a ship that left keeps its row and its Shippings as history. */
     @Transactional
     override fun delete(shipId: ShipId): Boolean {
+        shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id) ?: return false
         shippingRepository.deleteByShip_shipId(shipId.id)
         shipPersistenceEntityRepository.deleteByShipId(shipId.id)
         return true
     }
 
-    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.MANDATORY)
     override fun removeFromFleet(shipId: ShipId) {
         val ship = shipPersistenceEntityRepository.findByShipId(shipId.id) ?: return
         ship.inFleet = false
