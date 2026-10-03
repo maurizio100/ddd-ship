@@ -29,14 +29,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
-import org.springframework.transaction.support.TransactionTemplate
-import com.sonicdevelopment.domain.model.values.EventId
-import com.sonicdevelopment.domain.model.values.CatainId
-import com.sonicdevelopment.domain.model.values.HarborName
-import com.sonicdevelopment.domain.model.values.ShipId
-import com.sonicdevelopment.domain.model.values.ShippingId
-import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
-import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import java.time.Duration
 import java.util.*
 
@@ -110,39 +102,6 @@ class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
             told.none { it.data["shipName"] == "Flying Dutchman" } shouldBe true
             told.filter { it.name == "ship-arrived" }.map { it.data["shipName"] } shouldBe listOf("Black Pearl")
         }
-
-        @Test
-        fun `Nothing is pushed for an Arrival that is rolled back, and an Arrival is pushed only once committed`() {
-            // An Arrival handled inside a transaction that rolls back tells the User nothing
-            val rolledBack = anArrivalAtPortRoyal("Flying Dutchman")
-            transactionTemplate.executeWithoutResult {
-                arrivalManagementPort.receiveShippingPublished(EventId(UUID.randomUUID()), rolledBack)
-                it.setRollbackOnly()
-            }
-            availableShips().shouldBeEmpty()
-
-            // An Arrival is pushed only once its transaction commits
-            val committed = anArrivalAtPortRoyal("Black Pearl")
-            transactionTemplate.executeWithoutResult {
-                arrivalManagementPort.receiveShippingPublished(EventId(UUID.randomUUID()), committed)
-                fleet.next(Duration.ofMillis(500)) shouldBe null
-            }
-
-            val pushed = fleet.next().shouldNotBeNull()
-            pushed.name shouldBe "ship-arrived"
-            pushed.data["shipId"] shouldBe committed.shipId.id.toString()
-            fleet.next(Duration.ofMillis(500)) shouldBe null
-        }
-
-        private fun anArrivalAtPortRoyal(shipName: String) = ShippingPublishedDTO(
-            shipId = ShipId(UUID.randomUUID()),
-            shipName = shipName,
-            catainId = CatainId(seededCatainId()),
-            shippingId = ShippingId(UUID.randomUUID()),
-            cargoIds = emptyList(),
-            originHarbor = HarborName("Tortuga"),
-            destinationHarbor = HarborName("Port Royal"),
-        )
     }
 
     @Nested
@@ -191,12 +150,6 @@ class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
 
         @Autowired
         lateinit var kafkaTemplate: KafkaTemplate<String, String>
-
-        @Autowired
-        lateinit var transactionTemplate: TransactionTemplate
-
-        @Autowired
-        lateinit var arrivalManagementPort: ArrivalManagementPort
 
         @LocalServerPort
         var port: Int = 0

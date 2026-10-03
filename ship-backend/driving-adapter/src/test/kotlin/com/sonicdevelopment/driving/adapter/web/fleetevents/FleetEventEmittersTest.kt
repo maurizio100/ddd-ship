@@ -6,9 +6,11 @@ import io.kotest.matchers.string.shouldContain
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import java.io.IOException
 import java.time.Duration
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
 
 class FleetEventEmittersTest {
 
@@ -41,8 +43,8 @@ class FleetEventEmittersTest {
 
         emitters.broadcast("ship-arrived", blackPearl)
 
-        firstTab.sentData shouldContainExactly listOf(blackPearl)
-        secondTab.sentData shouldContainExactly listOf(blackPearl)
+        eventually { firstTab.sentData shouldContainExactly listOf(blackPearl) }
+        eventually { secondTab.sentData shouldContainExactly listOf(blackPearl) }
         firstTab.sent.last() shouldContain "event:ship-arrived"
     }
 
@@ -56,11 +58,44 @@ class FleetEventEmittersTest {
 
         emitters.broadcast("ship-arrived", blackPearl)
 
-        openTab.sentData shouldContainExactly listOf(blackPearl)
-        emitters.count() shouldBe 1
+        eventually { openTab.sentData shouldContainExactly listOf(blackPearl) }
+        eventually { emitters.count() shouldBe 1 }
 
         emitters.broadcast("ship-arrived", blackPearl)
-        openTab.sentData.size shouldBe 2
+        eventually { openTab.sentData.size shouldBe 2 }
+    }
+
+    @Test
+    fun `a subscriber that fails for another reason than a broken connection is dropped and completed`() {
+        val brokenTab = RecordingSseEmitter().also { emitters.register(it) }
+        brokenTab.failure = IllegalStateException("ResponseBodyEmitter has already completed")
+
+        emitters.broadcast("ship-arrived", blackPearl)
+
+        eventually { emitters.count() shouldBe 0 }
+        brokenTab.completed shouldBe true
+    }
+
+    @Test
+    fun `a broadcast does not wait for a subscriber that has stopped reading`() {
+        val stalledTab = RecordingSseEmitter().also { emitters.register(it) }
+        val openTab = RecordingSseEmitter().also { emitters.register(it) }
+        val stall = CountDownLatch(1)
+        stalledTab.gate = stall
+
+        try {
+            assertTimeoutPreemptively(Duration.ofSeconds(2)) {
+                emitters.broadcast("ship-arrived", blackPearl)
+                emitters.broadcast("ship-left", blackPearl)
+            }
+        } finally {
+            stall.countDown()
+        }
+
+        eventually { stalledTab.sent.size shouldBe 3 }
+        eventually { openTab.sent.size shouldBe 3 }
+        openTab.sent.drop(1).map { it.substringBefore("\n") } shouldContainExactly
+            listOf("event:ship-arrived", "event:ship-left")
     }
 
     @Test
@@ -99,5 +134,9 @@ class FleetEventEmittersTest {
         emitters.shutdown()
 
         emitters.count() shouldBe 0
+    }
+
+    private fun eventually(assertion: () -> Unit) {
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(assertion)
     }
 }

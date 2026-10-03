@@ -17,7 +17,10 @@ data class FleetEvent(val name: String, val data: Map<*, *>)
  * A User looking at the fleet: an open `GET /web/fleet-events` stream, read line by line on its own thread,
  * as a browser's EventSource would. It is open once the `:connected` comment has come through.
  */
-class FleetEventStream private constructor(private val lines: Stream<String>) : AutoCloseable {
+class FleetEventStream private constructor(
+    private val client: HttpClient,
+    private val lines: Stream<String>,
+) : AutoCloseable {
 
     private val events = LinkedBlockingQueue<FleetEvent>()
     private val connected = LinkedBlockingQueue<Unit>()
@@ -53,12 +56,14 @@ class FleetEventStream private constructor(private val lines: Stream<String>) : 
 
     override fun close() {
         lines.close()
+        client.shutdownNow()
     }
 
     companion object {
         /** Opens the fleet-events stream of the Harbor at [baseUrl] and waits until it is connected. */
         fun open(baseUrl: String): FleetEventStream {
-            val response = HttpClient.newHttpClient().send(
+            val client = HttpClient.newHttpClient()
+            val response = client.send(
                 HttpRequest.newBuilder(URI.create("$baseUrl/web/fleet-events"))
                     .header("Accept", "text/event-stream")
                     .GET()
@@ -66,7 +71,7 @@ class FleetEventStream private constructor(private val lines: Stream<String>) : 
                 HttpResponse.BodyHandlers.ofLines(),
             )
             check(response.statusCode() == 200) { "GET /web/fleet-events answered ${response.statusCode()}" }
-            return FleetEventStream(response.body()).also { it.awaitConnected() }
+            return FleetEventStream(client, response.body()).also { it.awaitConnected() }
         }
     }
 }
