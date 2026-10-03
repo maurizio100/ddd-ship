@@ -56,17 +56,34 @@
   <div class="section-grid max-width">
     <div class="shipping-destination">
       @if (knownHarbors().length > 0) {
-        <label for="shipping-destination-harbor">Destination Harbor</label>
-        <select
-          id="shipping-destination-harbor"
-          data-testid="shipping-destination-harbor"
-          (change)="chooseDestinationHarbor($any($event.target).value)"
-        >
-          <option value="" [selected]="!destinationHarbor()" disabled>Choose a Destination Harbor</option>
-          @for (harbor of knownHarbors(); track harbor) {
-            <option data-testid="shipping-destination-harbor-option" [value]="harbor">{{ harbor }}</option>
-          }
-        </select>
+        <div class="harbor-picker">
+          <p class="harbor-picker__heading" id="shipping-destination-heading">Choose a Destination Harbor</p>
+          <div
+            class="harbor-cards"
+            role="radiogroup"
+            aria-labelledby="shipping-destination-heading"
+            data-testid="shipping-destination-harbors"
+          >
+            @for (harbor of knownHarbors(); track harbor; let i = $index) {
+              <div
+                class="harbor-card"
+                [class.harbor-card--selected]="destinationHarbor() === harbor"
+                role="radio"
+                data-testid="shipping-destination-harbor-option"
+                [attr.aria-checked]="destinationHarbor() === harbor"
+                [attr.tabindex]="isTabStop(harbor, i) ? 0 : -1"
+                (click)="chooseDestinationHarbor(harbor)"
+                (keydown)="onHarborKeydown($event, i)"
+              >
+                <span class="harbor-card__anchor" aria-hidden="true">⚓</span>
+                <span class="harbor-card__name">{{ harbor }}</span>
+                @if (destinationHarbor() === harbor) {
+                  <span class="harbor-card__check" data-testid="shipping-destination-harbor-selected" aria-hidden="true">✓</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
       } @else {
         <p class="shipping-no-known-harbor" data-testid="shipping-no-known-harbor">No Known Harbor to sail to yet</p>
       }
@@ -87,7 +104,7 @@
         [disabled]="!destinationHarbor()"
         (click)="disembark()"
       >
-        Start Journey
+        Start Journey@if (destinationHarbor(); as harbor) { → {{ harbor }}}
       </button>
     </div>
   </div>

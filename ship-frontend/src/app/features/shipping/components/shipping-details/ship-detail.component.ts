@@ -54,6 +54,35 @@ export class ShipDetailComponent implements OnInit {
     this.releaseRejection.set(null);
   }
 
+  isTabStop(harbor: string, index: number): boolean {
+    const chosen = this.destinationHarbor();
+    return chosen ? chosen === harbor : index === 0;
+  }
+
+  onHarborKeydown(event: KeyboardEvent, index: number): void {
+    const harbors = this.knownHarbors();
+    let target = index;
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        target = (index + 1) % harbors.length;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        target = (index - 1 + harbors.length) % harbors.length;
+        break;
+      case ' ':
+      case 'Enter':
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    this.chooseDestinationHarbor(harbors[target]);
+    const cards = (event.currentTarget as HTMLElement).parentElement?.children;
+    (cards?.[target] as HTMLElement | undefined)?.focus();
+  }
+
   getShip(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.shippingService.getShip(id).subscribe((ship) => (this.ship = ship));
