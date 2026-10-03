@@ -6,8 +6,11 @@ import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.ShipId
+import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
 import com.sonicdevelopment.driven.adapter.PostgresTestcontainer
+import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShipArrivedEvent
 import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEvent
 import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEventConverter
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -59,6 +62,33 @@ class ShippingOutboxRepositoryAdapterTest {
         val shippingEventData = ObjectMapper().readTree(payload)["shippingEventData"]
         shippingEventData["originHarbor"].asText() shouldBe "Tortuga"
         shippingEventData["destinationHarbor"].asText() shouldBe "Port Royal"
+    }
+
+    @Test
+    fun `announceShipArrived writes a ship-arrived row for the Shipping with the Origin and Destination Harbor`() {
+        val ship = Ship(
+            id = ShipId(UUID.randomUUID()), name = "Black Pearl",
+            catainId = CatainId(UUID.randomUUID()), catainName = "Whiskers"
+        )
+        val shippingId = ShippingId(UUID.randomUUID())
+
+        shippingOutbox.announceShipArrived(ship, shippingId, HarborName("Tortuga"), HarborName("Port Royal"))
+        entityManager.flush()
+
+        val row = jdbcTemplate.queryForMap("SELECT aggregate_type, aggregate_id, event_type, payload FROM shipping_outbox")
+        row["aggregate_type"] shouldBe "shipping"
+        row["aggregate_id"] shouldBe shippingId.id
+        row["event_type"] shouldBe "ship-arrived"
+        val payload = row["payload"] as String
+        ObjectMapper().readTree(payload).fieldNames().asSequence().toList() shouldContainExactlyInAnyOrder
+            listOf("shipId", "shipName", "shippingId", "originHarbor", "destinationHarbor")
+        ObjectMapper().readValue(payload, ShipArrivedEvent::class.java) shouldBe ShipArrivedEvent(
+            shipId = ship.id.id,
+            shipName = "Black Pearl",
+            shippingId = shippingId.id,
+            originHarbor = "Tortuga",
+            destinationHarbor = "Port Royal",
+        )
     }
 
     private fun aReleasedShip(): Ship {
