@@ -55,7 +55,12 @@ actions), never through another feature's components or services.
 ## HTTP
 
 - The base URL comes from `environment.baseUrl` (`/web` in production, `http://localhost:8080/web`
-  in development). URLs are never hard-coded.
+  in development). URLs are never hard-coded, including the Catain image URL, which derives from
+  `environment.baseUrl`.
+- The `production` build configuration in `angular.json` replaces `environment.ts` with
+  `environment.prod.ts` through `fileReplacements`, so each Harbor's frontend calls its own backend
+  through the nginx `/web` proxy. `npm run build:check` builds and then fails if the bundle still
+  contains `localhost:8080`; the `Dockerfile` runs it.
 - Services return `Observable`s from `HttpClient` and hold no state.
 
 ## Formatting
