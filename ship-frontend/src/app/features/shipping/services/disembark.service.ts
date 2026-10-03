@@ -19,7 +19,7 @@ export class DisembarkService {
 
   constructor(private http: HttpClient) {}
 
-  releaseShip(ship: Ship): Observable<ShippingSummary> {
+  releaseShip(ship: Ship, destinationHarbor: string): Observable<ShippingSummary> {
     const url = `${this.shippingsUrl}/${ship.id}/shippings`;
     return this.http
       .put<ShippingSummary>(url, this.httpOptions)

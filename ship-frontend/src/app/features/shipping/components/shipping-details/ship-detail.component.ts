@@ -42,7 +42,7 @@ export class ShipDetailComponent implements OnInit {
   disembark(): void {
     if (this.ship) {
       this.disembarkService
-        .releaseShip(this.ship)
+        .releaseShip(this.ship, '')
         .subscribe((shippingSummary) =>
           this.router.navigate(
             [`/ships/${shippingSummary.shipId}/shipping/${shippingSummary.id}`]
