@@ -8,6 +8,7 @@ data class ShipDetailDTO(
     val name: String,
     val cargo: List<CargoDTO>,
     val actualWeight: Float,
-    val maxWeight: Float
+    val maxWeight: Float,
+    val arrivedFrom: String? = null
 ) {
 }

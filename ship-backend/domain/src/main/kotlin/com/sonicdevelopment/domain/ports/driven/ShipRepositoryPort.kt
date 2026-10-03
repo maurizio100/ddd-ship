@@ -2,6 +2,7 @@ package com.sonicdevelopment.domain.ports.driven
 
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 
 interface ShipRepositoryPort {
@@ -10,10 +11,11 @@ interface ShipRepositoryPort {
     class InitialShipInformation private constructor(
         val shipId: ShipId,
         val shipName: String,
-        val catainId: CatainId
+        val catainId: CatainId,
+        val arrivedFrom: HarborName?
     ) {
         companion object {
-            fun fromShip(ship: Ship) = InitialShipInformation(ship.id, shipName = ship.shipName, ship.catainId)
+            fun fromShip(ship: Ship) = InitialShipInformation(ship.id, shipName = ship.shipName, ship.catainId, arrivedFrom = null)
         }
     }
     fun getAllShips(): List<Ship>

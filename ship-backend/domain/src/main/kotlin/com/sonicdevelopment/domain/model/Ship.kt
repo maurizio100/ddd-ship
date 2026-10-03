@@ -13,6 +13,8 @@ class Ship(
     name: String? = null,
     val catainId: CatainId,
     val catainName: String,
+    /** The Origin Harbor of the Arrival that last took this ship into this Harbor's fleet; `null` if it was registered here. */
+    val arrivedFrom: HarborName? = null,
     var activeShipping: Shipping? = null,
     private val cargoLoad: MutableMap<CargoId, Cargo> = mutableMapOf()
 ) {
