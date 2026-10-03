@@ -29,6 +29,7 @@
   language ("Loading Rum would exceed the Max Weight of 15.0").
 - Controllers don't build error responses themselves. They return the port's result or throw.
 
-Some existing endpoints still answer with `ResponseStatusException`, return `200` on a rejected
-cargo load, or let violations surface as `500`. Bring an endpoint up to these rules when a story
-changes it.
+The handler is `ProblemDetailsExceptionHandler`. It extends `ResponseEntityExceptionHandler`, so a
+`ResponseStatusException` thrown for a `404` or `400` is rendered as Problem Details too. Some existing
+endpoints still let rule violations (`IllegalArgumentException`, `IllegalStateException`) surface as
+`500`. Bring an endpoint up to these rules when a story changes it.
