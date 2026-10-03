@@ -18,8 +18,8 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - List all ships and the Catain roster; fetch a Catain's portrait (`ShipInformationService`, `CatainImageService`).
 - The Catain table is also streamed to Kafka by a Debezium connector (`kafka-connect/connectors/catain-connector_*.json`); no consumer exists yet.
 
-### Planned: ships moving between Harbors (harbor-voyages ideation, 2026-10-03)
-Not implemented yet. Each Harbor has its own fleet.
+### Ships moving between Harbors (harbor-voyages ideation, 2026-10-03)
+Arrival at the Destination Harbor is built (STORY-006); removing the ship from the Origin Harbor's fleet is still planned. Each Harbor has its own fleet.
 - Every ship has a Ship Id that is not its database id and stays the same at every Harbor.
 - The Catain roster is the same at every Harbor, so a ship's Catain always exists wherever it arrives. Every Harbor names each Catain by the same Catain id (seeded with fixed ids by `V9__same_reference_ids_at_every_harbor.sql`). *Built by STORY-006.*
 - On Arrival the ship, with its Ship Id, Ship Name and Catain, joins the Destination Harbor's fleet, with no Loaded Cargo and no Active Shipping (`ArrivalManagementService`, Shipping). *Built by STORY-006.*

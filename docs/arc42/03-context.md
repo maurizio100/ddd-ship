@@ -54,7 +54,7 @@ flowchart LR
 | Backend → MinIO | S3 API | Catain Images, bucket `catains`. |
 | PostgreSQL → Kafka | Debezium (Kafka Connect) CDC on `shipping_outbox` | Outbox EventRouter → topic `hexagonship-shipping`: `shipping-published` and, since STORY-006, `ship-arrived` (both `aggregate_type` `shipping`, keyed by the Shipping id). |
 | Kafka → Harbor Terminal | Kafka consumer, group `ship-terminal` | JSON payload. |
-| Kafka → backend (planned) | Kafka consumer, one group per Harbor | `hexagonship-shipping` and `hexagonship-harbor`; idempotent inbox per [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md). |
+| Kafka → backend | Kafka consumer, one group per Harbor | `hexagonship-shipping` (built, STORY-006) and `hexagonship-harbor`; idempotent inbox per [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md). |
 | PostgreSQL → Kafka, `hexagonship-harbor` (planned) | Debezium outbox router, `aggregate_type` `harbor` | Log-compacted topic keyed by a UUIDv5 of the Harbor Name ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). |
 
 ## Foreign systems

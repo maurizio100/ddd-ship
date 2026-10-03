@@ -16,8 +16,8 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - Unload Cargo while preparing; if it was on board, the ship's Current Weight drops by the Cargo's Weight, never below 0 (`Ship.removeCargo`), and one is put back into the Stock. Unloading Cargo that isn't on board changes nothing.
 - The Current Weight against the Max Weight is shown while preparing a shipping ("Current Weight: x / 15").
 
-### Planned: Unloading on Arrival (harbor-voyages ideation, 2026-10-03)
-Not implemented yet.
+### Unloading on Arrival (harbor-voyages ideation, 2026-10-03)
+Built by STORY-006 unless marked otherwise.
 - After the Starting Stock, a Harbor's Stock is refilled only by ships delivering Cargo (and by a User unloading while preparing, which returns what was taken).
 - Unloading on Arrival moves all Loaded Cargo of an arriving ship into the Destination Harbor's Stock, exactly once per Arrival: one of each Loaded Cargo through `StockRepositoryPort.putIntoStock(cargoId, 1)` (`ArrivalManagementService`, Shipping). *Built by STORY-006.*
 - Every Harbor names each Cargo by the same Cargo id (seeded with fixed ids by `V9__same_reference_ids_at_every_harbor.sql`), so an arriving ship's Cargo resolves at any Harbor. *Built by STORY-006.*
