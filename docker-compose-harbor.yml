@@ -1,0 +1,81 @@
+# One Harbor = one Compose project. Start it with:
+#   docker compose -p <slug> --env-file harbors/<slug>.env -f docker-compose-harbor.yml up -d
+# Requires docker-compose-kafka.yml to be running first (it creates my_kafka_network).
+# See docs/services/ship-backend/how-to-run-two-harbors.md
+
+networks:
+  kafka_network:
+    name: my_kafka_network
+    external: true
+
+volumes:
+  postgres-data:
+    name: ${HARBOR_SLUG:?HARBOR_SLUG is required}-postgres-data
+  minio-data:
+    name: ${HARBOR_SLUG:?HARBOR_SLUG is required}-minio-data
+
+services:
+  frontend:
+    container_name: ${HARBOR_SLUG:?HARBOR_SLUG is required}-frontend
+    image: ddd-ship-frontend
+    build:
+      dockerfile: Dockerfile
+      context: ship-frontend/.
+    ports:
+      - "${FRONTEND_PORT:?FRONTEND_PORT is required}:80"
+    depends_on:
+      - backend
+
+  backend:
+    container_name: ${HARBOR_SLUG:?HARBOR_SLUG is required}-backend
+    image: ddd-ship-backend
+    build:
+      dockerfile: Dockerfile
+      context: ship-backend/.
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      HARBOR_NAME: ${HARBOR_NAME:?HARBOR_NAME is required}
+      # The container name is unique per Harbor, so it stays unambiguous on the shared Kafka network.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${HARBOR_SLUG}-db-postgres:5432/hexagonship
+    networks:
+      - default
+      - kafka_network
+    ports:
+      - "${BACKEND_PORT:?BACKEND_PORT is required}:8080"
+    depends_on:
+      - db
+      - minio
+
+  db:
+    container_name: ${HARBOR_SLUG:?HARBOR_SLUG is required}-db-postgres
+    image: postgres:13.6
+    networks:
+      - default
+      - kafka_network
+    environment:
+      POSTGRES_DB: hexagonship
+      POSTGRES_USER: hexagonship_user
+      POSTGRES_PASSWORD: hexagonship_user
+    ports:
+      - "${POSTGRES_PORT:?POSTGRES_PORT is required}:5432"
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+
+  # Only on the Harbor's own default network, so the backend's "minio" hostname
+  # never resolves to the other Harbor's MinIO.
+  minio:
+    container_name: ${HARBOR_SLUG:?HARBOR_SLUG is required}-minio
+    image: bitnami/minio:latest
+    ports:
+      - "${MINIO_API_PORT:?MINIO_API_PORT is required}:9000"
+      - "${MINIO_CONSOLE_PORT:?MINIO_CONSOLE_PORT is required}:9001"
+    volumes:
+      - "minio-data:/bitnami/minio/data"
+    environment:
+      MINIO_ROOT_USER: hexagonminio
+      MINIO_ROOT_PASSWORD: hexagonminio
+      MINIO_DEFAULT_BUCKETS: catains

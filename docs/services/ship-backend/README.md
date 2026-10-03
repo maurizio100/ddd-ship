@@ -20,3 +20,4 @@ Read this index first and then open **only** the documents your task needs.
 | --- | --- | --- |
 | `guidelines/` | Architecture, naming, persistence, API design and error handling, testing. `guidelines/README.md` indexes them. | Writing or reviewing production or test code in this component |
 | `decisions/` | Component-scoped mini-ADRs — decisions binding only this component. `decisions/README.md` indexes them all. | Planning or reviewing a change: scan the index, open the entries that bear on it, and check the change does not contradict one. |
+| `how-to-run-two-harbors.md` | Start and stop two Harbors (Tortuga, Port Royal) against one Kafka: Compose projects, topic, connectors, ports. | Running or verifying several Harbors locally |

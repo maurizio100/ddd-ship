@@ -1,0 +1,13 @@
+#! /bin/bash
+# Creates the compacted topic Harbors announce themselves on (ADR-0005).
+# Run once after docker-compose-kafka.yml is up and before the first Harbor starts. Idempotent.
+set -e
+
+cd "$(dirname "$0")/../.."
+docker compose -f docker-compose-kafka.yml exec -T kafka kafka-topics \
+  --bootstrap-server kafka:9092 \
+  --create --if-not-exists \
+  --topic hexagonship-harbor \
+  --partitions 1 \
+  --replication-factor 1 \
+  --config cleanup.policy=compact

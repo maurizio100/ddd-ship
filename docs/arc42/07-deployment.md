@@ -33,6 +33,7 @@ flowchart LR
 |---|---|---|
 | `docker-compose.yml` | frontend, backend, Postgres, MinIO | App only, no event publication. |
 | `docker-compose-app.yml` | the same, alternative volumes / bitnami MinIO | App variant. |
+| `docker-compose-harbor.yml` | frontend, backend, Postgres, MinIO for one Harbor, parameterised by `harbors/<slug>.env` | One Compose project per Harbor; needs Kafka running (7.4). |
 | `docker-compose-kafka.yml` | the app plus Zookeeper, Kafka, Kafka Connect (Debezium), Kafka UI | Full system incl. outbox → Kafka. Connectors are registered by hand from `kafka-connect/connectors/`. |
 
 `ship-terminal` is not containerised; it is run locally and connects to `localhost:9094`.
@@ -52,17 +53,25 @@ flowchart LR
 
 Cluster setup notes: `k8s/cluster-setup.txt`.
 
-## 7.4 Planned: several Harbors
+## 7.4 Several Harbors
 
 Per [ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md), a second Harbor is a
 second copy of the app stack (frontend, backend, PostgreSQL, MinIO) with its own Harbor Name, sharing
-one Kafka and Kafka Connect. Not built yet. What it needs:
+one Kafka and Kafka Connect.
 
-- one Debezium outbox connector per Harbor, with its own connector name, `database.hostname` and replication slot;
-- the topic `hexagonship-harbor` created with `cleanup.policy=compact` before the first Harbor starts ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md));
-- Kafka reachable from every backend ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)); on Kubernetes this requires Kafka in the cluster first (R-4).
+**Compose (built):** one Compose project per Harbor, from the single parameterised
+`docker-compose-harbor.yml`, started as
+`docker compose -p <slug> --env-file harbors/<slug>.env -f docker-compose-harbor.yml up -d`. The env
+file sets the Harbor Name, slug and host ports; container names and volumes are prefixed with the
+slug, and each project has its own default network. Only backend and PostgreSQL join the shared
+`my_kafka_network`. A third Harbor is one more env file and one more connector. Steps:
+[how-to-run-two-harbors](../services/ship-backend/how-to-run-two-harbors.md).
 
-> TODO: how several Harbors are laid out — one Compose project per Harbor, or several Harbors in one Compose file; one namespace per Harbor on Kubernetes.
+- one Debezium outbox connector per Harbor in `kafka-connect/connectors/shipping-outbox-<slug>.json`, with its own connector name, `database.hostname` and replication slot;
+- the topic `hexagonship-harbor` created with `cleanup.policy=compact` before the first Harbor starts, by `kafka-connect/connect-helpers/create-harbor-topic` ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md));
+- Kafka reachable from every backend ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)).
+
+**Kubernetes (planned):** one namespace per Harbor. This requires Kafka in the cluster first (R-4).
 
 ## 7.3 Build pipeline
 
