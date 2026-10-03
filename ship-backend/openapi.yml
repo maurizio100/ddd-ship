@@ -239,7 +239,10 @@ paths:
         '409':
           description: >-
             The Release is rejected and the ship is still being prepared: the Destination Harbor is not
-            one of the Known Harbors (title "Unknown Destination Harbor"). `detail` names the Harbor.
+            one of the Known Harbors (title "Unknown Destination Harbor", `detail` names the Harbor), or
+            the ship is not being prepared, for instance because it is already at sea (title "Ship not
+            being prepared", `detail` names the ship). Nothing is written and no Shipping Published event
+            is added.
           content:
             application/problem+json:
               schema:

@@ -3,6 +3,7 @@ package com.sonicdevelopment.driving.adapter.web
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
+import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.UnknownHarborException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
@@ -29,6 +30,9 @@ class ProblemDetailsExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(UnknownHarborException::class)
     fun unknownHarbor(exception: UnknownHarborException) = conflict("Unknown Destination Harbor", exception)
+
+    @ExceptionHandler(ShippingNotPreparingException::class)
+    fun shippingNotPreparing(exception: ShippingNotPreparingException) = conflict("Ship not being prepared", exception)
 
     private fun conflict(title: String, exception: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.message).apply { this.title = title }
