@@ -24,7 +24,11 @@ class ShipRepositoryAdapter(
     private val shippingRepository: ShippingRepository,
     private val catainRepository: CatainPersistenceEntityRepository
 ): ShipRepositoryPort {
-    /** Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row. */
+    /**
+     * Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row.
+     * The Origin Harbor it arrived from is written from the ship: an Arrival overwrites it, and a rename
+     * keeps it because the loaded ship carries it.
+     */
     override fun saveNewShip(ship: InitialShipInformation) {
         val catain = catainRepository.findByCatainId(ship.catainId.id) ?: throw EntityNotFoundException()
         val known = shipPersistenceEntityRepository.findByShipId(ship.shipId.id)
@@ -35,6 +39,7 @@ class ShipRepositoryAdapter(
         known.shipName = ship.shipName
         known.catain = catain
         known.inFleet = true
+        known.arrivedFrom = ship.arrivedFrom?.name
         shipPersistenceEntityRepository.save(known)
     }
 
@@ -42,7 +47,8 @@ class ShipRepositoryAdapter(
         ShipPersistenceEntity(
             shipId = ship.shipId.id,
             shipName = ship.shipName,
-            catain = catain
+            catain = catain,
+            arrivedFrom = ship.arrivedFrom?.name
         )
 
     /** Only a ship in the fleet is deleted; a ship that left keeps its row and its Shippings as history. */
@@ -78,6 +84,7 @@ class ShipRepositoryAdapter(
         )
 
         val catainId = CatainId(shipPersistenceEntity.catain.catainId)
+        val arrivedFrom = shipPersistenceEntity.arrivedFrom?.let { HarborName(it) }
 
         return shippingPersistenceEntity?.let {
             Ship(
@@ -89,14 +96,14 @@ class ShipRepositoryAdapter(
                 activeShipping = toShipping(it),
                 catainId = catainId,
                 catainName = shipPersistenceEntity.catain.catainName,
-
+                arrivedFrom = arrivedFrom,
             )
         } ?: Ship(
             id = ShipId(shipPersistenceEntity.shipId),
             name = shipPersistenceEntity.shipName,
             catainId = catainId,
             catainName = shipPersistenceEntity.catain.catainName,
-
+            arrivedFrom = arrivedFrom,
         )
     }
 

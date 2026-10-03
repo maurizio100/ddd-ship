@@ -24,6 +24,7 @@ Arrival at the Destination Harbor is built (STORY-006), and so is removing the s
 - The Catain roster is the same at every Harbor, so a ship's Catain always exists wherever it arrives. Every Harbor names each Catain by the same Catain id (seeded with fixed ids by `V9__same_reference_ids_at_every_harbor.sql`). *Built by STORY-006.*
 - On Arrival the ship, with its Ship Id, Ship Name and Catain, joins the Destination Harbor's fleet, with no Loaded Cargo and no Active Shipping (`ArrivalManagementService`, Shipping). *Built by STORY-006.*
 - When the Origin Harbor learns of the Arrival (Ship Arrived), it removes the ship from its fleet. The ship's record and its Shipping history are kept; it is simply no longer among the Available Ships, and every User command on it answers "not found". A later Arrival of the same Ship Id takes it back in, under the same record. *Built by STORY-007.*
+- The fleet shows where an arrived ship came from: the Origin Harbor of its latest Arrival at this Harbor ("arrived from"). A ship registered at this Harbor shows none. The value is kept while the ship is away and replaced by its next Arrival. *Built by STORY-013.*
 
 ## Tactical model
 

@@ -70,6 +70,10 @@
   filter, so a past Shipping stays readable.
 - `saveNewShip` saves by Ship Id: a known Ship Id (a ship that comes back, or a rename) updates its
   one row and puts it back in the fleet instead of inserting a second row.
+- `ships.ship_arrived_from` (`V13__ships_arrived_from.sql`) holds the Origin Harbor of the Arrival that
+  last took the ship into this fleet. It is written only by `saveNewShip`, from the ship's `arrivedFrom`,
+  so it is `NULL` for a registered ship, kept by a rename, and overwritten by each Arrival that takes
+  effect. It is never derived from `arrivals`, which may hold an Arrival that was skipped.
 - `removeFromFleet` runs in the caller's transaction (`Propagation.MANDATORY`), together with the inbox
   record and the Shipping going `DONE`.
 

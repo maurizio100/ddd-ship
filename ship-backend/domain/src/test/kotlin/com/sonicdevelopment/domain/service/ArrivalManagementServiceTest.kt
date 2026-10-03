@@ -105,6 +105,31 @@ class ArrivalManagementServiceTest {
     }
 
     @Test
+    fun `an Arrival takes the ship into the fleet with the Origin Harbor it arrived from`() {
+        val saved = mutableListOf<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+
+        service.receiveShippingPublished(eventId, blackPearl)
+
+        saved.single().arrivedFrom shouldBe tortuga
+
+        // a ship still at sea from here comes back from "Nassau" (arc42 R-10)
+        val stillAtSea = aShip(id = blackPearl.shipId, name = "Black Pearl").apply {
+            release(ShippingQuote("Fair winds"), HarborName("Nassau"))
+        }
+        every { ships.getShipDetails(blackPearl.shipId) } returns stillAtSea
+        val otherEventId = EventId(UUID.randomUUID())
+        every { inbox.recordConsumedEvent(otherEventId) } returns true
+
+        service.receiveShippingPublished(
+            otherEventId,
+            blackPearl.copy(shippingId = ShippingId(UUID.randomUUID()), originHarbor = HarborName("Nassau")),
+        )
+
+        saved.map { it.arrivedFrom } shouldBe listOf(tortuga, HarborName("Nassau"))
+    }
+
+    @Test
     fun `a Shipping that has already arrived does not arrive again, even after the ship left the fleet`() {
         // re-published under a new event id; the ship has sailed on, so it is in no fleet here
         every { arrivals.recordArrival(blackPearl.shippingId, blackPearl.shipId) } returns false

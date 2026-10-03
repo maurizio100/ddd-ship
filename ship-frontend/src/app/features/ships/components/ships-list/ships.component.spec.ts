@@ -57,3 +57,48 @@ describe('ShipsComponent (The voyage ends at the Origin Harbor)', () => {
     expect(all('ship-at-sea')).toEqual([]);
   });
 });
+
+describe('ShipsComponent (The fleet shows where an arrived ship came from)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null } } }),
+        {
+          provide: ShipService,
+          useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']),
+        },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  const arrivedFrom = (): string[] =>
+    all('ship-arrived-from').map((badge) => badge.textContent!.trim());
+
+  it('An arrived ship shows its Origin Harbor', () => {
+    render([anAvailableShip({ arrivedFrom: 'Tortuga' })]);
+
+    expect(arrivedFrom()).toEqual(['⚓ arrived from Tortuga']);
+  });
+
+  it('A ship registered at the Harbor shows no Origin Harbor', () => {
+    render([anAvailableShip({ name: 'Interceptor', arrivedFrom: null })]);
+
+    expect(all('ship-name').map((name) => name.textContent!.trim())).toEqual(['Interceptor']);
+    expect(all('ship-arrived-from')).toEqual([]);
+  });
+
+  it('A ship shows the Harbor of its latest Arrival', () => {
+    render([anAvailableShip({ arrivedFrom: 'Nassau' })]);
+
+    expect(arrivedFrom()).toEqual(['⚓ arrived from Nassau']);
+  });
+});

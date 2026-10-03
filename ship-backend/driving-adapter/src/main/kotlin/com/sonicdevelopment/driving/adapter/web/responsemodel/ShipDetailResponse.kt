@@ -7,5 +7,6 @@ data class ShipDetailResponse(
     val name: String,
     val cargo: List<CargoResponse> = listOf(),
     val weight: Float = 0.0F,
-    val maxweight: Float = 0.0F
+    val maxweight: Float = 0.0F,
+    val arrivedFrom: String? = null
 )

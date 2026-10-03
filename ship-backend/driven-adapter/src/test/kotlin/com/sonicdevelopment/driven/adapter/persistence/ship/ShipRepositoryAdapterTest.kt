@@ -93,6 +93,52 @@ class ShipRepositoryAdapterTest {
     }
 
     @Test
+    fun `saving a ship stores where it arrived from, and a later Arrival overwrites it`() {
+        val blackPearl = anArrivedShip("Black Pearl", from = "Tortuga")
+        flushAndClear()
+
+        ships.getAllShips().single().arrivedFrom shouldBe HarborName("Tortuga")
+        ships.getShipDetails(blackPearl.id)!!.arrivedFrom shouldBe HarborName("Tortuga")
+
+        ships.removeFromFleet(blackPearl.id)
+        flushAndClear()
+        ships.saveNewShip(
+            InitialShipInformation.fromShip(
+                Ship(
+                    id = blackPearl.id,
+                    name = "Black Pearl",
+                    catainId = blackPearl.catainId,
+                    catainName = blackPearl.catainName,
+                    arrivedFrom = HarborName("Nassau"),
+                )
+            )
+        )
+        flushAndClear()
+
+        rowsFor(blackPearl.id) shouldBe 1
+        ships.getAllShips().single().arrivedFrom shouldBe HarborName("Nassau")
+        ships.getShipDetails(blackPearl.id)!!.arrivedFrom shouldBe HarborName("Nassau")
+
+        val interceptor = aShip("Interceptor")
+        flushAndClear()
+        ships.getShipDetails(interceptor.id)!!.arrivedFrom shouldBe null
+    }
+
+    @Test
+    fun `renaming a ship keeps where it arrived from`() {
+        val blackPearl = anArrivedShip("Black Pearl", from = "Tortuga")
+        flushAndClear()
+
+        val loaded = ships.getShipDetails(blackPearl.id)!!
+        loaded.shipName = "Wicked Wench"
+        ships.saveNewShip(InitialShipInformation.fromShip(loaded))
+        flushAndClear()
+
+        ships.getShipDetails(blackPearl.id)!!.shipName shouldBe "Wicked Wench"
+        ships.getShipDetails(blackPearl.id)!!.arrivedFrom shouldBe HarborName("Tortuga")
+    }
+
+    @Test
     fun `deleting a ship that left the fleet leaves its row and its DONE Shipping in place`() {
         val blackPearl = aShipAtSea("Black Pearl")
         val voyage = blackPearl.activeShipping!!
@@ -140,6 +186,18 @@ class ShipRepositoryAdapterTest {
 
     private fun aShip(name: String): Ship {
         val ship = Ship(name = name, catainId = CatainId(seededCatainId()), catainName = "Furry Jones")
+        ships.saveNewShip(InitialShipInformation.fromShip(ship))
+        entityManager.flush()
+        return ship
+    }
+
+    private fun anArrivedShip(name: String, from: String): Ship {
+        val ship = Ship(
+            name = name,
+            catainId = CatainId(seededCatainId()),
+            catainName = "Furry Jones",
+            arrivedFrom = HarborName(from),
+        )
         ships.saveNewShip(InitialShipInformation.fromShip(ship))
         entityManager.flush()
         return ship
