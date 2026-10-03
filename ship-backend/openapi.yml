@@ -456,6 +456,7 @@ components:
 
     ShippingResponse:
       type: object
+      required: [shippingState]
       properties:
         id:
           type: string
@@ -482,6 +483,8 @@ components:
         weight:
           type: number
           format: float
+        shippingState:
+          $ref: '#/components/schemas/ShippingState'
         destinationHarbor:
           type: string
           nullable: true
