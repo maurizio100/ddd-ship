@@ -3,6 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import { DisembarkService } from '../../services/disembark.service';
 import { ShippingSummary } from '../../models/shipping-summary';
 import {CargosComponent} from "../cargos/cargos.component";
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-disembark-summary',
@@ -14,7 +15,7 @@ import {CargosComponent} from "../cargos/cargos.component";
 })
 export class DisembarkSummaryComponent implements OnInit {
   shipping!: ShippingSummary;
-  imageBaseUrl = 'http://localhost:8080/web/catains';
+  imageBaseUrl = `${environment.baseUrl}/catains`;
 
   constructor(
     private route: ActivatedRoute,
