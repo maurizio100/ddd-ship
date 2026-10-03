@@ -11,6 +11,7 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 ## Behaviour
 - Consume Shipping Published events and print ship name, "Captain Name" (the Catain), weight and the Cargo list (`ship-terminal/src/main/kotlin/Main.kt`).
 - Keeps its own copy of the event model; unknown fields are ignored.
+- Planned (harbor-voyages, 2026-10-03): with several Harbors, the terminal remains one departure board for all of them; Shipping Published gains Origin Harbor and Destination Harbor, which it may show. It is not a Harbor itself.
 
 ## Tactical model
 

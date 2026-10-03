@@ -52,6 +52,18 @@ flowchart LR
 
 Cluster setup notes: `k8s/cluster-setup.txt`.
 
+## 7.4 Planned: several Harbors
+
+Per [ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md), a second Harbor is a
+second copy of the app stack (frontend, backend, PostgreSQL, MinIO) with its own Harbor Name, sharing
+one Kafka and Kafka Connect. Not built yet. What it needs:
+
+- one Debezium outbox connector per Harbor, with its own connector name, `database.hostname` and replication slot;
+- the topic `hexagonship-harbor` created with `cleanup.policy=compact` before the first Harbor starts ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md));
+- Kafka reachable from every backend ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)); on Kubernetes this requires Kafka in the cluster first (R-4).
+
+> TODO: how several Harbors are laid out — one Compose project per Harbor, or several Harbors in one Compose file; one namespace per Harbor on Kubernetes.
+
 ## 7.3 Build pipeline
 
 GitHub Actions (`.github/workflows/docker-image.yml`) builds the **backend** image on every push to

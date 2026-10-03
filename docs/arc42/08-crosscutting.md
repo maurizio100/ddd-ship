@@ -6,7 +6,9 @@
 
 The ubiquitous language lives in [`../domain/`](../domain/README.md) and is used verbatim in code,
 including the "Catain" spelling. Identity is carried by UUID value objects (`ShipId`, `CargoId`,
-`ShippingId`, `CatainId`); persistence entities additionally have a numeric surrogate key.
+`ShippingId`, `CatainId`); persistence entities additionally have a numeric surrogate key. Planned
+([ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md)): the UUID `ShipId` is the
+ship's identity across all Harbors and travels in events; the surrogate key never leaves its Harbor.
 
 ## 8.2 Persistence
 
@@ -14,6 +16,7 @@ including the "Catain" spelling. Identity is carried by UUID value objects (`Shi
 - The schema is owned by **Flyway** (`application/src/main/resources/db/migration`, `V1__init.sql` …); Hibernate DDL generation is off (`ddl-auto: none`).
 - Reference data (Cargo catalog, Catain roster, Shipping Quotes) is seeded by migrations `V2`–`V4`.
 - Binary data (Catain Images) lives in MinIO, not in the database.
+- Planned: per-Harbor tables for the Stock (with a Starting Stock seeded by migration), the inbox of consumed event ids ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and the Known Harbors ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
 
 ## 8.3 Transactions and event publication
 
@@ -21,6 +24,11 @@ The only explicit transaction boundary is `ShippingManagementService.releaseShip
 the shipping state change and the `shipping_outbox` insert commit together. Publication to Kafka is
 asynchronous and at-least-once via Debezium; consumers must tolerate duplicates.
 See [ADR-0002](../adr/0002-transactional-outbox-via-debezium.md).
+
+Planned ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)):
+a second kind of transaction boundary, the handling of a consumed event. The inbox row, the state
+change and any outbox row it causes (for example `ship-arrived`) commit together; an event id already
+in the inbox is skipped, so redelivery has no effect.
 
 ## 8.4 Error handling (current state)
 
@@ -33,7 +41,9 @@ See [ADR-0002](../adr/0002-transactional-outbox-via-debezium.md).
 
 Spring `application.yml` holds defaults (DB URL, MinIO URL and bucket `catains`); the `local` profile
 (`application-local.yml`) targets a locally running stack. On Kubernetes, values come from the
-`backend-config` ConfigMap and the credential Secrets as environment variables.
+`backend-config` ConfigMap and the credential Secrets as environment variables. Planned: every
+instance is configured with its **Harbor Name** ([ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md)),
+which also derives its Kafka consumer group, and with the Kafka bootstrap servers.
 
 ## 8.6 Logging and observability
 

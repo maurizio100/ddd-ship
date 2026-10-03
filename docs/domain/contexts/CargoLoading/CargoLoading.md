@@ -15,6 +15,14 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - Unload Cargo; the ship's Current Weight drops by the Cargo's Weight, never below 0 (`Ship.removeCargo`).
 - The Current Weight against the Max Weight is shown while preparing a shipping ("Current Weight: x / 15").
 
+### Planned: Harbor Stock (harbor-voyages ideation, 2026-10-03)
+Not implemented yet. Each Harbor has its own Stock of Cargo.
+- A Harbor starts with a Starting Stock; after that, its Stock is refilled only by ships delivering Cargo.
+- The catalog stays the list of Cargo kinds (name, Weight); only Cargo with Stock above 0 at the current Harbor can be loaded.
+- Loading a Cargo takes one out of the Harbor's Stock; a User unloading it while preparing puts it back.
+- The existing rules stay: each Cargo at most once per ship, and at most the Max Weight.
+- Unloading on Arrival moves all Loaded Cargo of an arriving ship into the Destination Harbor's Stock, exactly once per Arrival.
+
 ## Tactical model
 
 > Status: not yet discovered

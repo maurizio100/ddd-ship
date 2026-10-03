@@ -14,8 +14,18 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - Create a new Shipping for a ship; allowed only when it has no Active Shipping or the previous one is `DONE` (`Ship.createNewShipping`). The new Shipping starts in `PREPARING`.
 - Release the Active Shipping: derive a Sailors Code from the Current Weight and the current minute, look up the matching Shipping Quote, set the state to `SHIPPING`, and write a Shipping Published event to the outbox in the same transaction (`ShippingManagementService.releaseShipping`).
 - Show the Shipping Summary after release: "{ship} left the harbor together with {Catain}!" plus the Sailors Code; the ships list then shows "{ship} is at sea".
-- ⚠ needs review: nothing ever sets a Shipping to `DONE`, so a released ship can never get another Shipping.
+- ⚠ needs review: nothing ever sets a Shipping to `DONE`, so a released ship can never get another Shipping. Addressed by the planned Arrival below.
 - ⚠ needs review: the Sailors Code is `mod 14` (0–13) while 15 Shipping Quotes are seeded (0–14); the last quote is unreachable.
+
+### Planned: voyages between Harbors (harbor-voyages ideation, 2026-10-03)
+Not implemented yet. Each ship-backend instance is one Harbor; ships sail from one Harbor to another.
+- On startup a Harbor publishes Harbor Opened with its Harbor Name; every Harbor keeps the Known Harbors it has heard of.
+- Release names a Destination Harbor — one of the Known Harbors, not the current one. Shipping Published carries the Origin Harbor and the Destination Harbor.
+- Arrival: the Destination Harbor receives the Shipping Published addressed to it and, without a User action, unloads the ship's Cargo into its Stock (Unloading on Arrival, CargoLoading) and takes the ship into its fleet (Fleet). It then publishes Ship Arrived.
+- The Origin Harbor receives Ship Arrived, sets the Shipping to `DONE` and removes the ship from its fleet.
+- A return trip is an ordinary new Shipping at the Destination Harbor, Released back to the former Origin Harbor (or anywhere else).
+- Events are delivered at least once: a repeated Shipping Published must not unload Cargo twice, and a repeated Ship Arrived must not fail.
+- Open: what a Harbor does with a Shipping Published addressed to a Harbor that never answers (no Ship Arrived).
 
 ## Tactical model
 
