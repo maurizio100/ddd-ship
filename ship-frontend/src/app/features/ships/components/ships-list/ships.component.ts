@@ -1,7 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
 import {Store} from "@ngrx/store";
-import {AsyncPipe} from "@angular/common";
 import {Ship, ShippingState} from "../../models/ship";
 import {selectAllShips} from "../../store/selectors/ship.selectors";
 import {ShipService} from "../../services/ship.service";
@@ -12,7 +11,6 @@ import * as ShipActions from "../../store/actions/ship.actions";
   templateUrl: './ships.component.html',
   styleUrls: ['./ships.component.css'],
   imports: [
-    AsyncPipe,
     RouterLink
   ]
 })
@@ -21,7 +19,7 @@ export class ShipsComponent implements OnInit {
   private readonly shipService = inject(ShipService);
   private readonly router = inject(Router);
 
-  ships$ = this.store.select(selectAllShips);
+  ships = this.store.selectSignal(selectAllShips);
 
   constructor() {}
 

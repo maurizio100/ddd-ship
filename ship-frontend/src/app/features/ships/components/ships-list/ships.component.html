@@ -14,19 +14,20 @@
 
 <section class="ships-list max-width-container">
   <div class="section-grid max-width">
-    @for (ship of (ships$ | async); track ship) {
+    @for (ship of ships(); track ship) {
 
-      <div class="ship">
+      <div class="ship" data-testid="ship">
         <div class="ship__image">
           <img [src]="getImageUrl(ship)" />
         </div>
         <div class="ship__stats">
-          <p class="ship__stats-name">{{ ship.name }}</p>
+          <p class="ship__stats-name" data-testid="ship-name">{{ ship.name }}</p>
           <p>{{ ship.catain }}</p>
         </div>
         <div class="ship__actions">
           @if (canCreateNewShipping(ship)) {
             <a
+              data-testid="new-shipping"
               (click)="createShipping(ship)"
               class="ship__actions-action ship__actions-action-green"
               >New shipping</a
@@ -41,7 +42,7 @@
               }
               @if (isShipAway(ship)) {
                 <div class="shipping-state__shipping">
-                  <p>{{ ship.name }} is at sea</p>
+                  <p data-testid="ship-at-sea">{{ ship.name }} is at sea</p>
                 </div>
               }
             </div>
