@@ -1,10 +1,12 @@
 package com.sonicdevelopment.driving.adapter.web
 
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingDetailsDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingInformationPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
+import com.sonicdevelopment.driving.adapter.web.requestmodel.ReleaseShippingRequest
 import com.sonicdevelopment.driving.adapter.web.responsemodel.CargoResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.ShippingResponse
 import org.springframework.http.HttpStatus
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
@@ -45,8 +48,11 @@ class ShipShippingController(
     }
 
     @PutMapping("/{shipId}/shippings")
-    fun releaseShipping(@PathVariable("shipId") shipId: UUID): ShippingResponse {
-        return shippingManagementPort.releaseShipping(ShipId(shipId))?.let {
+    fun releaseShipping(
+        @PathVariable("shipId") shipId: UUID,
+        @RequestBody request: ReleaseShippingRequest
+    ): ShippingResponse {
+        return shippingManagementPort.releaseShipping(ShipId(shipId), HarborName(request.destinationHarbor.orEmpty()))?.let {
             toShippingResponse(it)
         } ?: throw ResponseStatusException(
             HttpStatus.NOT_FOUND, "Unable to find resource"

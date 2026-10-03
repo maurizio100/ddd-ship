@@ -1,11 +1,12 @@
 package com.sonicdevelopment.driven.adapter.persistence.outbox.events
 
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEvent.ShippingEventData.CargoEventData
 
 object ShippingEventConverter {
 
-    fun toShippingEvent(foundShip: Ship): ShippingEvent {
+    fun toShippingEvent(foundShip: Ship, originHarbor: HarborName): ShippingEvent {
         val shipping = foundShip.activeShipping ?: throw IllegalStateException()
         return ShippingEvent(
             shipEventData = ShippingEvent.ShipEventData(

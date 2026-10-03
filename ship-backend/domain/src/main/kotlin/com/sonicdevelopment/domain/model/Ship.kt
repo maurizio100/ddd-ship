@@ -35,8 +35,8 @@ class Ship(
         throw IllegalArgumentException()
     }
 
-    fun release(shippingQuote: ShippingQuote) {
-        activeShipping?.release(shippingQuote)
+    fun release(shippingQuote: ShippingQuote, destinationHarbor: HarborName) {
+        activeShipping?.release(shippingQuote, destinationHarbor)
     }
 
     fun createSailorsCode(): SailorsCode {
