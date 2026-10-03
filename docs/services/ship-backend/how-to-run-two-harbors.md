@@ -63,7 +63,7 @@ connector. `<slug>` is `tortuga` or `port-royal`.
    ```
 2. Stop writes, so no change falls between dropping and recreating the publication:
    ```bash
-   docker compose -p <slug> stop backend
+   docker stop <slug>-backend
    ```
 3. Delete the connector. Its replication slot and offsets survive.
    ```bash
@@ -76,7 +76,7 @@ connector. `<slug>` is `tortuga` or `port-royal`.
 5. Upload the updated connector and start the backend again:
    ```bash
    kafka-connect/connect-helpers/upload-connector kafka-connect/connectors/shipping-outbox-<slug>.json
-   docker compose -p <slug> start backend
+   docker start <slug>-backend
    ```
 6. Verify that only the outbox is published, and that the connector is `RUNNING`:
    ```bash
@@ -86,7 +86,7 @@ connector. `<slug>` is `tortuga` or `port-royal`.
 
 The same steps apply to the single-Harbor stack: container `hexagonship-db-postgres`, connector
 `shipping-outbox` (`kafka-connect/connectors/ship-outbox-connector.json`), and its backend container
-`hexagonship-backend`. A `ships_cargos` set to `REPLICA IDENTITY FULL` by hand needs nothing more:
+`hexagonship-backend` (stop and start it with `docker stop hexagonship-backend` / `docker start hexagonship-backend`). A `ships_cargos` set to `REPLICA IDENTITY FULL` by hand needs nothing more:
 Flyway's `V12__ships_cargos_primary_key.sql` gives it a primary key and sets its replica identity back to it.
 
 ## Frontend to backend
