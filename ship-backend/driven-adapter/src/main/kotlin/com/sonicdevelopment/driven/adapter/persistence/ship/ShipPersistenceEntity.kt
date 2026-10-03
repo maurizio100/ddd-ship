@@ -23,6 +23,10 @@ class ShipPersistenceEntity(
 
     /** Whether the ship is in this Harbor's fleet; a ship that sailed to another Harbor keeps its row. */
     @Column(name = "ship_in_fleet")
-    var inFleet: Boolean = true
+    var inFleet: Boolean = true,
+
+    /** The Origin Harbor of the Arrival that last took the ship into this fleet; `null` for a ship registered here. */
+    @Column(name = "ship_arrived_from")
+    var arrivedFrom: String? = null
 ) {
 }

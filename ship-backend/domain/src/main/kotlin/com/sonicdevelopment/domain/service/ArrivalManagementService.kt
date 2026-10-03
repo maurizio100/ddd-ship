@@ -37,8 +37,9 @@ import org.springframework.stereotype.Service
  * Arrivals were recorded, re-published.
  *
  * Otherwise, in one transaction with the inbox record: one of each Loaded Cargo goes into the Stock,
- * the ship joins the fleet with its Ship Id, Ship Name and Catain and no Shipping, and Ship Arrived is
- * written to the outbox for the Origin Harbor.
+ * the ship joins the fleet with its Ship Id, Ship Name and Catain and no Shipping, remembering the Origin
+ * Harbor it arrived from (replacing the one of an earlier Arrival), and Ship Arrived is written to the
+ * outbox for the Origin Harbor.
  *
  * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
  * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
@@ -87,6 +88,7 @@ class ArrivalManagementService(
             name = shippingPublished.shipName,
             catainId = catain.catainId,
             catainName = catain.catainName,
+            arrivedFrom = originHarbor,
         )
         shipRepositoryPort.saveNewShip(fromShip(ship))
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)

@@ -368,6 +368,10 @@ components:
           description: Captain name
         shippingState:
           $ref: '#/components/schemas/ShippingState'
+        arrivedFrom:
+          type: string
+          nullable: true
+          description: Harbor Name of the Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here
 
     ShipDetailResponse:
       type: object
@@ -389,6 +393,10 @@ components:
           type: number
           format: float
           description: Maximum cargo capacity (15.0)
+        arrivedFrom:
+          type: string
+          nullable: true
+          description: Harbor Name of the Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here
 
     CargoResponse:
       type: object

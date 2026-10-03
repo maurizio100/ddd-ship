@@ -7,6 +7,7 @@ Terms specific to this context. Shared terms and cross-context collisions are in
 |------|------------|-------|
 | Active Shipping | The one Shipping a ship currently has, if any. | A ship has at most one. |
 | Arrival | A ship reaching its Destination Harbor: that Harbor receives the Shipping Published addressed to it, unloads the ship's Cargo into its Stock and takes the ship into its fleet. | Built by STORY-006 (harbor-voyages). Triggered by the event, not by a User. See Unloading on Arrival (CargoLoading). |
+| Arrived from | The Origin Harbor of a ship's latest Arrival at this Harbor, as shown in the fleet. | Built by STORY-013. None for a ship registered at this Harbor. Field `arrivedFrom` in the ship list and details. |
 | at sea | A ship whose Active Shipping has been Released and is underway. | UI wording ("is at sea"); corresponds to state `SHIPPING`. |
 | Destination Harbor | The Harbor a ship is Released to; named on Release and carried in Shipping Published. | Built by STORY-005 (harbor-voyages). Must be one of the Known Harbors and not the current Harbor. |
 | Harbor Name | The unique name a Harbor is known by among all Harbors. | Built by STORY-003 (harbor-voyages). Configured per instance. |

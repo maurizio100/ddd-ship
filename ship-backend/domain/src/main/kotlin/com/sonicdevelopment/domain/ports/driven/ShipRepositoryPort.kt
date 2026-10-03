@@ -15,7 +15,7 @@ interface ShipRepositoryPort {
         val arrivedFrom: HarborName?
     ) {
         companion object {
-            fun fromShip(ship: Ship) = InitialShipInformation(ship.id, shipName = ship.shipName, ship.catainId, arrivedFrom = null)
+            fun fromShip(ship: Ship) = InitialShipInformation(ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom)
         }
     }
     fun getAllShips(): List<Ship>
