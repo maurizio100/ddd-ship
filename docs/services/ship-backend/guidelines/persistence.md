@@ -25,6 +25,9 @@
   always check the column type.
 - `ships_cargos` holds a ship's Loaded Cargo. Despite its name, its `ship_id` column references
   `shippings(id)`.
+- Every table has a primary key. A join table has a composite one on both foreign key columns
+  (`ships_cargos`: `pk_ships_cargos` on `(ship_id, cargo_id)`), so every table has a replica identity
+  whatever the Debezium publication covers. PostgreSQL rejects `DELETE` on a published table without one.
 - Constraints are named `pk_<table>` and `fk_<table>_on_<target>`.
 
 ## JPA mapping
@@ -53,6 +56,8 @@
 - `ship-arrived` uses `aggregate_type = 'shipping'` (topic `hexagonship-shipping`) and the Shipping id
   as `aggregate_id`, the same key as the `shipping-published` it answers, so both stay ordered per Shipping.
 - Changing an event payload changes a public contract: only add fields, and never rename or remove one.
+- Each outbox connector in `kafka-connect/connectors/` sets `publication.autocreate.mode` to `filtered`,
+  so `dbz_publication` publishes only `shipping_outbox`. Never publish all tables.
 
 ## Fleet
 
