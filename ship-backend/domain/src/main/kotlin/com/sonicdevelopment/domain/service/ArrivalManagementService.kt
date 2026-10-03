@@ -3,6 +3,7 @@ package com.sonicdevelopment.domain.service
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.ports.driven.ArrivalRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import com.sonicdevelopment.domain.ports.driven.CatainRepository
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
@@ -47,6 +48,7 @@ class ArrivalManagementService(
     private val stockRepositoryPort: StockRepositoryPort,
     private val shippingOutboxRepository: ShippingOutboxRepository,
     private val shippingRepositoryPort: ShippingRepositoryPort,
+    private val arrivalRepositoryPort: ArrivalRepositoryPort,
 ) : ArrivalManagementPort {
 
     @Transactional

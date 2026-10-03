@@ -28,9 +28,8 @@ class ShipManagementService(
         return ShipConverter.toShipDTO(ship)
     }
 
-    override fun deleteShip(shipId: ShipId) {
+    override fun deleteShip(shipId: ShipId): Boolean =
         shipRepositoryPort.delete(shipId)
-    }
 
     override fun updateShip(shipId: ShipId, shipUpdateData: ShipUpdateDataDTO): ShipDTO? {
         return shipRepositoryPort.getShipDetails(shipId)?.let {

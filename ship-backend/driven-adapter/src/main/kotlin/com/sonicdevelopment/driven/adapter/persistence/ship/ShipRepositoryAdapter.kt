@@ -46,9 +46,10 @@ class ShipRepositoryAdapter(
         )
 
     @Transactional
-    override fun delete(shipId: ShipId) {
+    override fun delete(shipId: ShipId): Boolean {
         shippingRepository.deleteByShip_shipId(shipId.id)
         shipPersistenceEntityRepository.deleteByShipId(shipId.id)
+        return true
     }
 
     @org.springframework.transaction.annotation.Transactional(propagation = Propagation.MANDATORY)
