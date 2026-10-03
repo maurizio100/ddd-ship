@@ -53,15 +53,27 @@ describe('ShipDetailComponent (Release to a Destination Harbor)', () => {
 
   const destinationHarborChoices = (): string[] =>
     Array.from(fixture.nativeElement.querySelectorAll('[data-testid="shipping-destination-harbor-option"]')).map(
-      (option: any) => option.textContent.trim()
+      (option: any) => option.querySelector('.harbor-card__name').textContent.trim()
     );
 
+  const cards = (): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll('[data-testid="shipping-destination-harbor-option"]'));
+
   function choose(harbor: string): void {
-    const select = byTestId('shipping-destination-harbor') as HTMLSelectElement;
-    select.value = harbor;
-    select.dispatchEvent(new Event('change'));
+    const card = cards().find((c) => c.textContent!.includes(harbor))!;
+    card.click();
     fixture.detectChanges();
   }
+
+  function press(index: number, key: string): void {
+    cards()[index].dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+  }
+
+  const checked = (): string[] =>
+    cards().filter((c) => c.getAttribute('aria-checked') === 'true').map((c) => c.querySelector('.harbor-card__name')!.textContent!.trim());
+
+  const releaseButton = (): HTMLButtonElement => byTestId('shipping-release-button') as HTMLButtonElement;
 
   function clickRelease(): void {
     byTestId('shipping-release-button')!.click();
@@ -123,5 +135,53 @@ describe('ShipDetailComponent (Release to a Destination Harbor)', () => {
     expect((byTestId('shipping-release-button') as HTMLButtonElement).disabled).toBeTrue();
     clickRelease();
     expect(disembarkService.releaseShip).not.toHaveBeenCalled();
+  });
+
+  it('Selecting a card marks only it as checked and names the Harbor on the button', () => {
+    render(['Port Royal', 'Nassau']);
+    expect(releaseButton().disabled).toBeTrue();
+    expect(releaseButton().textContent!.trim()).toBe('Start Journey');
+    expect(byTestId('shipping-destination-harbor-selected')).toBeNull();
+
+    choose('Nassau');
+
+    expect(checked()).toEqual(['Nassau']);
+    expect(fixture.nativeElement.querySelectorAll('[data-testid="shipping-destination-harbor-selected"]').length).toBe(1);
+    expect(cards()[1].querySelector('[data-testid="shipping-destination-harbor-selected"]')).not.toBeNull();
+    expect(releaseButton().disabled).toBeFalse();
+    expect(releaseButton().textContent!.replace(/\s+/g, ' ').trim()).toBe('Start Journey → Nassau');
+  });
+
+  it('The cards form a radio group with a single tab stop', () => {
+    render(['Port Royal', 'Nassau']);
+    expect(byTestId('shipping-destination-harbors')!.getAttribute('role')).toBe('radiogroup');
+    expect(cards().every((c) => c.getAttribute('role') === 'radio')).toBeTrue();
+    expect(cards().map((c) => c.getAttribute('tabindex'))).toEqual(['0', '-1']);
+    choose('Nassau');
+    expect(cards().map((c) => c.getAttribute('tabindex'))).toEqual(['-1', '0']);
+  });
+
+  it('Arrow keys move the selection with wrap and Space/Enter select the focused card', () => {
+    render(['Port Royal', 'Nassau']);
+    press(0, 'ArrowRight');
+    expect(checked()).toEqual(['Nassau']);
+    press(1, 'ArrowRight');
+    expect(checked()).toEqual(['Port Royal']);
+    press(0, 'ArrowLeft');
+    expect(checked()).toEqual(['Nassau']);
+    press(1, 'ArrowUp');
+    expect(checked()).toEqual(['Port Royal']);
+    press(0, 'ArrowDown');
+    expect(checked()).toEqual(['Nassau']);
+    press(0, ' ');
+    expect(checked()).toEqual(['Port Royal']);
+    press(1, 'Enter');
+    expect(checked()).toEqual(['Nassau']);
+  });
+
+  it('Without a Known Harbor there is no radio group, only the hint', () => {
+    render([]);
+    expect(byTestId('shipping-destination-harbors')).toBeNull();
+    expect(byTestId('shipping-no-known-harbor')).not.toBeNull();
   });
 });
