@@ -18,6 +18,8 @@ services:
     build:
       dockerfile: Dockerfile
       context: ship-frontend/.
+    environment:
+      BACKEND_URL: http://hexagonship-backend:8080
     networks:
       - ship-network
     ports:

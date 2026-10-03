@@ -21,6 +21,8 @@ services:
     build:
       dockerfile: Dockerfile
       context: ship-frontend/.
+    environment:
+      BACKEND_URL: http://${HARBOR_SLUG:?HARBOR_SLUG is required}-backend:8080
     ports:
       - "${FRONTEND_PORT:?FRONTEND_PORT is required}:80"
     depends_on:
