@@ -6,6 +6,7 @@ JUnit 5 + `kotlin-test`, in `src/test/kotlin`. No Kafka broker is needed for any
 
 | What | How |
 |---|---|
+| Record filter | `handleRecord()` returns `true` for `shipping-published` events with a parsed event, `false` for all others (missing header, wrong type, null event). Test in `RecordFilterTest.kt`. |
 | Deserializer | Feed it the bytes of a recorded event and assert on the parsed `ShippingEvent`. Include a payload with an extra unknown field, and one that doesn't parse (expect `null`, no exception). |
 | Formatter | Build an event and assert on the exact announcement text, including the "No cargo loaded." case. |
 
