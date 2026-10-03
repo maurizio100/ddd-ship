@@ -36,6 +36,11 @@ flowchart LR
 | `docker-compose-harbor.yml` | frontend, backend, Postgres, MinIO for one Harbor, parameterised by `harbors/<slug>.env` | One Compose project per Harbor; needs Kafka running (7.4). |
 | `docker-compose-kafka.yml` | the app plus Zookeeper, Kafka, Kafka Connect (Debezium), Kafka UI | Full system incl. outbox → Kafka. Connectors are registered by hand from `kafka-connect/connectors/`. |
 
+The frontend's nginx proxies `/web` to the backend. The fleet-events stream (`/web/fleet-events`,
+[ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md)) has its own
+`location` with buffering off, HTTP/1.1 without `Connection: close`, and a 1 h read timeout, so events
+pass through at once and idle streams survive between heartbeats.
+
 `ship-terminal` is not containerised; it is run locally and connects to `localhost:9094`.
 
 ## 7.2 Kubernetes (`k8s/`, namespace `ddd-ship`)
@@ -49,7 +54,7 @@ flowchart LR
 | `21-minio.yaml` | StatefulSet, 1 replica + Job (`minio/mc`) seeding the Catain Images | |
 | `30-backend.yaml` | Deployment, 2 replicas, `moonrider100/hexagonship-backend:latest` | Startup/readiness/liveness probes on `/actuator/health/*`. |
 | `40-frontend.yaml` | Deployment, 2 replicas, `ddd-ship-frontend:latest` (`IfNotPresent`) | Image must exist locally on the node; not pushed by CI. |
-| `50-ingress.yaml` | Ingress (class `nginx`) | `/web` → backend :8080, `/` → frontend :80. |
+| `50-ingress.yaml` | Two Ingresses (class `nginx`) | `ddd-ship-ingress`: `/web` → backend :8080, `/` → frontend :80. `ddd-ship-fleet-events-ingress`: exactly `/web/fleet-events` → backend :8080, with proxy buffering off and 1 h read/send timeouts (annotations apply per Ingress object). |
 
 Cluster setup notes: `k8s/cluster-setup.txt`.
 

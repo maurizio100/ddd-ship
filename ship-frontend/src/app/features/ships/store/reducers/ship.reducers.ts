@@ -5,7 +5,8 @@ import * as ShipActions from "../actions/ship.actions";
 export const initialState: ShipState = {
   ships: [],
   loading: false,
-  error: null
+  error: null,
+  arrivalNotices: []
 }
 
 export const shipReducers = createReducer(
@@ -39,5 +40,23 @@ export const shipReducers = createReducer(
     ...state,
     loading: false,
     error: error
+  })),
+
+  on(ShipActions.shipArrived, (state, {shipId, shipName, originHarbor}) => ({
+    ...state,
+    arrivalNotices: [
+      ...state.arrivalNotices.filter(notice => notice.shipId !== shipId),
+      {shipId, shipName, originHarbor}
+    ]
+  })),
+
+  on(ShipActions.shipLeft, (state, {shipId}) => ({
+    ...state,
+    ships: state.ships.filter(ship => ship.id !== shipId)
+  })),
+
+  on(ShipActions.dismissArrivalNotice, (state, {shipId}) => ({
+    ...state,
+    arrivalNotices: state.arrivalNotices.filter(notice => notice.shipId !== shipId)
   })),
 )

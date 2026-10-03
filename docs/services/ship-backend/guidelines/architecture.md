@@ -9,7 +9,7 @@ the dependency rule:
 | Module | Contains | May depend on |
 |---|---|---|
 | `domain` | model, invariants, domain services, driving and driven ports, domain exceptions | `spring-context`, `jakarta.transaction` only: no web, JPA, Jackson or MinIO |
-| `driving-adapter` | REST controllers, request/response models, mappers, the exception handler; Kafka listeners and inbound event copies | `domain` |
+| `driving-adapter` | REST controllers, request/response models, mappers, the exception handler; Kafka listeners and inbound event copies; the SSE fleet-events adapter, which implements the driven port `FleetEventsPort` | `domain` |
 | `driven-adapter` | JPA entities and repositories, port adapters, outbox writer and event payloads, MinIO client | `domain` |
 | `application` | Spring Boot main, configuration, Flyway migrations | all of the above |
 
@@ -34,6 +34,7 @@ domain
   converter/        model ↔ DTO conversion
 driving.adapter.web
   requestmodel/ responsemodel/ mapper/
+  fleetevents/               SSE stream: controller, emitter registry, FleetEventsPort adapter
 driving.adapter.messaging    Kafka listeners, InboundMessageReader
   events/                    inbound event copies (<Name>InboundEvent)
 driven.adapter
@@ -52,6 +53,13 @@ driven.adapter
   If a state change must be published, the outbox row is written in the same transaction (see
   [`persistence.md`](persistence.md)).
 - Domain objects never carry JPA annotations; persistence uses separate `*PersistenceEntity` classes.
+- **Pushes to the browser** go through the driven port `FleetEventsPort`, called by the domain service as
+  the last step of the transaction that changes the fleet, never on a path that ignores the event. Its
+  adapter sends only after commit (`TransactionSynchronization.afterCommit`), so nothing is pushed on
+  rollback, and a failed push never fails the caller
+  ([ADR-0006](../../../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md)). It is
+  the one driven port implemented in `driving-adapter`, because it needs the HTTP connections the
+  controller owns.
 
 ## Consuming events
 

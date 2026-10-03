@@ -10,7 +10,7 @@ decides whether a load or a Release is allowed. The harbor terminal is not part 
 - **Code lives in:** `ship-frontend/`
 - **Tech:** Angular 20 (standalone components), NgRx store + effects, TypeScript 5.9, served by nginx
 - **Build & test:** `cd ship-frontend && npm test -- --watch=false --browsers=ChromeHeadless`; production bundle guard: `cd ship-frontend && npm run build:check`
-- **Talks to:** ship-backend (REST `/web`, including the Catain Images)
+- **Talks to:** ship-backend (REST `/web`, including the Catain Images; the fleet-events stream `/web/fleet-events` over Server-Sent Events)
 
 ## Routing
 
@@ -24,6 +24,8 @@ environment variable:
   address (`http://hexagonship-backend:8080` for the default setup, `http://${HARBOR_SLUG}-backend:8080`
   per Harbor). The nginx proxy forwards `/web/...` requests to the backend unchanged, along with
   forwarded headers (`Host`, `X-Forwarded-For`, `X-Forwarded-Proto`).
+- **The fleet-events stream** (`/web/fleet-events`) has its own unbuffered `location` in nginx, and its
+  own Ingress on k8s (see `guidelines/architecture.md`).
 
 ## Documents in this folder
 

@@ -8,6 +8,21 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
+    # The fleet-events stream (Server-Sent Events): unbuffered so each event reaches the browser at once,
+    # HTTP/1.1 without "Connection: close" so the stream stays open, and a read timeout well above the
+    # backend's 15 s heartbeat.
+    location /web/fleet-events {
+        proxy_pass ${BACKEND_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Connection '';
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 1h;
+    }
+
     location /web {
         proxy_pass ${BACKEND_URL};
         proxy_set_header Host $host;

@@ -17,6 +17,11 @@ component ──dispatch──▶ action ──▶ effect ──▶ service (HTT
 - Reducers are pure functions with no side effects or service calls. Every feature state carries
   `loading` and `error` next to its data.
 - Local UI state (a form's input, an open dialog) stays in the component as Angular signals.
+- Server pushes enter the same way. An `EventSource` is wrapped by a service that exposes it as an
+  `Observable`, opening it on subscribe and closing it on unsubscribe, and builds it through the
+  `EVENT_SOURCE_FACTORY` injection token so specs pass a fake. Only an effect subscribes, started and
+  stopped by actions the component dispatches on init and destroy, and it maps each pushed event to an
+  action.
 
 Existing components read with `store.select(...)` as observables; switch one to `selectSignal`
 when a story touches it. The `shipping` feature still calls its services from components. Move it onto a store when a story

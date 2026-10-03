@@ -119,6 +119,49 @@ sequenceDiagram
     end
 ```
 
+Once each of these transactions commits, the Harbor pushes the change to its Users' open fleet pages
+(6.6).
+
+## 6.6 Fleet changes pushed to the browser
+
+Per [ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md). The Available
+Ships page holds an `EventSource` on `GET /web/fleet-events`. When the Harbor handles an Arrival (6.4,
+Destination side) or learns that a ship it Released has arrived elsewhere (6.4, Origin side),
+`ArrivalManagementService` announces it through `FleetEventsPort` as the last step of its transaction. The
+SSE adapter defers the push to `afterCommit`, so a rolled-back change is never pushed. An event the
+Harbor ignores (a duplicate, an Arrival addressed to another Harbor, a Ship Arrived for another Origin
+Harbor) changes nothing and pushes nothing.
+
+```mermaid
+sequenceDiagram
+    participant K as Kafka
+    participant B as Harbor backend
+    participant DB as PostgreSQL
+    participant FE as ship-frontend (each open tab)
+    FE->>B: GET /web/fleet-events (EventSource)
+    B-->>FE: retry 3000, :connected
+    K->>B: shipping-published / ship-arrived (consume)
+    rect rgb(240,240,240)
+    Note over B,DB: one DB transaction (6.4)
+    B->>DB: Arrival, or the voyage ends
+    B->>B: FleetEventsPort: register afterCommit
+    end
+    B->>DB: commit
+    B-->>FE: event ship-arrived (shipId, shipName, originHarbor) or ship-left (shipId, shipName, destinationHarbor)
+    alt ship-arrived
+        FE->>B: GET /web/ships (refetch)
+        FE->>FE: notice "Black Pearl arrived from Tortuga" (8 s)
+    else ship-left
+        FE->>FE: remove the ship from the store
+    end
+    loop every 15 s
+        B-->>FE: :heartbeat
+    end
+```
+
+The registry of open streams is in memory per instance (R-11). A disconnected tab reconnects by itself
+after 3 s; events in between are not replayed.
+
 ## 6.5 Harbor startup and discovery (planned)
 
 Per [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md). Not built yet.
