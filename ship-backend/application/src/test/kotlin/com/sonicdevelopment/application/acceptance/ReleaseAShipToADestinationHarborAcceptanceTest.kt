@@ -117,6 +117,28 @@ class ReleaseAShipToADestinationHarborAcceptanceTest {
         shippingPublishedPayloads().shouldBeEmpty()
     }
 
+    @Test
+    fun `A ship at sea cannot be Released again`() {
+        // Given "Tortuga" knows the Harbors "Port Royal" and "Nassau"
+        jdbcTemplate.givenKnownHarbors("Port Royal", "Nassau")
+        // And a ship at "Tortuga" has been Released to "Port Royal"
+        val shipId = restTemplate.aShipBeingPrepared(jdbcTemplate, "Black Pearl")
+        restTemplate.release(shipId, "Port Royal").statusCode shouldBe HttpStatus.OK
+
+        // When the User Releases the ship to "Nassau"
+        val release = restTemplate.release(shipId, "Nassau")
+
+        // Then the Release is rejected
+        release.statusCode shouldBe HttpStatus.CONFLICT
+        release.headers.contentType?.isCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON) shouldBe true
+        release.body!!["detail"] shouldBe "Black Pearl is not being prepared"
+        // And the ship is still bound for "Port Royal" and only one Shipping Published exists
+        shippingStateOf(shipId) shouldBe "SHIPPING"
+        val payloads = shippingPublishedPayloads()
+        payloads.size shouldBe 1
+        ObjectMapper().readTree(payloads.single())["shippingEventData"]["destinationHarbor"].asText() shouldBe "Port Royal"
+    }
+
     private fun destinationHarborChoices(): List<String> {
         val harbors = restTemplate.getForEntity("/web/harbors", Map::class.java)
         harbors.statusCode shouldBe HttpStatus.OK

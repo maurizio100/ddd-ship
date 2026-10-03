@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.UnknownHarborException
 import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.Ship
@@ -77,6 +78,22 @@ class ShippingManagementServiceTest {
         shouldThrow<UnknownHarborException> { service.releaseShipping(ship.id, HarborName("Port Royal")) }
 
         ship.shippingState() shouldBe ShippingState.PREPARING
+        verify(exactly = 0) { shippingRepositoryPort.updateActiveShipping(any()) }
+        verify(exactly = 0) { shippingOutboxRepository.broadcastShipping(any(), any()) }
+    }
+
+    @Test
+    fun `releasing a ship that is already at sea throws ShippingNotPreparingException and writes nothing`() {
+        val ship = givenShip(aShip(name = "Black Pearl"))
+        givenKnownHarbors("Nassau", "Port Royal")
+        ship.release(ShippingQuote("Fair winds"), HarborName("Port Royal"))
+
+        val rejection = shouldThrow<ShippingNotPreparingException> {
+            service.releaseShipping(ship.id, HarborName("Nassau"))
+        }
+
+        rejection.message shouldBe "Black Pearl is not being prepared"
+        ship.activeShipping!!.destinationHarbor shouldBe HarborName("Port Royal")
         verify(exactly = 0) { shippingRepositoryPort.updateActiveShipping(any()) }
         verify(exactly = 0) { shippingOutboxRepository.broadcastShipping(any(), any()) }
     }

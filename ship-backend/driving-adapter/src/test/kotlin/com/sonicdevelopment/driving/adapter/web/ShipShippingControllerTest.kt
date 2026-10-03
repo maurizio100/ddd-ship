@@ -1,6 +1,7 @@
 package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
+import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.UnknownHarborException
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -74,6 +75,20 @@ class ShipShippingControllerTest {
             jsonPath("$.status") { value(409) }
             jsonPath("$.title") { value("Unknown Destination Harbor") }
             jsonPath("$.detail") { value("Atlantis is not a Known Harbor") }
+        }
+    }
+
+    @Test
+    fun `ShippingNotPreparingException is 409 Problem Details with title Ship not being prepared`() {
+        every { shippingManagementPort.releaseShipping(ShipId(shipId), HarborName("Nassau")) } throws
+            ShippingNotPreparingException("Black Pearl is not being prepared")
+
+        release("""{"destinationHarbor":"Nassau"}""").andExpect {
+            status { isConflict() }
+            content { contentType(MediaType.APPLICATION_PROBLEM_JSON) }
+            jsonPath("$.status") { value(409) }
+            jsonPath("$.title") { value("Ship not being prepared") }
+            jsonPath("$.detail") { value("Black Pearl is not being prepared") }
         }
     }
 

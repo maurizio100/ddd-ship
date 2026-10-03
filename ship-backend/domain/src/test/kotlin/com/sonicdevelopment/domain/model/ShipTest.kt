@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
+import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.enums.ShippingState
@@ -53,5 +54,29 @@ class ShipTest {
         ship.shippingState() shouldBe ShippingState.SHIPPING
         ship.activeShipping!!.shippingQuote shouldBe ShippingQuote("Fair winds")
         ship.activeShipping!!.destinationHarbor shouldBe HarborName("Port Royal")
+    }
+
+    @Test
+    fun `a ship that is already at sea cannot be Released again and keeps its Destination Harbor`() {
+        val ship = aShip(name = "Black Pearl")
+        ship.release(ShippingQuote("Fair winds"), HarborName("Port Royal"))
+
+        val rejection = shouldThrow<ShippingNotPreparingException> {
+            ship.release(ShippingQuote("Rough seas"), HarborName("Nassau"))
+        }
+
+        rejection.message shouldBe "Black Pearl is not being prepared"
+        ship.shippingState() shouldBe ShippingState.SHIPPING
+        ship.activeShipping!!.shippingQuote shouldBe ShippingQuote("Fair winds")
+        ship.activeShipping!!.destinationHarbor shouldBe HarborName("Port Royal")
+    }
+
+    @Test
+    fun `a ship without a Shipping cannot be Released`() {
+        val ship = aShip(name = "Black Pearl", activeShipping = null)
+
+        shouldThrow<ShippingNotPreparingException> {
+            ship.release(ShippingQuote("Fair winds"), HarborName("Port Royal"))
+        }.message shouldBe "Black Pearl is not being prepared"
     }
 }
