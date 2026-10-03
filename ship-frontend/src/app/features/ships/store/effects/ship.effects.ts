@@ -1,8 +1,12 @@
 import {inject, Injectable} from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
 import * as ShipActions from "../actions/ship.actions";
-import {catchError, exhaustMap, map, of} from "rxjs";
+import {catchError, EMPTY, exhaustMap, map, Observable, of} from "rxjs";
+import {Action} from "@ngrx/store";
 import {ShipService} from "../../services/ship.service";
+
+/** How long the User is told that a ship has arrived. */
+export const ARRIVAL_NOTICE_MS = 8000;
 
 @Injectable()
 export class ShipEffects {
@@ -33,5 +37,10 @@ export class ShipEffects {
       )
     )
   })
-}
 
+  watchFleet$ = createEffect((): Observable<Action> => EMPTY);
+
+  refetchOnArrival$ = createEffect((): Observable<Action> => EMPTY);
+
+  dismissArrivalNotice$ = createEffect((): Observable<Action> => EMPTY);
+}
