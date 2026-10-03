@@ -6,7 +6,8 @@ import { ShipsComponent } from './ships.component';
 import { Ship, ShippingState } from '../../models/ship';
 import { ShipService } from '../../services/ship.service';
 import * as ShipActions from '../../store/actions/ship.actions';
-import { anAvailableShip } from '../../../../../testing/fixtures';
+import { anArrivalNotice, anAvailableShip } from '../../../../../testing/fixtures';
+import { ArrivalNotice } from '../../models/fleet-event';
 
 describe('ShipsComponent (The voyage ends at the Origin Harbor)', () => {
   let fixture: ComponentFixture<ShipsComponent>;
@@ -17,7 +18,7 @@ describe('ShipsComponent (The voyage ends at the Origin Harbor)', () => {
       imports: [ShipsComponent],
       providers: [
         provideRouter([]),
-        provideMockStore({ initialState: { ships: { ships, loading: false, error: null } } }),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] } } }),
         { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
       ],
     });
@@ -66,7 +67,7 @@ describe('ShipsComponent (The fleet shows where an arrived ship came from)', () 
       imports: [ShipsComponent],
       providers: [
         provideRouter([]),
-        provideMockStore({ initialState: { ships: { ships, loading: false, error: null } } }),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] } } }),
         {
           provide: ShipService,
           useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']),
@@ -100,5 +101,63 @@ describe('ShipsComponent (The fleet shows where an arrived ship came from)', () 
     render([anAvailableShip({ arrivedFrom: 'Nassau' })]);
 
     expect(arrivedFrom()).toEqual(['⚓ arrived from Nassau']);
+  });
+});
+
+describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+  let store: MockStore;
+
+  function render(ships: Ship[], arrivalNotices: ArrivalNotice[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices } } }),
+        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+      ],
+    });
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  const statusRegion = (): HTMLElement => all('ships-arrival-notices')[0];
+
+  it('An arriving ship appears without a reload', () => {
+    render([anAvailableShip({ arrivedFrom: 'Tortuga' })], [anArrivalNotice()]);
+
+    expect(store.dispatch).toHaveBeenCalledWith(ShipActions.watchFleet());
+    expect(all('ship-name').map((name) => name.textContent!.trim())).toEqual(['Black Pearl']);
+    expect(statusRegion().getAttribute('role')).toBe('status');
+    expect(statusRegion().getAttribute('aria-live')).toBe('polite');
+    const notices = Array.from(statusRegion().querySelectorAll('[data-testid="ships-arrival-notice"]'));
+    expect(notices.map((notice) => notice.textContent!.trim())).toEqual(['Black Pearl arrived from Tortuga']);
+
+    fixture.destroy();
+    expect(store.dispatch).toHaveBeenCalledWith(ShipActions.stopWatchingFleet());
+  });
+
+  it('Ships sailing to another Harbor change nothing', () => {
+    render([anAvailableShip()], []);
+
+    expect(statusRegion()).toBeTruthy();
+    expect(statusRegion().textContent!.trim()).toBe('');
+    expect(all('ships-arrival-notice')).toEqual([]);
+    expect(all('ship-name').map((name) => name.textContent!.trim())).toEqual(['Black Pearl']);
+  });
+
+  it('dismissing a notice dispatches dismissArrivalNotice for its ship', () => {
+    render([anAvailableShip()], [anArrivalNotice()]);
+
+    all('ships-arrival-notice-dismiss')[0].click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      ShipActions.dismissArrivalNotice({ shipId: anArrivalNotice().shipId }),
+    );
   });
 });

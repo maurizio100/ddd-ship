@@ -2,6 +2,7 @@ import { AvailableCargo, Cargo } from '../app/features/shipping/models/cargo';
 import { KnownHarbors } from '../app/features/shipping/models/known-harbors';
 import { Ship, ShippingState } from '../app/features/shipping/models/ship';
 import { ShippingSummary } from '../app/features/shipping/models/shipping-summary';
+import { ArrivalNotice } from '../app/features/ships/models/fleet-event';
 import {
   Ship as AvailableShip,
   ShippingState as AvailableShipShippingState,
@@ -69,6 +70,16 @@ export function someKnownHarbors(overrides: Partial<KnownHarbors> = {}): KnownHa
   return {
     harborName: 'Tortuga',
     knownHarbors: ['Nassau', 'Port Royal'],
+    ...overrides,
+  };
+}
+
+/** The User is told that "Black Pearl" has just arrived from "Tortuga". */
+export function anArrivalNotice(overrides: Partial<ArrivalNotice> = {}): ArrivalNotice {
+  return {
+    shipId: '5f1d7c2e-0000-4000-8000-000000000001',
+    shipName: 'Black Pearl',
+    originHarbor: 'Tortuga',
     ...overrides,
   };
 }
