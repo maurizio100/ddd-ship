@@ -3,7 +3,9 @@ package com.sonicdevelopment.driven.adapter.persistence.outbox
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
+import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShipArrivedEvent
 import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEventConverter
 import org.springframework.stereotype.Component
 
@@ -31,4 +33,27 @@ class ShippingOutboxRepositoryAdapter(
         )
     }
 
+    override fun announceShipArrived(
+        ship: Ship,
+        shippingId: ShippingId,
+        originHarbor: HarborName,
+        destinationHarbor: HarborName
+    ) {
+        val shipArrivedEvent = ShipArrivedEvent(
+            shipId = ship.id.id,
+            shipName = ship.shipName,
+            shippingId = shippingId.id,
+            originHarbor = originHarbor.name,
+            destinationHarbor = destinationHarbor.name
+        )
+
+        shippingOutboxPersistenceRepository.save(
+            ShippingOutboxPersistenceEntity(
+                aggregatetype = "shipping",
+                aggregateId = shippingId.id,
+                type = "ship-arrived",
+                payload = objectMapper.writeValueAsString(shipArrivedEvent)
+            )
+        )
+    }
 }
