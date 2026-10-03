@@ -71,7 +71,7 @@ describe('ShipDetailComponent (Release to a Destination Harbor)', () => {
   }
 
   const checked = (): string[] =>
-    cards().filter((c) => c.getAttribute('aria-checked') === 'true').map((c) => c.textContent!.replace('✓', '').trim());
+    cards().filter((c) => c.getAttribute('aria-checked') === 'true').map((c) => c.querySelector('.harbor-card__name')!.textContent!.trim());
 
   const releaseButton = (): HTMLButtonElement => byTestId('shipping-release-button') as HTMLButtonElement;
 
