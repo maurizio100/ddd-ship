@@ -209,9 +209,18 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      summary: Release (complete) a shipping
+      summary: Release a shipping to a Destination Harbor
+      description: >-
+        Releases the ship's Shipping to the Destination Harbor, which must be one of this Harbor's Known
+        Harbors (`GET /web/harbors`). The Shipping Published event names this Harbor as Origin Harbor.
       operationId: releaseShipping
       tags: [Shippings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseShippingRequest'
       responses:
         '200':
           description: Released shipping
@@ -219,8 +228,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ShippingResponse'
+        '400':
+          description: destinationHarbor is missing or blank
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            The Release is rejected and the ship is still being prepared: the Destination Harbor is not
+            one of the Known Harbors (title "Unknown Destination Harbor"). `detail` names the Harbor.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /web/cargos:
     get:
@@ -318,6 +341,14 @@ components:
         cargoId:
           type: string
           format: uuid
+
+    ReleaseShippingRequest:
+      type: object
+      required: [destinationHarbor]
+      properties:
+        destinationHarbor:
+          type: string
+          description: Harbor Name of the Destination Harbor, one of the Known Harbors
 
     ShipOverviewResponse:
       type: object
@@ -448,6 +479,10 @@ components:
         weight:
           type: number
           format: float
+        destinationHarbor:
+          type: string
+          nullable: true
+          description: Harbor Name of the Destination Harbor (only set when shipping is released)
 
     ShippingState:
       type: string

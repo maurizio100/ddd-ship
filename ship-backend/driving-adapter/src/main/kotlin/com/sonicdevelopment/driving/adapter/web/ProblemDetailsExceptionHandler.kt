@@ -3,6 +3,7 @@ package com.sonicdevelopment.driving.adapter.web
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
+import com.sonicdevelopment.domain.exception.UnknownHarborException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -25,6 +26,9 @@ class ProblemDetailsExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(CargoOutOfStockException::class)
     fun cargoOutOfStock(exception: CargoOutOfStockException) = conflict("Cargo out of Stock", exception)
+
+    @ExceptionHandler(UnknownHarborException::class)
+    fun unknownHarbor(exception: UnknownHarborException) = conflict("Unknown Destination Harbor", exception)
 
     private fun conflict(title: String, exception: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.message).apply { this.title = title }

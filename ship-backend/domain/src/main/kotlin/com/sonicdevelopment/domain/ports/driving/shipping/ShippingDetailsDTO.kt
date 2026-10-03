@@ -18,5 +18,5 @@ data class ShippingDetailsDTO(
     val shippingQuote: ShippingQuote?,
     val cargo: List<CargoDTO>,
     val actualWeight: Float,
-    val destinationHarbor: HarborName? = null
+    val destinationHarbor: HarborName?
 )

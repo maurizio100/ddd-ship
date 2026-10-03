@@ -15,5 +15,6 @@ class Shipping(
     fun release(shippingQuote: ShippingQuote, destinationHarbor: HarborName) {
         this.shippingState = ShippingState.SHIPPING
         this.shippingQuote = shippingQuote
+        this.destinationHarbor = destinationHarbor
     }
 }

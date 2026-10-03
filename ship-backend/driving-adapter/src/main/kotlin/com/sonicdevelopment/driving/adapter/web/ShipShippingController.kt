@@ -52,7 +52,9 @@ class ShipShippingController(
         @PathVariable("shipId") shipId: UUID,
         @RequestBody request: ReleaseShippingRequest
     ): ShippingResponse {
-        return shippingManagementPort.releaseShipping(ShipId(shipId), HarborName(request.destinationHarbor.orEmpty()))?.let {
+        val destinationHarbor = request.destinationHarbor?.takeIf { it.isNotBlank() }
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A Destination Harbor is required")
+        return shippingManagementPort.releaseShipping(ShipId(shipId), HarborName(destinationHarbor))?.let {
             toShippingResponse(it)
         } ?: throw ResponseStatusException(
             HttpStatus.NOT_FOUND, "Unable to find resource"
@@ -70,6 +72,7 @@ class ShipShippingController(
             },
             weight = shippingDetailsDTO.actualWeight,
             catainId = shippingDetailsDTO.catainId,
-            catainName = shippingDetailsDTO.catainName
+            catainName = shippingDetailsDTO.catainName,
+            destinationHarbor = shippingDetailsDTO.destinationHarbor?.name
         )
 }

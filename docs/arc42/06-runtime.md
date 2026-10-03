@@ -51,14 +51,15 @@ sequenceDiagram
     participant CDC as Debezium
     participant K as Kafka
     participant T as ship-terminal
-    U->>FE: Start Journey
-    FE->>BE: PUT /web/ships/{id}/shippings
+    U->>FE: pick a Destination Harbor (from GET /web/harbors), Start Journey
+    FE->>BE: PUT /web/ships/{id}/shippings {destinationHarbor}
     rect rgb(240,240,240)
     Note over BE,DB: one DB transaction
+    BE->>DB: Known Harbor check (else 409, nothing written)
     BE->>BE: Sailors Code from weight and minute
     BE->>DB: quote for Sailors Code
-    BE->>DB: update shipping state SHIPPING
-    BE->>DB: insert shipping_outbox row (shipping-published)
+    BE->>DB: update shipping state SHIPPING + destination_harbor
+    BE->>DB: insert shipping_outbox row (shipping-published, Origin and Destination Harbor)
     end
     BE-->>FE: Shipping Summary
     CDC->>DB: read WAL (pgoutput)

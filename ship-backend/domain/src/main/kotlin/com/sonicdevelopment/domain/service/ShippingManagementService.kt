@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.converter.ShippingConverter
+import com.sonicdevelopment.domain.exception.UnknownHarborException
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
@@ -33,9 +34,17 @@ class ShippingManagementService(
         } ?: throw IllegalStateException()
     }
 
+    /**
+     * Releases the ship to [destinationHarbor], which must be one of the Known Harbors; otherwise
+     * nothing is written. The Shipping and its Shipping Published (with this Harbor as Origin Harbor)
+     * are written in one transaction.
+     */
     @Transactional
     override fun releaseShipping(shipId: ShipId, destinationHarbor: HarborName): ShippingDetailsDTO? {
         val foundShip = shipRepositoryPort.getShipDetails(shipId) ?: return null
+        if (destinationHarbor !in knownHarborRepositoryPort.getKnownHarbors()) {
+            throw UnknownHarborException("${destinationHarbor.name} is not a Known Harbor")
+        }
         val quoteForSailorsCode = quoteRepositoryPort.getQuoteForSailorsCode(foundShip.createSailorsCode())
 
         foundShip.release(quoteForSailorsCode, destinationHarbor)
