@@ -132,4 +132,45 @@ describe('CargosComponent (Available Cargo)', () => {
     expect(rejection?.textContent).toContain('Loading Rum would exceed the Max Weight of 15.0');
     expect(shownCargo()).toEqual([{ name: 'Rum', stock: '2' }]);
   });
+
+  function rejectLoads(): void {
+    shippingService.loadCargo.and.returnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 409,
+            error: { title: 'Cargo out of Stock', status: 409, detail: 'Rum is out of Stock' },
+          })
+      )
+    );
+  }
+
+  const rejectionText = () =>
+    fixture.nativeElement.querySelector('[data-testid="load-rejection"]')?.textContent;
+
+  it('An out-of-Stock rejection fetches the Available Cargo again and shows the rejection', () => {
+    cargoService.getCargos.and.returnValues(of([stockOf(rum, 1), ale]), of([ale]));
+    render(aShip());
+
+    rejectLoads();
+    click('Rum');
+
+    expect(cargoService.getCargos).toHaveBeenCalledTimes(2);
+    expect(shownCargo().map((c) => c.name)).toEqual(['Ale']);
+    expect(rejectionText()).toContain('Rum is out of Stock');
+  });
+
+  it('A later unload clears the old rejection', () => {
+    cargoService.getCargos.and.returnValue(of([stockOf(rum, 1), ale]));
+    const ship = aShip();
+    render(ship);
+    rejectLoads();
+    click('Rum');
+    expect(rejectionText()).toContain('Rum is out of Stock');
+
+    cargoLoad.next(ship);
+    fixture.detectChanges();
+
+    expect(rejectionText()).toBeUndefined();
+  });
 });
