@@ -320,6 +320,49 @@ class ArrivalManagementServiceTest {
         assertVoyageNotEnded()
     }
 
+    @Test
+    fun `a handled Arrival tells the fleet that the ship arrived from its Origin Harbor`() {
+        val told = slot<Ship>()
+
+        service.receiveShippingPublished(eventId, blackPearl)
+
+        verify(exactly = 1) { fleetEvents.announceShipArrived(capture(told), tortuga) }
+        told.captured.id shouldBe blackPearl.shipId
+        told.captured.shipName shouldBe "Black Pearl"
+        verifyOrder {
+            ships.saveNewShip(any())
+            fleetEvents.announceShipArrived(any(), tortuga)
+        }
+        verify(exactly = 0) { fleetEvents.announceShipLeft(any(), any()) }
+    }
+
+    @Test
+    fun `a voyage that ends tells the fleet that the ship left`() {
+        val ship = aShipAtSea()
+        every { ships.getShipDetails(ship.id) } returns ship
+
+        tortugaService.receiveShipArrived(eventId, shipArrived(ship))
+
+        verifyOrder {
+            ships.removeFromFleet(ship.id)
+            fleetEvents.announceShipLeft(ship, portRoyal)
+        }
+        verify(exactly = 0) { fleetEvents.announceShipArrived(any(), any()) }
+    }
+
+    @Test
+    fun `an Arrival handled before Ship Arrived of an earlier voyage still tells the fleet once`() {
+        val stillAtSea = aShip(id = blackPearl.shipId, name = "Black Pearl").apply {
+            release(ShippingQuote("Fair winds"), HarborName("Nassau"))
+        }
+        every { ships.getShipDetails(blackPearl.shipId) } returns stillAtSea
+
+        service.receiveShippingPublished(eventId, blackPearl)
+
+        verify(exactly = 1) { fleetEvents.announceShipArrived(any(), tortuga) }
+        verify(exactly = 0) { fleetEvents.announceShipLeft(any(), any()) }
+    }
+
     private fun aShipAtSea(): Ship = aShip(name = "Black Pearl").apply {
         release(ShippingQuote("Fair winds"), portRoyal)
     }
@@ -334,11 +377,13 @@ class ArrivalManagementServiceTest {
     private fun assertVoyageNotEnded() {
         verify(exactly = 0) { shippings.updateActiveShipping(any()) }
         verify(exactly = 0) { ships.removeFromFleet(any()) }
+        verify(exactly = 0) { fleetEvents.announceShipLeft(any(), any()) }
     }
 
     private fun assertNoArrival() {
         verify(exactly = 0) { stock.putIntoStock(any(), any()) }
         verify(exactly = 0) { ships.saveNewShip(any()) }
         verify(exactly = 0) { outbox.announceShipArrived(any(), any(), any(), any()) }
+        verify(exactly = 0) { fleetEvents.announceShipArrived(any(), any()) }
     }
 }
