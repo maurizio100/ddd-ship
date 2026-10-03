@@ -9,7 +9,7 @@ the dependency rule:
 | Module | Contains | May depend on |
 |---|---|---|
 | `domain` | model, invariants, domain services, driving and driven ports, domain exceptions | `spring-context`, `jakarta.transaction` only: no web, JPA, Jackson or MinIO |
-| `driving-adapter` | REST controllers, request/response models, mappers, the exception handler | `domain` |
+| `driving-adapter` | REST controllers, request/response models, mappers, the exception handler; Kafka listeners and inbound event copies | `domain` |
 | `driven-adapter` | JPA entities and repositories, port adapters, outbox writer and event payloads, MinIO client | `domain` |
 | `application` | Spring Boot main, configuration, Flyway migrations | all of the above |
 
@@ -34,8 +34,11 @@ domain
   converter/        model ↔ DTO conversion
 driving.adapter.web
   requestmodel/ responsemodel/ mapper/
+driving.adapter.messaging    Kafka listeners, InboundMessageReader
+  events/                    inbound event copies (<Name>InboundEvent)
 driven.adapter
   persistence/<concept>/     entity, Spring Data repository, port adapter
+  persistence/inbox/         inbox of consumed event ids
   persistence/outbox/events/ outbox event payloads
   remote/<system>/           clients for remote systems (minio)
 ```
@@ -49,3 +52,21 @@ driven.adapter
   If a state change must be published, the outbox row is written in the same transaction (see
   [`persistence.md`](persistence.md)).
 - Domain objects never carry JPA annotations; persistence uses separate `*PersistenceEntity` classes.
+
+## Consuming events
+
+- A Kafka listener only maps and delegates: it reads the record with `InboundMessageReader`, maps the
+  payload onto its inbound copy and calls a driving port with the `EventId`. It never touches the
+  inbox or a driven port.
+- Inbound copies (`messaging/events/`) are the backend's own classes, never the outbox payloads from
+  `driven.adapter.persistence.outbox.events`, and they ignore unknown fields.
+- The domain service that handles an event takes its `EventId` and, inside its transactional method,
+  calls `InboxRepositoryPort.recordConsumedEvent` first. If that returns `false` the event was already
+  consumed, and the service returns without any effect. The inbox row and the state change commit
+  together ([ADR-0004](../../../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)).
+- The backend must start with Kafka unreachable. Where no Kafka runs (app-only Compose, k8s),
+  `SPRING_KAFKA_LISTENER_AUTO_STARTUP=false` keeps the listeners idle. Don't add anything that blocks
+  startup on the broker, such as `NewTopic` beans or a missing-topics check.
+- The consumer group is `ship-backend-<Harbor Name>`, derived from `harbor.name` (`HARBOR_NAME`),
+  which every instance must set
+  ([ADR-0003](../../../adr/0003-run-each-ship-backend-instance-as-one-harbor.md)).

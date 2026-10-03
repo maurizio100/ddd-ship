@@ -12,7 +12,7 @@
 
 - Table names are plural `snake_case` (`ships`, `shippings`, `cargos`); join tables combine both
   names (`ships_cargos`).
-- Every entity table has a `BIGINT` surrogate primary key `id`, taken from a sequence
+- Every entity table (not the outbox or inbox, see below) has a `BIGINT` surrogate primary key `id`, taken from a sequence
   `<table>_seq` (`INCREMENT BY 50`). The UUID business id goes in a separate column `<entity>_id`
   (`ship_id`, `cargo_id`).
 - Columns are `snake_case` with the entity as prefix (`cargo_name`, `cargo_weight`).
@@ -38,4 +38,16 @@
   the aggregate's UUID. `event_type` is kebab-case past tense (`shipping-published`). `payload` is
   the JSON of a `<Name>Event` class in `persistence/outbox/events`.
 - Changing an event payload changes a public contract: only add fields, and never rename or remove one.
+
+## Inbox
+
+- `inbox_events` holds the ids of events consumed from other Harbors
+  ([ADR-0004](../../../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)).
+  The event id is the Debezium `id` header, i.e. the publishing Harbor's outbox `message_id`.
+- It is keyed by `event_id` and, like `shipping_outbox`, has no surrogate `id` or sequence: the
+  primary key on the event id *is* the idempotency guarantee.
+- It is written only through `InboxRepositoryPort`, which runs in the caller's transaction
+  (`Propagation.MANDATORY`) and records with `INSERT … ON CONFLICT DO NOTHING`, so the check and the
+  record are one statement.
+- It is not in the Debezium connector's `table.include.list` and is never published.
 - Binary data (Catain Images) goes to MinIO, never into the database.

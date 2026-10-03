@@ -41,8 +41,13 @@ test. Adapter tests are written when the story touches that adapter.
 ## Isolation
 
 - One Postgres Testcontainer per JVM (singleton, reused across test classes), migrated by Flyway.
+  Driven-adapter tests load the migrations from the `application` module with
+  `spring.flyway.locations: filesystem:../application/src/main/resources/db/migration` and use
+  `@AutoConfigureTestDatabase(replace = NONE)`, since H2 is on the compile classpath.
+- Application tests run with an unreachable Kafka (`spring.kafka.bootstrap-servers=localhost:1`) and
+  a `harbor.name`, unless they test messaging.
 - Before each acceptance or driven-adapter test, truncate the mutable tables (`ships_cargos`,
-  `shippings`, `ships`, `shipping_outbox`). Reference tables (`cargos`, `catains`, `quotes`) are left
+  `shippings`, `ships`, `shipping_outbox`, `inbox_events`). Reference tables (`cargos`, `catains`, `quotes`) are left
   intact.
 - Tests don't depend on the wall clock. Code that reads the time (the Sailors Code uses the current
   minute) takes a `java.time.Clock`, and tests pass a fixed one.

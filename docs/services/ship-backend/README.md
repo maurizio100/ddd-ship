@@ -8,9 +8,9 @@ outbox. It does not publish to Kafka itself (Debezium does that), and it renders
 - **Bounded context(s):** Fleet, CargoLoading, Shipping
 - **Building block:** ship-backend ([05-building-blocks.md](../../arc42/05-building-blocks.md), Level 1 and Level 2)
 - **Code lives in:** `ship-backend/` (Maven modules `domain`, `driving-adapter`, `driven-adapter`, `application`)
-- **Tech:** Kotlin 2.2, Java 21, Spring Boot 3.5, Spring Data JPA, PostgreSQL 13 + Flyway, MinIO
+- **Tech:** Kotlin 2.2, Java 21, Spring Boot 3.5, Spring Data JPA, PostgreSQL 13 + Flyway, MinIO, spring-kafka
 - **Build & test:** `cd ship-backend && ./mvnw verify`
-- **Talks to:** PostgreSQL, MinIO; called by ship-frontend over REST `/web`; its outbox is read by Debezium → Kafka → ship-terminal
+- **Talks to:** PostgreSQL, MinIO; called by ship-frontend over REST `/web`; its outbox is read by Debezium → Kafka → ship-terminal; consumes other Harbors' events from Kafka (inbox)
 
 ## Documents in this folder
 
