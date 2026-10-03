@@ -3,6 +3,11 @@ spring:
     url: jdbc:postgresql://localhost:5432/hexagonship
     username: hexagonship_user
     password: hexagonship_user
+  kafka:
+    bootstrap-servers: localhost:9094
 
 minio:
   url: http://localhost:9000
+
+harbor:
+  name: Local Harbor
