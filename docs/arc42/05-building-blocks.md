@@ -14,6 +14,7 @@ flowchart LR
     K[["Kafka"]]
     TERM["ship-terminal<br/>Kafka consumer"]
     FE -->|"REST /web"| BE
+    BE -.->|"SSE /web/fleet-events"| FE
     BE --> DB
     BE --> S3
     DB -->|"CDC shipping_outbox"| CDC --> K --> TERM
@@ -21,8 +22,8 @@ flowchart LR
 
 | Block | Responsibility | Interface | Bounded contexts |
 |---|---|---|---|
-| ship-frontend | UI: ships list, create ship, cargo loading, release, Shipping Summary. State in NgRx stores (`ships`, `catains`). | Consumes REST `/web/*` | Fleet, CargoLoading, Shipping (UI) |
-| ship-backend | All domain logic and persistence; writes the outbox. | REST `/web/ships`, `/web/ships/{id}/cargos`, `/web/ships/{id}/shippings`, `/web/cargos`, `/web/catains` (`ship-backend/openapi.yml`) | Fleet, CargoLoading, Shipping |
+| ship-frontend | UI: ships list, create ship, cargo loading, release, Shipping Summary. State in NgRx stores (`ships`, `catains`). | Consumes REST `/web/*` and the SSE stream `/web/fleet-events` | Fleet, CargoLoading, Shipping (UI) |
+| ship-backend | All domain logic and persistence; writes the outbox; pushes fleet changes to the frontend. | REST `/web/ships`, `/web/ships/{id}/cargos`, `/web/ships/{id}/shippings`, `/web/cargos`, `/web/catains`; SSE `/web/fleet-events` (`ship-backend/openapi.yml`) | Fleet, CargoLoading, Shipping |
 | Kafka Connect (Debezium) | Turns outbox rows into events on `hexagonship-<aggregate_type>`. | Connector config in `kafka-connect/connectors/` | — (infrastructure) |
 | ship-terminal | Prints each departed ship. | Consumes `hexagonship-shipping` | HarborTerminal |
 
@@ -61,6 +62,7 @@ Module structure per [ADR-0001](../adr/0001-hexagonal-architecture-with-maven-mo
 flowchart LR
     subgraph driving["driving-adapter"]
         WEB["REST controllers"]
+        SSE["SSE fleet-events adapter<br/>GET /web/fleet-events"]
     end
     subgraph domain["domain (no framework I/O)"]
         IN["driving ports"]
@@ -79,13 +81,14 @@ flowchart LR
     JPA -.implements.-> OUT
     OBX -.implements.-> OUT
     MIN -.implements.-> OUT
+    SSE -.implements FleetEventsPort.-> OUT
     APP --- driving & domain & driven
 ```
 
 | Block | Responsibility |
 |---|---|
-| `domain` | Model and invariants, driving ports (`*ManagementPort`, `*InformationPort`) and driven ports (`*RepositoryPort`, `ShippingOutboxRepository`, `CatainImageRemotePort`). Depends only on `spring-context` and `jakarta.transaction`. |
-| `driving-adapter` | Maps HTTP requests/responses to driving ports. |
+| `domain` | Model and invariants, driving ports (`*ManagementPort`, `*InformationPort`) and driven ports (`*RepositoryPort`, `ShippingOutboxRepository`, `CatainImageRemotePort`, `FleetEventsPort`). Depends only on `spring-context` and `jakarta.transaction`. |
+| `driving-adapter` | Maps HTTP requests/responses to driving ports. Also holds the SSE fleet-events adapter: it implements the driven port `FleetEventsPort`, keeps the open `GET /web/fleet-events` streams and pushes `ship-arrived` / `ship-left` after commit ([ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md)). |
 | `driven-adapter` | Implements driven ports: JPA entities and repositories, the outbox writer (`ShippingEvent` payload), the MinIO client. |
 | `application` | Boot entry point, configuration, Flyway migrations (`db/migration`). |
 

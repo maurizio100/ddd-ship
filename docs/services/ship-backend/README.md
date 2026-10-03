@@ -14,7 +14,7 @@ It does not publish to Kafka itself (Debezium does that), and it renders no UI.
 - **Code lives in:** `ship-backend/` (Maven modules `domain`, `driving-adapter`, `driven-adapter`, `application`)
 - **Tech:** Kotlin 2.2, Java 21, Spring Boot 3.5, Spring Data JPA, PostgreSQL 13 + Flyway, MinIO, spring-kafka
 - **Build & test:** `cd ship-backend && ./mvnw verify`
-- **Talks to:** PostgreSQL, MinIO; called by ship-frontend over REST `/web`; its outbox is read by Debezium → Kafka → ship-terminal; consumes other Harbors' events from Kafka (inbox)
+- **Talks to:** PostgreSQL, MinIO; called by ship-frontend over REST `/web`; its outbox is read by Debezium → Kafka → ship-terminal; consumes other Harbors' events from Kafka (inbox); pushes fleet changes to ship-frontend over SSE (`/web/fleet-events`)
 
 ## Documents in this folder
 

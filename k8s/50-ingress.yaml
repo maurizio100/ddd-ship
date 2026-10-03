@@ -22,3 +22,27 @@ spec:
                 name: frontend
                 port:
                   number: 80
+---
+# The fleet-events stream (Server-Sent Events, ADR-0006): unbuffered and long-lived. Annotations apply per
+# Ingress object, so this path has its own Ingress and the plain /web routes keep their defaults.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ddd-ship-fleet-events-ingress
+  namespace: ddd-ship
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /web/fleet-events
+            pathType: Exact
+            backend:
+              service:
+                name: hexagonship-backend
+                port:
+                  number: 8080

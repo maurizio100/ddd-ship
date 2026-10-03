@@ -315,6 +315,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/KnownHarbors'
 
+  /web/fleet-events:
+    get:
+      summary: Stream this Harbor's fleet changes as they happen
+      description: |
+        A `text/event-stream` (Server-Sent Events), not a resource. Opens with `retry: 3000` and a
+        `:connected` comment, then sends a `:heartbeat` comment every 15 s. Each event is pushed only after
+        the change it reports has committed:
+
+        - `event: ship-arrived`, data `ShipArrivedFleetEvent`: a ship arrived at this Harbor and joined its fleet.
+        - `event: ship-left`, data `ShipLeftFleetEvent`: a ship this Harbor Released arrived at its
+          Destination Harbor and left this Harbor's fleet.
+
+        Events are not replayed: a client that reconnects refetches `/web/ships` when it needs the current fleet.
+      operationId: subscribeToFleetEvents
+      tags: [Ships]
+      responses:
+        '200':
+          description: The open event stream
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-cache
+            X-Accel-Buffering:
+              description: Tells nginx not to buffer the stream
+              schema:
+                type: string
+                example: 'no'
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
 components:
   responses:
     NotFound:
@@ -463,6 +496,35 @@ components:
           description: Harbor Names of the other Harbors it has learned of, ordered by name; never its own
           items:
             type: string
+
+    ShipArrivedFleetEvent:
+      type: object
+      description: Data of the `ship-arrived` fleet event
+      required: [shipId, shipName, originHarbor]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        shipName:
+          type: string
+        originHarbor:
+          type: string
+          description: Harbor Name of the Origin Harbor the ship arrived from
+
+    ShipLeftFleetEvent:
+      type: object
+      description: Data of the `ship-left` fleet event
+      required: [shipId, shipName]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        shipName:
+          type: string
+        destinationHarbor:
+          type: string
+          nullable: true
+          description: Harbor Name of the Destination Harbor the ship arrived at
 
     ShippingResponse:
       type: object

@@ -34,6 +34,12 @@ a second kind of transaction boundary, the handling of a consumed event. The inb
 change and any outbox row it causes (for example `ship-arrived`) commit together; an event id already
 in the inbox is skipped, so redelivery has no effect.
 
+Pushes to the browser (the fleet-events stream, 8.7) happen only after commit: the domain announces a
+fleet change through the driven port `FleetEventsPort` inside its transaction, and the SSE adapter
+registers a `TransactionSynchronization` that pushes in `afterCommit`. A rolled-back change is never
+pushed, and a failed push never fails the committed change. There are still no internal application
+events ([ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md)).
+
 ## 8.4 Error handling (current state)
 
 - One global handler, `ProblemDetailsExceptionHandler` (`@RestControllerAdvice` in `driving-adapter`), renders errors as RFC 9457 Problem Details (`application/problem+json`).
@@ -58,6 +64,11 @@ logging, metrics or tracing beyond framework defaults. The terminal prints event
 
 REST/JSON under `/web`, resources nested under the ship (`/web/ships/{id}/cargos`,
 `/web/ships/{id}/shippings`). Contract: `ship-backend/openapi.yml`. No versioning.
+
+The one streaming exception under `/web` is `GET /web/fleet-events`, a `text/event-stream` (Server-Sent
+Events) with the events `ship-arrived` and `ship-left`. It is not a resource; it answers with
+`Cache-Control: no-cache` and `X-Accel-Buffering: no`, and proxies route it unbuffered
+([ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md)).
 
 ## 8.8 Test Strategy
 
