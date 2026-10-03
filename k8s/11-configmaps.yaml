@@ -8,3 +8,7 @@ data:
   SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/hexagonship"
   MINIO_URL: "http://minio:9000"
   MINIO_BUCKET_NAME: "catains"
+  HARBOR_NAME: "Hexagon Harbor"
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  # No Kafka on k8s yet (arc42 11, R-4): keep Kafka listeners idle.
+  SPRING_KAFKA_LISTENER_AUTO_STARTUP: "false"

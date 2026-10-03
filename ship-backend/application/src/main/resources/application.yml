@@ -10,6 +10,20 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     generate-ddl: false
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      # The consumer group is derived from harbor.name (KafkaConsumerConfiguration).
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      # Set SPRING_KAFKA_LISTENER_AUTO_STARTUP=false where no Kafka runs, so listeners stay idle.
+      auto-startup: true
+
+harbor:
+  # Required: every ship-backend is one Harbor. Set via HARBOR_NAME.
+  name: ""
 
 minio:
   url: http://minio:9000

@@ -20,6 +20,9 @@ the spelling "Catain". `<Concept>` below is a domain term: `Ship`, `Cargo`, `Cat
 | Spring Data repository | `<Concept>PersistenceEntityRepository` | `ShipPersistenceEntityRepository` |
 | Port adapter | `<Concept>RepositoryAdapter` | `ShipRepositoryAdapter` |
 | Outbox payload | `<Name>Event` | `ShippingEvent` |
+| Inbound event copy | `<Name>InboundEvent` | `ShippingPublishedInboundEvent` |
+| Kafka listener | `<Concept>EventListener` | `ShippingEventListener` |
+| Inbox port / adapter | `InboxRepositoryPort` / `InboxRepositoryAdapter` | |
 
 Some existing driven ports don't follow the pattern yet (`CatainRepository`, `CargoPersistencePort`,
 `CargoQueryPort`, `ShippingOutboxRepository`). New ports follow the table. Rename an existing one

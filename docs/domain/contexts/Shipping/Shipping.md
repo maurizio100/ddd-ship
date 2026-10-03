@@ -42,7 +42,7 @@ _No entries yet._
 _No entries yet._
 
 ### Value objects
-_No entries yet._
+- **EventId** — identity of an event consumed from another Harbor: the publishing Harbor's outbox `message_id` (UUID). A Harbor records each consumed EventId through the driven port `InboxRepositoryPort`, in the same transaction as the state change the event causes, so a redelivered event never takes effect twice (ADR-0004). Technical identity, not a ubiquitous-language term. *Introduced by STORY-001.*
 
 ### Domain services
 _No entries yet._
