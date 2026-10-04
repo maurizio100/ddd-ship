@@ -285,6 +285,7 @@ describe('ShipDetailComponent (Load Cargo by dragging it onto the ship)', () => 
     // Then Rum is among the Loaded Cargo, the Current Weight grew by 5.5 and the Stock shown is one lower
     expect(loadedCargo()).toContain('Rum');
     expect(weightText()).toMatch(/7\.5\s*\/\s*15/);
+    expect(stockOf('Rum')).toContain('2');
   });
 
   it('Cargo can be loaded without dragging', () => {
@@ -376,5 +377,131 @@ describe('ShipDetailComponent (Load Cargo by dragging it onto the ship)', () => 
         expect(availableCargo().includes('Rum')).toBe(row.availableAfter.includes(rum));
       });
     }
+  });
+});
+
+describe('ShipDetailComponent (loading screen details)', () => {
+  const base = environment.baseUrl;
+  const rum = anAvailableCargo({ id: 'rum', name: 'Rum', weight: 5.5, stock: 3 });
+  let fixture: ComponentFixture<ShipDetailComponent>;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    const harborService = jasmine.createSpyObj<HarborService>('HarborService', ['getKnownHarbors']);
+    harborService.getKnownHarbors.and.returnValue(of(someKnownHarbors()));
+    TestBed.configureTestingModule({
+      imports: [ShipDetailComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: HarborService, useValue: harborService },
+        { provide: Router, useValue: jasmine.createSpyObj<Router>('Router', ['navigate']) },
+        { provide: Location, useValue: jasmine.createSpyObj<Location>('Location', ['back']) },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: aShip().id }) } } },
+      ],
+    });
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  function render(ship: Ship): void {
+    fixture = TestBed.createComponent(ShipDetailComponent);
+    fixture.detectChanges();
+    httpMock.expectOne(`${base}/ships/${ship.id}`).flush(ship);
+    fixture.detectChanges();
+    httpMock.expectOne(`${base}/cargos`).flush([rum]);
+    fixture.detectChanges();
+  }
+
+  const byTestId = (testId: string): HTMLElement | null =>
+    fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
+  const overlay = (): string => (byTestId('ship-drop-zone')!.textContent ?? '');
+
+  function drop(): void {
+    fixture.componentInstance.onCargoDropped({
+      previousContainer: { id: 'available-cargo-list' },
+      container: { id: 'ship-drop-list' },
+      item: { data: rum },
+    } as unknown as CdkDragDrop<any>);
+  }
+
+  function rejectLoad(): void {
+    drop();
+    httpMock
+      .expectOne(`${base}/ships/${aShip().id}/cargos`)
+      .flush(
+        { title: 'Cargo out of Stock', status: 409, detail: 'Rum is out of Stock' },
+        { status: 409, statusText: 'Conflict' }
+      );
+    httpMock.expectOne(`${base}/cargos`).flush([rum]);
+    fixture.detectChanges();
+  }
+
+  it('shows "Heave it aboard!" while a crate is over the ship and hides it after leaving', () => {
+    render(aShip());
+    expect(overlay()).not.toContain('Heave it aboard!');
+
+    fixture.componentInstance.onDragEntered();
+    fixture.detectChanges();
+    expect(overlay()).toContain('Heave it aboard!');
+
+    fixture.componentInstance.onDragExited();
+    fixture.detectChanges();
+    expect(overlay()).not.toContain('Heave it aboard!');
+  });
+
+  it('hides "Heave it aboard!" after a drop', () => {
+    render(aShip());
+    fixture.componentInstance.onDragEntered();
+    fixture.detectChanges();
+
+    drop();
+    httpMock.expectOne(`${base}/ships/${aShip().id}/cargos`).flush({ ...aShip(), cargo: [rum], weight: 5.5 });
+    httpMock.expectOne(`${base}/cargos`).flush([rum]);
+    fixture.detectChanges();
+
+    expect(overlay()).not.toContain('Heave it aboard!');
+  });
+
+  it('a later successful load clears the previous rejection', () => {
+    render(aShip());
+    rejectLoad();
+    expect(byTestId('load-rejection')).not.toBeNull();
+
+    drop();
+    httpMock.expectOne(`${base}/ships/${aShip().id}/cargos`).flush({ ...aShip(), cargo: [rum], weight: 5.5 });
+    httpMock.expectOne(`${base}/cargos`).flush([rum]);
+    fixture.detectChanges();
+
+    expect(byTestId('load-rejection')).toBeNull();
+  });
+
+  it('a later unload clears the previous rejection', () => {
+    render(aShip({ cargo: [rum], weight: 5.5 }));
+    rejectLoad();
+    expect(byTestId('load-rejection')).not.toBeNull();
+
+    fixture.componentInstance.onShipLoadUpdated(aShip({ cargo: [], weight: 0 }));
+    httpMock.expectOne(`${base}/cargos`).flush([rum]);
+    fixture.detectChanges();
+
+    expect(byTestId('load-rejection')).toBeNull();
+  });
+
+  it('shows the Current Weight as x / Max Weight with a progress bar', () => {
+    render(aShip({ weight: 7.5, maxweight: 15 }));
+
+    expect((byTestId('current-weight')!.textContent ?? '').replace(/\s+/g, ' ')).toContain('7.5 / 15');
+    const bar = fixture.nativeElement.querySelector('[role="progressbar"]');
+    expect(bar.getAttribute('aria-valuenow')).toBe('7.5');
+    expect(bar.getAttribute('aria-valuemax')).toBe('15');
+    expect(fixture.nativeElement.querySelector('.weight--warning')).toBeNull();
+  });
+
+  it('warns when the Current Weight passes 85 % of the Max Weight', () => {
+    render(aShip({ weight: 13, maxweight: 15 }));
+
+    expect(fixture.nativeElement.querySelector('.weight--warning')).not.toBeNull();
   });
 });
