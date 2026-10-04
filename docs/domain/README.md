@@ -19,3 +19,4 @@ ideation, 2026-10-03; marked "Planned" in the context files).
 | [Fleet](contexts/Fleet/Fleet.md) | Ship registry and Catain roster | [glossary](contexts/Fleet/glossary.md) |
 | [HarborTerminal](contexts/HarborTerminal/HarborTerminal.md) | Departure board consuming Shipping Published | [glossary](contexts/HarborTerminal/glossary.md) |
 | [Shipping](contexts/Shipping/Shipping.md) | Voyage lifecycle and Release | [glossary](contexts/Shipping/glossary.md) |
+| [Trade](contexts/Trade/Trade.md) | A Harbor's money: Prices, Savings, Market, Delivery Price, Earnings (candidate, not built) | [glossary](contexts/Trade/glossary.md) |

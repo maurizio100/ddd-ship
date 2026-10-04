@@ -28,13 +28,16 @@ docker compose -f docker-compose-app.yml up -d            # app wired to the Kaf
 
 Hexagonship is a playful harbor: a **User** registers ships, each commanded by a cat **Catain**, loads
 them with **Cargo** up to a Max Weight of 15.0, and **Releases** them on a **Shipping**; each departure
-is published and announced on a harbor terminal. Bounded contexts: **Fleet**, **CargoLoading**,
-**Shipping**, **HarborTerminal**. Core flow: create ship (Fleet) → new Shipping → load Cargo
-(CargoLoading) → Release → Sailors Code + Shipping Quote → `shipping-published` via outbox/Kafka →
-HarborTerminal. Planned (not built yet): each backend instance is a **Harbor** with its own fleet and
-**Stock**; a Release names a Destination Harbor, whose backend handles the **Arrival** (Cargo into its
-Stock, ship into its fleet) and answers with `ship-arrived`, which sets the origin's Shipping to `DONE`.
-Full model (derived from code, candidates for review): `docs/domain/`.
+is published and announced on a harbor terminal. Each backend instance is a **Harbor** with its own
+fleet and **Stock**; a Release names a Destination Harbor, whose backend handles the **Arrival** (Cargo
+into its Stock, ship into its fleet) and answers with `ship-arrived`, which sets the origin's Shipping
+to `DONE`. Bounded contexts: **Fleet**, **CargoLoading**, **Shipping**, **HarborTerminal**, and the
+candidate **Trade**. Core flow: create ship (Fleet) → new Shipping → load Cargo (CargoLoading) →
+Release → `shipping-published` via outbox/Kafka → Arrival at the Destination Harbor → `ship-arrived`
+→ HarborTerminal announces departures. Planned (harbor-economy, not built): Cargo has a **Price**, a
+Harbor holds **Savings** and buys at the **Market**, unloads **Incoming Ships** by hand paying the
+**Delivery Price** (or refuses them, sending them back to their **Home Harbor**), and ships carry
+**Earnings** home. Full model: `docs/domain/`.
 
 ## Where things live
 

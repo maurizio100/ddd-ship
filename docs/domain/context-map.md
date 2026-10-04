@@ -14,6 +14,9 @@
 ### 4. HarborTerminal
 > The harbor's departure board, announcing every ship that has put to sea.
 
+### 5. Trade
+> A Harbor's money: Cargo Prices, the Harbor's Savings, paying for delivered Cargo, buying Cargo at the Market, and the Earnings ships bring home. Candidate (harbor-economy, 2026-10-04), not built yet.
+
 ---
 
 ## Relationships
@@ -24,12 +27,14 @@
 | 2 | Fleet | Shipping | Shared Kernel (SK) | assumed | Both use the same `Ship` class in one backend module; Ship identity and Catain name are copied into the Shipping and its event. |
 | 3 | CargoLoading | Shipping | Shared Kernel (SK) | assumed | Loaded Cargo and Current Weight live on the shared `Ship` and feed the Sailors Code and the event. |
 | 4 | Fleet | CargoLoading | Shared Kernel (SK) | assumed | Cargo is loaded onto the shared `Ship`. |
-| 5 | Shipping | Shipping | Published Language (PL) | assumed | Future (harbor-voyages, 2026-10-03): Shipping at one Harbor talks to Shipping at another Harbor via Harbor Opened, Shipping Published (with Origin and Destination Harbor) and Ship Arrived over Kafka. Inside a Harbor, Arrival hands the ship to Fleet and its Cargo to CargoLoading in-process, through the existing Shared Kernel. |
+| 5 | Shipping | Shipping | Published Language (PL) | assumed | Future (harbor-voyages, 2026-10-03): Shipping at one Harbor talks to Shipping at another Harbor via Harbor Opened, Shipping Published (with Origin and Destination Harbor) and Ship Arrived over Kafka. Inside a Harbor, Arrival hands the ship to Fleet and its Cargo to CargoLoading in-process, through the existing Shared Kernel. Planned (harbor-economy, 2026-10-04): Shipping Published also carries Cargo quantities, the Home Harbor and the ship's Earnings; a Refused Delivery sends the ship back to its Home Harbor. |
+| 6 | CargoLoading | Trade | Customer-Supplier (CS) | assumed | Planned (harbor-economy, 2026-10-04): Cargo bought at the Market and Cargo unloaded from an Incoming Ship go into CargoLoading's Stock. |
+| 7 | Trade | Shipping | Customer-Supplier (CS) | assumed | Planned (harbor-economy, 2026-10-04): Shipping asks Trade to pay the Delivery Price when an Incoming Ship is unloaded (refused if Savings fall short) and to credit Earnings to Savings when a ship reaches its Home Harbor. |
 
 ---
 
 ## Summary
 
-- **Total Bounded Contexts:** 4
-- **Total Relationships:** 5
-- **Relationship Breakdown:** Shared Kernel: 3, Open Host Service: 1, Published Language: 1
+- **Total Bounded Contexts:** 5
+- **Total Relationships:** 7
+- **Relationship Breakdown:** Shared Kernel: 3, Customer-Supplier: 2, Open Host Service: 1, Published Language: 1
