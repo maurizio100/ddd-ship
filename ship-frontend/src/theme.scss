@@ -1,0 +1,115 @@
+@use '@angular/material' as mat;
+
+// Tonal ramps seeded from the design-guidelines tokens (tone 40 = oxblood / brass anchor).
+$oxblood: (
+  0: #000000, 10: #3a0a02, 20: #5e1709, 25: #6A2112, 30: #772212, 35: #832816,
+  40: #8C2F1B, 50: #ad4631, 60: #cb5f49, 70: #e97a63, 80: #ffb4a3, 90: #ffdad2,
+  95: #ffede9, 98: #fff8f6, 99: #fffbff, 100: #ffffff,
+  neutral: (0: #000000, 4: #120d0c, 6: #181211, 10: #231917, 12: #271d1b, 17: #322826,
+    20: #392e2c, 22: #3e3230, 24: #433735, 25: #453a37, 30: #5a4e3c, 35: #66524e,
+    40: #73605c, 50: #8d7772, 60: #a8918d, 70: #c4aca7, 80: #e1c8c2, 87: #F3E9D2,
+    90: #F3E9D2, 92: #f3e9d2, 94: #FBF5E6, 95: #FBF5E6, 96: #FBF5E6, 98: #FFF8EC,
+    99: #fffbff, 100: #ffffff),
+  neutral-variant: (0: #000000, 10: #2c1511, 20: #442925, 25: #504340, 30: #5A4E3C,
+    35: #6b5a56, 40: #78655f, 50: #8A7A5C, 60: #ae9690, 70: #cab0a9, 80: #E8D9B5,
+    90: #ffdad2, 95: #ffede9, 98: #fff8f6, 99: #fffbff, 100: #ffffff),
+  secondary: (0: #000000, 10: #2b1610, 20: #442a24, 25: #50342d, 30: #5c3f38,
+    35: #684a43, 40: #75564e, 50: #8f6e66, 60: #aa8780, 70: #c6a19a, 80: #e3bdb5,
+    90: #ffdad2, 95: #ffede9, 98: #fff8f6, 99: #fffbff, 100: #ffffff),
+  error: (0: #000000, 10: #410002, 20: #690005, 25: #7e0007, 30: #93000a,
+    35: #a80710, 40: #ba1a1a, 50: #de3730, 60: #ff5449, 70: #ff897d, 80: #ffb4ab,
+    90: #ffdad6, 95: #ffedea, 98: #fff8f7, 99: #fffbff, 100: #ffffff),
+);
+
+$brass: (
+  0: #000000, 10: #261900, 20: #402d00, 25: #4f3700, 30: #5e4200, 35: #6e4d00,
+  40: #7e5a00, 50: #B8862B, 60: #d4a145, 70: #f0bc5d, 80: #ffdea0, 90: #ffefd5,
+  95: #fff8ee, 98: #fffbff, 99: #fffbff, 100: #ffffff,
+  neutral: (0: #000000, 4: #0f0e0a, 6: #141310, 10: #1d1b16, 12: #211f1a, 17: #2c2a24,
+    20: #323029, 22: #373530, 24: #3c3a34, 25: #3e3c35, 30: #494740, 35: #55524b,
+    40: #615e56, 50: #7a766e, 60: #949088, 70: #afaba2, 80: #cbc6bd, 87: #e3ded4,
+    90: #e8e2d9, 92: #eee8de, 94: #f3ede3, 95: #f6f0e6, 96: #f9f3e9, 98: #fdf7ed,
+    99: #fffbff, 100: #ffffff),
+  neutral-variant: (0: #000000, 10: #1f1b11, 20: #353026, 25: #403b30, 30: #4c463b,
+    35: #585246, 40: #655e52, 50: #7e7669, 60: #989082, 70: #b3aa9c, 80: #cfc6b7,
+    90: #ebe2d2, 95: #f9f0e0, 98: #fff8ee, 99: #fffbff, 100: #ffffff),
+  secondary: (0: #000000, 10: #221b04, 20: #382f18, 25: #433a22, 30: #4f452d,
+    35: #5b5038, 40: #675c43, 50: #81745a, 60: #9b8e73, 70: #b7a98d, 80: #d3c4a7,
+    90: #f0e0c2, 95: #fff0d5, 98: #fff8ee, 99: #fffbff, 100: #ffffff),
+  error: (0: #000000, 10: #410002, 20: #690005, 25: #7e0007, 30: #93000a,
+    35: #a80710, 40: #ba1a1a, 50: #de3730, 60: #ff5449, 70: #ff897d, 80: #ffb4ab,
+    90: #ffdad6, 95: #ffedea, 98: #fff8f7, 99: #fffbff, 100: #ffffff),
+);
+
+html {
+  @include mat.theme((
+    color: (
+      primary: $oxblood,
+      tertiary: $brass,
+      theme-type: light,
+    ),
+    typography: (
+      plain-family: 'Alegreya Sans, sans-serif',
+      brand-family: 'IM Fell English, serif',
+      bold-weight: 700,
+      medium-weight: 500,
+      regular-weight: 400,
+    ),
+    density: 0,
+  ));
+
+  // Pin the guideline tokens exactly: primary = oxblood, tertiary = brass,
+  // surface = parchment, on-surface = ink.
+  --mat-sys-primary: #8C2F1B;
+  --mat-sys-on-primary: #FFF8EC;
+  --mat-sys-tertiary: #B8862B;
+  --mat-sys-surface: #F3E9D2;
+  --mat-sys-background: #F3E9D2;
+  --mat-sys-on-surface: #1B2A3A;
+  --mat-sys-on-background: #1B2A3A;
+  --mat-sys-on-surface-variant: #5A4E3C;
+  --mat-sys-outline: #8A7A5C;
+  --mat-sys-outline-variant: #D9C79E;
+  --mat-sys-surface-container: #FBF5E6;
+  --mat-sys-surface-container-high: #FFF8EC;
+  --mat-sys-surface-variant: #E8D9B5;
+
+  // Tokens Material has no role for.
+  --hs-ink: #1B2A3A;
+  --hs-parchment: #F3E9D2;
+  --hs-card: #FBF5E6;
+  --hs-raised: #FFF8EC;
+  --hs-sand: #E8D9B5;
+  --hs-border: #D9C79E;
+  --hs-field-border: #8A7A5C;
+  --hs-muted: #5A4E3C;
+  --hs-oxblood-hover: #6A2112;
+  --hs-brass: #B8862B;
+  --hs-warning: #C0532F;
+
+  // Shape rules.
+  @include mat.button-overrides((
+    filled-container-shape: 9999px,
+    outlined-container-shape: 9999px,
+    text-container-shape: 9999px,
+    protected-container-shape: 9999px,
+    filled-container-height: 44px,
+    outlined-container-height: 44px,
+    text-container-height: 44px,
+    protected-container-height: 44px,
+    outlined-outline-color: #1B2A3A,
+  ));
+  @include mat.card-overrides((
+    elevated-container-shape: 16px,
+    outlined-container-shape: 16px,
+    filled-container-shape: 16px,
+    outlined-outline-color: #D9C79E,
+  ));
+  @include mat.chips-overrides((
+    container-shape-radius: 9999px,
+  ));
+}
+
+:focus-visible {
+  outline: 3px solid var(--hs-brass);
+}
