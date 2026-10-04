@@ -42,6 +42,9 @@ Brass is never used for text on parchment (contrast too low). All text meets 4.5
   view; secondary actions outlined in `ink`.
 - Cards: 16–20px radius, `border`, soft shadow. Chips: pill-shaped.
 - Icons: Material Symbols or inline stroke icons, never emoji.
+  `MatIconRegistry` registers Material Symbols Outlined as the default font set with the
+  `mat-ligature-font` class (`src/app/app.config.ts`), so `<mat-icon fontIcon="anchor">` works
+  everywhere; without that class the icon renders blank.
 - Focus: a 3px `brass` outline on every focusable element.
 
 ## Wording

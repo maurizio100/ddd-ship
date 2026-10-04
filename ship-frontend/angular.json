@@ -25,6 +25,7 @@
               }
             ],
             "styles": [
+              "src/theme.scss",
               "src/styles.css"
             ]
           },
@@ -88,6 +89,7 @@
               }
             ],
             "styles": [
+              "src/theme.scss",
               "src/styles.css"
             ]
           }

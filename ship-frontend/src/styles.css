@@ -106,6 +106,9 @@ section {
 body {
   line-height: 1;
   height: 100%;
+  background-color: var(--hs-parchment);
+  color: var(--hs-ink);
+  font-family: var(--mat-sys-body-large-font, 'Alegreya Sans', sans-serif);
 }
 
 app-root {
@@ -120,15 +123,6 @@ ul {
 }
 
 /* global layouts */
-.global-header {
-  background-color: #d1f6f1;
-}
-
-.global-footer {
-  background-color: #FFC89F;
-  min-height: 50px;
-}
-
 main {
   flex: 1;
 }

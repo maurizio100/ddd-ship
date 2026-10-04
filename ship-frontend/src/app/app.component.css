@@ -1,22 +1,61 @@
-/* AppComponent's private CSS styles */
-h1 {
-  margin-bottom: 0;
+.app-bar {
+  background-color: var(--hs-ink);
+  color: var(--hs-parchment);
+  border-bottom: 4px solid var(--hs-brass);
 }
-nav a {
-  padding: 1rem;
+
+.app-bar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 72px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.app-bar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-bar__icon {
+  color: var(--hs-brass);
+}
+
+.app-bar__wordmark {
+  font-family: 'Pirata One', serif;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.app-bar__nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.app-bar__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 1.25rem;
+  border-radius: 9999px;
+  font-family: 'Alegreya Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--hs-parchment);
   text-decoration: none;
-  margin-top: 10px;
-  display: inline-block;
-  background-color: #e8e8e8;
-  color: #3d3d3d;
-  border-radius: 4px;
 }
 
-nav a:hover {
-  color: white;
-  background-color: #42545C;
-}
-nav a:active {
-  background-color: black;
+.app-bar__pill:hover {
+  background-color: rgb(243 233 210 / 15%);
 }
 
+.app-bar__pill.active {
+  background-color: var(--hs-sand);
+  color: var(--hs-ink);
+}
