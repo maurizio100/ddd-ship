@@ -38,8 +38,8 @@ sequenceDiagram
 ```
 
 A rejected load (too heavy, already loaded, out of Stock) changes nothing and is answered with `409` (8.4).
-Decided, not built: the User drags the Cargo onto the ship (STORY-016), and a ship may carry several of
-the same Cargo (STORY-022).
+The User loads Cargo by dragging it onto the ship, or with the Load button on its card. Decided, not built:
+a ship may carry several of the same Cargo (STORY-022).
 
 ## 6.3 Release a shipping (transactional outbox)
 

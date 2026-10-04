@@ -1,0 +1,214 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 0;
+}
+
+.page-header {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+    font-family: 'IM Fell English', serif;
+    font-size: 48px;
+    color: var(--hs-ink);
+    overflow-wrap: anywhere;
+  }
+}
+
+.kicker {
+  margin: 0;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--hs-muted);
+}
+
+.loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  min-width: 0;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--hs-border);
+  background: var(--hs-card);
+  color: var(--hs-ink);
+
+  h2 {
+    margin: 0 0 16px;
+    font-family: 'IM Fell English', serif;
+    font-size: 28px;
+    font-weight: 400;
+  }
+}
+
+.deck {
+  position: relative;
+  background: var(--hs-ink);
+  border-color: var(--hs-ink);
+  color: var(--hs-parchment);
+  transition: box-shadow 150ms ease;
+
+  &--over {
+    box-shadow: 0 0 0 4px var(--hs-brass);
+  }
+
+  &__ship {
+    display: block;
+    width: 100%;
+    max-height: 220px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    object-fit: cover;
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--hs-ink) 80%, transparent);
+    color: var(--hs-parchment);
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 36px;
+    pointer-events: none;
+  }
+
+  &__empty {
+    margin: 0 0 16px;
+    font-style: italic;
+  }
+
+  &__rejection {
+    margin: 16px 0 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    font-weight: 600;
+  }
+}
+
+.weight {
+  margin-top: 20px;
+
+  &__label {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 8px;
+  }
+
+  &__value {
+    font-weight: 700;
+  }
+
+  &__bar {
+    height: 12px;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--hs-parchment) 25%, transparent);
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: var(--hs-brass);
+  }
+
+  &--warning &__fill {
+    background: var(--hs-warning);
+  }
+}
+
+.shipping-destination {
+  grid-column: 1/9;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.harbor-picker {
+  flex-basis: 100%;
+}
+
+.harbor-picker__heading {
+  font-family: 'bebas-neue', sans-serif;
+  font-size: 1.5em;
+  margin-bottom: 0.3em;
+}
+
+.harbor-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75em;
+}
+
+.harbor-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 10em;
+  padding: 0.75em 2.2em 0.75em 1em;
+  border: 1px solid black;
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.harbor-card:hover {
+  background-color: #cfd8dc;
+}
+
+.harbor-card--selected,
+.harbor-card--selected:hover {
+  border: 2px solid blue;
+  padding: calc(0.75em - 1px) calc(2.2em - 1px) calc(0.75em - 1px) calc(1em - 1px);
+  background-color: #e8eefc;
+}
+
+.harbor-card__name {
+  font-weight: bold;
+}
+
+.harbor-card--selected .harbor-card__name {
+  color: blue;
+}
+
+.harbor-card__check {
+  position: absolute;
+  right: 0.6em;
+  color: blue;
+  font-weight: bold;
+}
+
+.harbor-card:focus-visible {
+  outline: 3px solid blue;
+  outline-offset: 2px;
+}
+
+.shipping-release-rejection {
+  flex-basis: 100%;
+  color: firebrick;
+  font-weight: bold;
+}
+
+.shipping-back {
+  grid-column: 9/10;
+  align-self: end;
+}
+
+.shipping-embark {
+  grid-column: 10/13;
+  align-self: end;
+}
