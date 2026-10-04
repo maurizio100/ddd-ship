@@ -1,0 +1,262 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 0;
+}
+
+.page-header {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+    font-family: 'IM Fell English', serif;
+    font-size: 48px;
+    color: var(--hs-ink);
+    overflow-wrap: anywhere;
+  }
+}
+
+.kicker {
+  margin: 0;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--hs-muted);
+}
+
+.loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  min-width: 0;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--hs-border);
+  background: var(--hs-card);
+  color: var(--hs-ink);
+
+  h2 {
+    margin: 0 0 16px;
+    font-family: 'IM Fell English', serif;
+    font-size: 28px;
+    font-weight: 400;
+  }
+}
+
+.deck {
+  position: relative;
+  background: var(--hs-ink);
+  border-color: var(--hs-ink);
+  color: var(--hs-parchment);
+  transition: box-shadow 150ms ease;
+
+  &--over {
+    box-shadow: 0 0 0 4px var(--hs-brass);
+  }
+
+  &__ship {
+    display: block;
+    width: 100%;
+    max-height: 220px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    object-fit: cover;
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--hs-ink) 80%, transparent);
+    color: var(--hs-parchment);
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 36px;
+    pointer-events: none;
+  }
+
+  &__empty {
+    margin: 0 0 16px;
+    font-style: italic;
+  }
+
+  &__rejection {
+    margin: 16px 0 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    font-weight: 600;
+  }
+}
+
+.weight {
+  margin-top: 20px;
+
+  &__label {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 8px;
+  }
+
+  &__value {
+    font-weight: 700;
+  }
+
+  &__bar {
+    height: 12px;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--hs-parchment) 25%, transparent);
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: var(--hs-brass);
+  }
+
+  &--warning &__fill {
+    background: var(--hs-warning);
+  }
+}
+
+.release {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--hs-border);
+  border-radius: 20px;
+  background: var(--hs-card);
+  color: var(--hs-ink);
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+
+    button {
+      min-height: 44px;
+      border-radius: 9999px;
+      max-width: 100%;
+    }
+  }
+}
+
+.harbor-picker__heading {
+  margin: 0 0 12px;
+  font-family: 'IM Fell English', serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.harbor-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.harbor-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: min(160px, 100%);
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--hs-border);
+  border-radius: 12px;
+  background: var(--hs-card);
+  color: var(--hs-ink);
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background: var(--hs-sand);
+  }
+
+  &--selected,
+  &--selected:hover {
+    border-color: var(--mat-sys-primary);
+    background: var(--hs-card);
+  }
+
+  &__name {
+    flex: 1;
+    font-family: 'IM Fell English', serif;
+    font-size: 21px;
+    overflow-wrap: anywhere;
+  }
+
+  &--selected &__name,
+  &__check {
+    color: var(--mat-sys-primary);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--hs-brass);
+    outline-offset: 2px;
+  }
+}
+
+.shipping-no-known-harbor {
+  margin: 0;
+  font-style: italic;
+  color: var(--hs-muted);
+}
+
+.shipping-release-rejection {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-weight: 600;
+}
+
+// Keep the ship and the release card in view while Cargo further down the list is dragged.
+// Capped to the viewport so Release stays reachable on a short screen.
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+  align-self: start;
+  // room for the drop-target ring of the ship, which overflow would otherwise clip
+  padding: 4px;
+  margin: -4px;
+}
+
+// CDK moves the dragged crate's placeholder into the ship while it hovers there; the overlay
+// already shows the drop target, so the full-size crate placeholder must not stretch the ship.
+:host ::ng-deep #ship-drop-list > .cdk-drag-placeholder {
+  display: none;
+}
+
+// Two columns (the .loading grid fits two 320px columns from about 720px): the ship column stays in
+// view and is capped to the viewport. In one column it simply follows the Available Cargo.
+@media (min-width: 720px) {
+  .aside {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+}
+
+// Short screens: a smaller ship picture lets the whole column, Release included, fit the viewport.
+@media (min-width: 720px) and (max-height: 900px) {
+  .deck__ship {
+    max-height: 110px;
+  }
+}

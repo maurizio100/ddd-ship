@@ -106,6 +106,9 @@ section {
 body {
   line-height: 1;
   height: 100%;
+  background-color: var(--hs-parchment);
+  color: var(--hs-ink);
+  font-family: var(--mat-sys-body-large-font, 'Alegreya Sans', sans-serif);
 }
 
 app-root {
@@ -120,15 +123,6 @@ ul {
 }
 
 /* global layouts */
-.global-header {
-  background-color: #d1f6f1;
-}
-
-.global-footer {
-  background-color: #FFC89F;
-  min-height: 50px;
-}
-
 main {
   flex: 1;
 }
@@ -139,25 +133,8 @@ main {
   box-sizing: border-box;
 }
 
-.max-width {
-  width: 100%;
-  max-width: 1024px;
-  padding: 1em;
-}
-
-.max-width-container {
-  display: flex;
-  justify-content: center;
-}
-
 .border {
   border: 1px solid black;
-}
-
-.section-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 15px;
 }
 
 /* Typography */
@@ -171,7 +148,6 @@ h3 {
 
 p,
 a {
-  font-family: avory-i-latin, sans-serif;
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 0.3rem;
@@ -181,39 +157,11 @@ img {
   max-width: 100%;
 }
 
-.page-heading>.section-grid {
-  background: #ebebeb;
-}
-
-.page-heading__heading {
-  grid-column: span 7;
-  margin-bottom: 0;
-}
-
-.page-heading__highlight {
-  font-weight: bold;
-  color: blue;
-}
-
 button {
   padding: 1rem;
   border-radius: 4px;
   font-size: 1rem;
   font-weight: bold;
-}
-
-.button__disembark {
-  color: white;
-  background-color: rgb(33, 203, 33);
-}
-
-.button__cancel {
-  color: white;
-  background-color: red;
-}
-
-.button__navigation {
-  background-color: #AEF;
 }
 
 button:hover {

@@ -1,17 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpErrorResponse } from '@angular/common/http';
-import { of, Subject, throwError } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 import { CargosComponent } from './cargos.component';
 import { CargoService } from '../../services/cargo.service';
 import { ShippingService } from '../../services/shipping.service';
-import { AvailableCargo } from '../../models/cargo';
+import { Cargo } from '../../models/cargo';
 import { Ship } from '../../models/ship';
 import { aCargo, anAvailableCargo, aShip } from '../../../../../testing/fixtures';
 
-describe('CargosComponent (Available Cargo)', () => {
-  const rum = anAvailableCargo({ id: 'rum', name: 'Rum', weight: 5.5 });
-  const ale = anAvailableCargo({ id: 'ale', name: 'Ale', weight: 2.0 });
+describe('CargosComponent', () => {
+  const rum = anAvailableCargo({ id: 'rum', name: 'Rum', weight: 5.5, stock: 3 });
+  const ale = anAvailableCargo({ id: 'ale', name: 'Ale', weight: 2.0, stock: 2 });
 
   let fixture: ComponentFixture<CargosComponent>;
   let cargoService: jasmine.SpyObj<CargoService>;
@@ -22,7 +21,6 @@ describe('CargosComponent (Available Cargo)', () => {
     cargoService = jasmine.createSpyObj<CargoService>('CargoService', ['getCargos']);
     shippingService = jasmine.createSpyObj<ShippingService>('ShippingService', ['loadCargo', 'unloadCargo']);
     cargoLoad = new Subject<Ship>();
-
     TestBed.configureTestingModule({
       imports: [CargosComponent],
       providers: [
@@ -32,145 +30,85 @@ describe('CargosComponent (Available Cargo)', () => {
     });
   });
 
-  /** Renders the Available Cargo of [ship]; like the ship detail page, a ship update is fed back. */
-  function render(ship: Ship): void {
+  function render(ship: Ship, showLoaded: boolean): CargosComponent {
     fixture = TestBed.createComponent(CargosComponent);
     const component = fixture.componentInstance;
     component.ship = ship;
-    component.showLoaded = false;
+    component.showLoaded = showLoaded;
     component.showLoadObserve = cargoLoad.asObservable();
-    component.shipUpdated.subscribe((updated) => {
-      ship.cargo = updated.cargo;
-      cargoLoad.next(updated);
+    fixture.detectChanges();
+    return component;
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+  const within = (el: HTMLElement, testId: string) => el.querySelector(`[data-testid="${testId}"]`) as HTMLElement;
+
+  describe('Available mode', () => {
+    it('renders a crate card per Cargo with name, Stock, Weight and a decorative picture', () => {
+      cargoService.getCargos.and.returnValue(of([rum, ale]));
+      render(aShip(), false);
+
+      const cards = all('available-cargo');
+      expect(cards.map((c) => within(c, 'cargo-name').textContent!.trim())).toEqual(['Rum', 'Ale']);
+      expect(within(cards[0], 'cargo-stock').textContent).toContain('3 in stock');
+      expect(cards[0].textContent).toContain('5.5');
+      const picture = cards[0].querySelector('img')!;
+      expect(picture.getAttribute('alt')).toBe('');
+      expect(picture.getAttribute('src')).toContain('/cargo/rum.jpg');
     });
-    fixture.detectChanges();
-  }
 
-  function shownCargo(): { name: string; stock: string }[] {
-    return Array.from(fixture.nativeElement.querySelectorAll('[data-testid="available-cargo"]')).map(
-      (item: any) => ({
-        name: item.querySelector('[data-testid="cargo-name"]').textContent.trim(),
-        stock: item.querySelector('[data-testid="cargo-stock"]').textContent.trim(),
-      })
-    );
-  }
+    it('keeps Cargo that is already loaded among the Available Cargo', () => {
+      cargoService.getCargos.and.returnValue(of([rum, ale]));
+      render(aShip({ cargo: [aCargo({ id: 'rum', name: 'Rum' })] }), false);
 
-  function click(cargoName: string): void {
-    const item = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="available-cargo"]')).find(
-      (el: any) => el.querySelector('[data-testid="cargo-name"]').textContent.trim() === cargoName
-    ) as HTMLElement;
-    item.click();
-    fixture.detectChanges();
-  }
+      expect(all('available-cargo').length).toBe(2);
+    });
 
-  function stockOf(cargo: AvailableCargo, stock: number): AvailableCargo {
-    return { ...cargo, stock };
-  }
+    it('fetches the Available Cargo again after every load or unload', () => {
+      cargoService.getCargos.and.returnValues(of([rum]), of([{ ...rum, stock: 2 }]));
+      render(aShip(), false);
 
-  it('Loading Cargo takes it out of the Stock', () => {
-    // Given the Stock holds 2 Rum and a ship is being prepared
-    cargoService.getCargos.and.returnValues(of([stockOf(rum, 2), ale]), of([stockOf(rum, 1), stockOf(ale, 2)]));
-    const ship = aShip();
-    render(ship);
-    expect(shownCargo()).toContain({ name: 'Rum', stock: '2' });
+      cargoLoad.next(aShip());
+      fixture.detectChanges();
 
-    // When the User loads Rum onto the ship
-    shippingService.loadCargo.and.returnValue(of(aShip({ cargo: [aCargo({ id: 'rum', name: 'Rum' })], weight: 5.5 })));
-    click('Rum');
+      expect(cargoService.getCargos).toHaveBeenCalledTimes(2);
+      expect(within(all('available-cargo')[0], 'cargo-stock').textContent).toContain('2 in stock');
+    });
 
-    // Then the Available Cargo is fetched again and shows the Stock the backend reports now
-    expect(cargoService.getCargos).toHaveBeenCalledTimes(2);
-    expect(shownCargo()).toEqual([{ name: 'Ale', stock: '2' }]);
+    it('the Load button names the Cargo and emits loadRequested with it', () => {
+      cargoService.getCargos.and.returnValue(of([rum, ale]));
+      const component = render(aShip(), false);
+      const requested: Cargo[] = [];
+      component.loadRequested.subscribe((c) => requested.push(c));
+
+      const button = within(all('available-cargo')[0], 'load-cargo-button') as HTMLButtonElement;
+      expect(button.getAttribute('aria-label')).toBe('Load Rum');
+      button.click();
+
+      expect(requested).toEqual([rum]);
+    });
   });
 
-  it('Unloading Cargo while preparing puts it back into the Stock', () => {
-    // Given the Stock holds 1 Rum and the ship being prepared has Rum loaded
-    cargoService.getCargos.and.returnValues(of([stockOf(rum, 1), ale]), of([stockOf(rum, 2), ale]));
-    const ship = aShip({ cargo: [aCargo({ id: 'rum', name: 'Rum' })], weight: 5.5 });
-    render(ship);
-    expect(shownCargo().map((c) => c.name)).not.toContain('Rum');
+  describe('Loaded mode', () => {
+    it('renders chips and the remove button unloads that Cargo', () => {
+      const loaded = aCargo({ id: 'rum', name: 'Rum' });
+      const ship = aShip({ cargo: [loaded], weight: 5.5 });
+      const updated = aShip({ cargo: [], weight: 0 });
+      shippingService.unloadCargo.and.returnValue(of(updated));
+      const component = render(ship, true);
+      const shipUpdates: Ship[] = [];
+      component.shipUpdated.subscribe((s) => shipUpdates.push(s));
 
-    // When the User unloads Rum (the Loaded Cargo list reports the updated ship to the page)
-    ship.cargo = [];
-    ship.weight = 0;
-    cargoLoad.next(ship);
-    fixture.detectChanges();
+      const chips = all('loaded-cargo');
+      expect(chips.length).toBe(1);
+      expect(within(chips[0], 'cargo-name').textContent!.trim()).toBe('Rum');
+      const remove = chips[0].querySelector('button') as HTMLButtonElement;
+      expect(remove.getAttribute('aria-label')).toBe('Unload Rum');
+      remove.click();
 
-    // Then the Available Cargo shows 2 Rum
-    expect(shownCargo()).toContain({ name: 'Rum', stock: '2' });
-  });
-
-  it('Cargo that is out of Stock cannot be loaded', () => {
-    // Given the Stock holds no Silk: the backend does not offer it
-    cargoService.getCargos.and.returnValue(of([rum, ale]));
-
-    render(aShip());
-
-    // Then Silk is not among the Available Cargo
-    expect(shownCargo().map((c) => c.name)).toEqual(['Rum', 'Ale']);
-  });
-
-  it('A rejected load leaves the Stock unchanged', () => {
-    // Given the Stock holds 2 Rum and the ship has a Current Weight of 14.0
-    cargoService.getCargos.and.returnValue(of([stockOf(rum, 2)]));
-    render(aShip({ weight: 14.0 }));
-
-    // When the User loads Rum and the backend rejects it
-    shippingService.loadCargo.and.returnValue(
-      throwError(
-        () =>
-          new HttpErrorResponse({
-            status: 409,
-            error: { title: 'Ship too heavy', status: 409, detail: 'Loading Rum would exceed the Max Weight of 15.0' },
-          })
-      )
-    );
-    click('Rum');
-
-    // Then the rejection is shown and the Stock still shows 2 Rum
-    const rejection = fixture.nativeElement.querySelector('[data-testid="load-rejection"]');
-    expect(rejection?.textContent).toContain('Loading Rum would exceed the Max Weight of 15.0');
-    expect(shownCargo()).toEqual([{ name: 'Rum', stock: '2' }]);
-  });
-
-  function rejectLoads(): void {
-    shippingService.loadCargo.and.returnValue(
-      throwError(
-        () =>
-          new HttpErrorResponse({
-            status: 409,
-            error: { title: 'Cargo out of Stock', status: 409, detail: 'Rum is out of Stock' },
-          })
-      )
-    );
-  }
-
-  const rejectionText = () =>
-    fixture.nativeElement.querySelector('[data-testid="load-rejection"]')?.textContent;
-
-  it('An out-of-Stock rejection fetches the Available Cargo again and shows the rejection', () => {
-    cargoService.getCargos.and.returnValues(of([stockOf(rum, 1), ale]), of([ale]));
-    render(aShip());
-
-    rejectLoads();
-    click('Rum');
-
-    expect(cargoService.getCargos).toHaveBeenCalledTimes(2);
-    expect(shownCargo().map((c) => c.name)).toEqual(['Ale']);
-    expect(rejectionText()).toContain('Rum is out of Stock');
-  });
-
-  it('A later unload clears the old rejection', () => {
-    cargoService.getCargos.and.returnValue(of([stockOf(rum, 1), ale]));
-    const ship = aShip();
-    render(ship);
-    rejectLoads();
-    click('Rum');
-    expect(rejectionText()).toContain('Rum is out of Stock');
-
-    cargoLoad.next(ship);
-    fixture.detectChanges();
-
-    expect(rejectionText()).toBeUndefined();
+      expect(shippingService.unloadCargo).toHaveBeenCalledWith(ship, loaded);
+      expect(shipUpdates).toEqual([updated]);
+    });
   });
 });

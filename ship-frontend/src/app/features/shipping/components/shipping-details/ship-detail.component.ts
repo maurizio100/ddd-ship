@@ -1,6 +1,6 @@
 import {Component, inject, OnInit, signal} from "@angular/core";
 import {HttpErrorResponse} from "@angular/common/http";
-import {Location, NgOptimizedImage, UpperCasePipe} from "@angular/common";
+import {Location} from "@angular/common";
 import {CargosComponent} from "../cargos/cargos.component";
 import {Ship} from "../../models/ship";
 import {Subject} from "rxjs";
@@ -8,6 +8,11 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {ShippingService} from "../../services/shipping.service";
 import {DisembarkService} from "../../services/disembark.service";
 import {HarborService} from "../../services/harbor.service";
+import {CdkDragDrop, CdkDropList} from "@angular/cdk/drag-drop";
+import {MatButtonModule} from "@angular/material/button";
+import {MatIconModule} from "@angular/material/icon";
+import {Cargo} from "../../models/cargo";
+import {loadRejectionMessage} from "../../services/load-rejection";
 
 const RELEASE_REJECTED = 'The ship could not be Released';
 
@@ -15,11 +20,12 @@ const RELEASE_REJECTED = 'The ship could not be Released';
 @Component({
   selector: 'app-ship-detail',
   templateUrl: './ship-detail.component.html',
-  styleUrls: ['./ship-detail.component.css'],
+  styleUrls: ['./ship-detail.component.scss'],
   imports: [
-    UpperCasePipe,
     CargosComponent,
-    NgOptimizedImage
+    CdkDropList,
+    MatIconModule,
+    MatButtonModule
   ]
 })
 export class ShipDetailComponent implements OnInit {
@@ -28,6 +34,8 @@ export class ShipDetailComponent implements OnInit {
   knownHarbors = signal<string[]>([]);
   destinationHarbor = signal<string | null>(null);
   releaseRejection = signal<string | null>(null);
+  loadRejection = signal<string | null>(null);
+  dragOver = signal(false);
 
   private readonly route = inject(ActivatedRoute);
   private readonly shippingService = inject(ShippingService);
@@ -112,6 +120,44 @@ export class ShipDetailComponent implements OnInit {
     this.ship.cargo.splice(0, this.ship.cargo.length);
     this.ship.cargo.push(...ship.cargo);
     this.ship.weight = ship.weight;
+    this.loadRejection.set(null);
     this.cargoLoadSubject.next(ship);
+  }
+
+  /** Load a Cargo onto the ship, by dropping it on the deck or with the crate's Load button. */
+  loadCargo(cargo: Cargo): void {
+    this.shippingService.loadCargo(this.ship, cargo).subscribe({
+      next: (ship) => this.onShipLoadUpdated(ship),
+      error: (error: HttpErrorResponse) => {
+        // The Stock or the ship may have changed meanwhile, so do not keep offering stale Cargo.
+        this.cargoLoadSubject.next(this.ship);
+        this.loadRejection.set(loadRejectionMessage(error, cargo, this.ship.maxweight));
+      },
+    });
+  }
+
+  /** Weight on board as a share of the Max Weight, 0-100. */
+  weightPercent(): number {
+    return this.ship?.maxweight ? Math.min(100, (this.ship.weight / this.ship.maxweight) * 100) : 0;
+  }
+
+  isNearlyFull(): boolean {
+    return this.weightPercent() > 85;
+  }
+
+  /** A crate dropped on the deck is loaded; one released beside the ship fires on its origin list and is ignored. */
+  onCargoDropped(event: CdkDragDrop<Cargo[]>): void {
+    this.dragOver.set(false);
+    if (event.previousContainer !== event.container) {
+      this.loadCargo(event.item.data);
+    }
+  }
+
+  onDragEntered(): void {
+    this.dragOver.set(true);
+  }
+
+  onDragExited(): void {
+    this.dragOver.set(false);
   }
 }

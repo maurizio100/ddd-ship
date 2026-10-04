@@ -1,30 +1,19 @@
-import {
-  Component,
-  OnInit,
-  Input,
-  Output,
-  EventEmitter,
-  signal
-} from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { CdkDrag, CdkDropList } from '@angular/cdk/drag-drop';
+import { LowerCasePipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { Observable } from 'rxjs';
 import { AvailableCargo, Cargo } from '../../models/cargo';
 import { CargoService } from '../../services/cargo.service';
 import { Ship } from '../../models/ship';
 import { ShippingService } from '../../services/shipping.service';
 import { ShippingSummary } from '../../models/shipping-summary';
-import {LowerCasePipe, NgStyle} from "@angular/common";
-
-const LOAD_REJECTED = 'The Cargo could not be loaded';
 
 @Component({
   selector: 'app-cargos',
   templateUrl: './cargos.component.html',
-  styleUrls: ['./cargos.component.css'],
-  imports: [
-    LowerCasePipe,
-    NgStyle
-  ]
+  styleUrls: ['./cargos.component.scss'],
+  imports: [LowerCasePipe, CdkDropList, CdkDrag, MatIconModule],
 })
 export class CargosComponent implements OnInit {
   @Input() ship!: Ship;
@@ -33,11 +22,11 @@ export class CargosComponent implements OnInit {
   @Input() showLoadObserve!: Observable<Ship>;
 
   @Output() shipUpdated = new EventEmitter<Ship>();
+  /** The User asked to load this Cargo without dragging it. */
+  @Output() loadRequested = new EventEmitter<Cargo>();
 
   allCargo: AvailableCargo[] = [];
   cargos: (Cargo & Partial<AvailableCargo>)[] = [];
-  header: String = 'Available Cargo';
-  loadRejection = signal<string | null>(null);
 
   constructor(
     private cargoService: CargoService,
@@ -46,17 +35,11 @@ export class CargosComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.showLoaded) {
-      this.header = 'Loaded Cargo';
-      this.cargos =
-        this.ship != undefined ? this.ship.cargo : this.shipping.cargo;
+      this.cargos = this.ship != undefined ? this.ship.cargo : this.shipping.cargo;
     } else {
-      this.header = 'Available Cargo';
       this.getCargos();
       // Every load or unload changes the Harbor's Stock, so fetch the Available Cargo again.
-      this.showLoadObserve.subscribe(() => {
-        this.loadRejection.set(null);
-        this.getCargos();
-      });
+      this.showLoadObserve.subscribe(() => this.getCargos());
     }
   }
 
@@ -67,37 +50,14 @@ export class CargosComponent implements OnInit {
     });
   }
 
+  /** The Available Cargo is every Cargo the Harbor has in Stock, whether or not it is loaded. */
   prepareAvailableCargo() {
     if (!this.showLoaded) {
-      this.cargos.splice(0, this.cargos.length);
-
-      const shipCargo = new Map(this.ship.cargo.map((c) => [c.id, c]));
-      const availableCargo = this.allCargo.filter(
-        (c) => shipCargo.get(c.id) == undefined
-      );
-      this.cargos.push(...availableCargo);
+      this.cargos = [...this.allCargo];
     }
   }
 
-  performLoading(cargo: Cargo) {
-    if (!this.showLoaded) {
-      this.shippingService.loadCargo(this.ship, cargo).subscribe({
-        next: (ship) => {
-          this.loadRejection.set(null);
-          this.shipUpdated.emit(ship);
-        },
-        error: (error: HttpErrorResponse) => {
-          this.loadRejection.set(error.error?.detail ?? LOAD_REJECTED);
-          // The Stock may have run out meanwhile, so do not keep offering stale Cargo.
-          this.getCargos();
-        },
-      });
-    } else {
-      this.shippingService
-        .unloadCargo(this.ship, cargo)
-        .subscribe((ship) => {
-          this.shipUpdated.emit(ship);
-        });
-    }
+  unloadCargo(cargo: Cargo) {
+    this.shippingService.unloadCargo(this.ship, cargo).subscribe((ship) => this.shipUpdated.emit(ship));
   }
 }

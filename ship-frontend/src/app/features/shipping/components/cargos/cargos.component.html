@@ -1,21 +1,39 @@
-@if (loadRejection(); as rejection) {
-  <p class="load-rejection" data-testid="load-rejection" role="alert">{{ rejection }}</p>
+@if (showLoaded) {
+  <ul class="chips" aria-label="Loaded Cargo">
+    @for (cargo of cargos; track cargo.id) {
+      <li class="chip" data-testid="loaded-cargo">
+        <img class="chip__picture" [src]="'/cargo/' + (cargo.name | lowercase) + '.jpg'" alt="" />
+        <span class="chip__name" data-testid="cargo-name">{{ cargo.name }}</span>
+        <button type="button" class="chip__remove" [attr.aria-label]="'Unload ' + cargo.name" (click)="unloadCargo(cargo)">
+          <mat-icon fontIcon="close" aria-hidden="true"></mat-icon>
+        </button>
+      </li>
+    }
+  </ul>
+} @else {
+  <div
+    class="crates"
+    cdkDropList
+    id="available-cargo-list"
+    [cdkDropListConnectedTo]="['ship-drop-list']"
+    cdkDropListSortingDisabled
+  >
+    @for (cargo of cargos; track cargo.id) {
+      <div class="crate" cdkDrag [cdkDragData]="cargo" data-testid="available-cargo">
+        <img class="crate__picture" [src]="'/cargo/' + (cargo.name | lowercase) + '.jpg'" alt="" />
+        <span class="crate__stock" data-testid="cargo-stock">{{ cargo.stock }} in stock</span>
+        <span class="crate__name" data-testid="cargo-name">{{ cargo.name }}</span>
+        <span class="crate__weight">Weight {{ cargo.weight }}</span>
+        <button
+          type="button"
+          class="crate__load"
+          data-testid="load-cargo-button"
+          [attr.aria-label]="'Load ' + cargo.name"
+          (click)="loadRequested.emit(cargo)"
+        >
+          <mat-icon fontIcon="add" aria-hidden="true"></mat-icon>
+        </button>
+      </div>
+    }
+  </div>
 }
-<div class="cargo-container">
-  @for (cargo of cargos; track cargo.id) {
-    <div (click)="performLoading(cargo)" class="cargo-item"
-        [attr.data-testid]="showLoaded ? 'loaded-cargo' : 'available-cargo'"
-        [ngStyle]="{
-            'background-image': 'url(/cargo/' + (cargo.name | lowercase) + '.jpg)',
-            'background-size': '80px 80px',
-            'background-repeat': 'no-repeat'
-
-        }"
-      >
-      @if (!showLoaded) {
-        <span class="cargo-stock" data-testid="cargo-stock" title="In Stock">{{cargo.stock}}</span>
-      }
-      <span><span data-testid="cargo-name">{{cargo.name}}</span><br>{{cargo.weight}}</span>
-    </div>
-  }
-</div>

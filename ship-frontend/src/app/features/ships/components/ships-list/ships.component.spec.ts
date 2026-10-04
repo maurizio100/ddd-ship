@@ -7,6 +7,7 @@ import { Ship, ShippingState } from '../../models/ship';
 import { ShipService } from '../../services/ship.service';
 import * as ShipActions from '../../store/actions/ship.actions';
 import { anArrivalNotice, anAvailableShip } from '../../../../../testing/fixtures';
+import { Catain } from '../../../catains/model/catain';
 import { ArrivalNotice } from '../../models/fleet-event';
 
 describe('ShipsComponent (The voyage ends at the Origin Harbor)', () => {
@@ -18,7 +19,7 @@ describe('ShipsComponent (The voyage ends at the Origin Harbor)', () => {
       imports: [ShipsComponent],
       providers: [
         provideRouter([]),
-        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] } } }),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] }, catains: { catains: [], loading: false, error: null } } }),
         { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
       ],
     });
@@ -67,7 +68,7 @@ describe('ShipsComponent (The fleet shows where an arrived ship came from)', () 
       imports: [ShipsComponent],
       providers: [
         provideRouter([]),
-        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] } } }),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] }, catains: { catains: [], loading: false, error: null } } }),
         {
           provide: ShipService,
           useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']),
@@ -87,7 +88,7 @@ describe('ShipsComponent (The fleet shows where an arrived ship came from)', () 
   it('An arrived ship shows its Origin Harbor', () => {
     render([anAvailableShip({ arrivedFrom: 'Tortuga' })]);
 
-    expect(arrivedFrom()).toEqual(['⚓ arrived from Tortuga']);
+    expect(arrivedFrom()).toEqual(['Arrived from Tortuga']);
   });
 
   it('A ship registered at the Harbor shows no Origin Harbor', () => {
@@ -100,7 +101,7 @@ describe('ShipsComponent (The fleet shows where an arrived ship came from)', () 
   it('A ship shows the Harbor of its latest Arrival', () => {
     render([anAvailableShip({ arrivedFrom: 'Nassau' })]);
 
-    expect(arrivedFrom()).toEqual(['⚓ arrived from Nassau']);
+    expect(arrivedFrom()).toEqual(['Arrived from Nassau']);
   });
 });
 
@@ -113,7 +114,7 @@ describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)',
       imports: [ShipsComponent],
       providers: [
         provideRouter([]),
-        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices } } }),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices }, catains: { catains: [], loading: false, error: null } } }),
         { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
       ],
     });
@@ -159,5 +160,66 @@ describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)',
     expect(store.dispatch).toHaveBeenCalledWith(
       ShipActions.dismissArrivalNotice({ shipId: anArrivalNotice().shipId }),
     );
+  });
+});
+
+describe('ShipsComponent (ship card)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[], catains: Catain[] = []): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          initialState: {
+            ships: { ships, loading: false, error: null, arrivalNotices: [] },
+            catains: { catains, loading: false, error: null },
+          },
+        }),
+        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const one = (testId: string): HTMLElement | null =>
+    fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
+
+  const chipText = (state: ShippingState | null): string => {
+    render([anAvailableShip({ shippingState: state })]);
+    return one('ship-status')!.textContent!.trim();
+  };
+
+  it('shows In port for IDLE', () => expect(chipText(ShippingState.IDLE)).toBe('In port'));
+
+  it('shows In port for DONE', () => expect(chipText(ShippingState.DONE)).toBe('In port'));
+
+  it('shows Preparing for PREPARING', () => expect(chipText(ShippingState.PREPARING)).toBe('Preparing'));
+
+  it('shows At sea for SHIPPING', () => expect(chipText(ShippingState.SHIPPING)).toBe('At sea'));
+
+  it('shows the Catain Image of a known Catain with its name as alt text', () => {
+    render([anAvailableShip()], [{ id: 'cat-1', name: 'Furry Jones' }]);
+
+    const img = one('ship-catain-image') as HTMLImageElement;
+    expect(img.getAttribute('src')).toMatch(/\/catains\/cat-1\/image$/);
+    expect(img.getAttribute('alt')).toBe('Furry Jones');
+    expect(one('ship-catain-fallback')).toBeNull();
+    expect(one('ship-catain-name')!.textContent).toContain('under Furry Jones');
+  });
+
+  it('falls back to an icon for an unknown Catain', () => {
+    render([anAvailableShip()], []);
+
+    expect(one('ship-catain-image')).toBeNull();
+    expect(one('ship-catain-fallback')).toBeTruthy();
+  });
+
+  it('keeps the ship picture decorative', () => {
+    render([anAvailableShip()]);
+
+    expect(one('ship-picture')!.getAttribute('alt')).toBe('');
   });
 });

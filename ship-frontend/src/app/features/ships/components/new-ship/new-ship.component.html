@@ -1,71 +1,76 @@
-<section class="page-heading max-width-container">
-  <div class="section-grid max-width">
-    <h2 class="page-heading__heading">Create a new Ship</h2>
-  </div>
-</section>
+<div class="page">
+  <header class="page-header">
+    <p class="kicker">Commission a new vessel</p>
+    <h1>Create New Ship</h1>
+  </header>
 
-<form #shipform="ngForm" (ngSubmit)="createShip()">
-  <section class="max-width-container ship-name">
-    <div class="section-grid max-width">
+  <form #shipform="ngForm" (ngSubmit)="createShip()">
+    <mat-form-field appearance="outline" class="ship-name">
+      <mat-label>Ship Name</mat-label>
       <input
+        matInput
         name="ship_name"
         #ship_name="ngModel"
         required
-        placeholder="Enter shipname"
-        class="ship-name__field"
         id="new-ship"
+        data-testid="ship-name-input"
         [(ngModel)]="shipRequest.name"
         type="text"
-        />
-    </div>
-  </section>
+      />
+    </mat-form-field>
 
-  <section class="catain-list max-width-container">
-    <div class="max-width catain-list__container catain-list-border">
-      <h2 class="catain-list__title">Choose Your Catain</h2>
-      <div class="section-grid" role="radiogroup">
-        @for (catain of (catains$ | async); track catain) {
+    <section class="catain-section">
+      <h2>Choose Your Catain</h2>
+      <div class="catain-grid" role="radiogroup" aria-label="Choose Your Catain">
+        @for (catain of (catains$ | async); track catain.id) {
           <label
             class="catain"
-          [ngClass]="{
-            'catain-selected': catain.id === shipRequest.catainId
-          }"
-            >
+            [class.catain--selected]="isSelected(catain.id)"
+            data-testid="catain-card"
+          >
             <input
+              class="catain-radio"
               type="radio"
               name="catain"
+              data-testid="catain-radio"
               [value]="catain.id"
               [(ngModel)]="shipRequest.catainId"
               required
-              />
-            <div class="catain__image">
-              <img [src]="getImageUrl(catain.id)" />
-            </div>
-            <div class="catain__name">
-              <p class="catain__name-center">{{ catain.name }}</p>
-            </div>
+            />
+            <span class="ring">
+              @if (!imageFailed(catain.id)) {
+                <img
+                  [src]="getImageUrl(catain.id)"
+                  [alt]="catain.name"
+                  (error)="onImageError(catain.id)"
+                  data-testid="catain-image"
+                />
+              } @else {
+                <mat-icon fontIcon="pets" data-testid="catain-image-fallback"></mat-icon>
+              }
+            </span>
+            <span class="catain-name">{{ catain.name }}</span>
+            @if (isSelected(catain.id)) {
+              <span class="badge" data-testid="catain-selected-badge">
+                <mat-icon fontIcon="check" aria-hidden="true"></mat-icon>
+                Selected
+              </span>
+            }
           </label>
         }
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="shipping-cta max-width-container">
-    <div class="section-grid max-width">
-      <div class="shipping-back">
-        <button type="button" class="button__cancel" (click)="cancel()">
-          Cancel
-        </button>
-      </div>
-      <div class="shipping-embark">
-        <button
-          type="submit"
-          class="button__disembark"
-          [disabled]="shipform.form.invalid"
-          >
-          Create Ship
-        </button>
-      </div>
+    <div class="actions">
+      <button mat-stroked-button type="button" data-testid="cancel" (click)="cancel()">Cancel</button>
+      <button
+        mat-flat-button
+        type="submit"
+        data-testid="create-ship"
+        [disabled]="shipform.form.invalid"
+      >
+        Create Ship
+      </button>
     </div>
-  </section>
-</form>
+  </form>
+</div>

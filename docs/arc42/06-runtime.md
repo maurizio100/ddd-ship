@@ -38,8 +38,8 @@ sequenceDiagram
 ```
 
 A rejected load (too heavy, already loaded, out of Stock) changes nothing and is answered with `409` (8.4).
-Decided, not built: the User drags the Cargo onto the ship (STORY-016), and a ship may carry several of
-the same Cargo (STORY-022).
+The User loads Cargo by dragging it onto the ship, or with the Load button on its card. Decided, not built:
+a ship may carry several of the same Cargo (STORY-022).
 
 ## 6.3 Release a shipping (transactional outbox)
 
@@ -54,7 +54,7 @@ sequenceDiagram
     participant CDC as Debezium
     participant K as Kafka
     participant T as ship-terminal
-    U->>FE: pick a Destination Harbor (from GET /web/harbors), Start Journey
+    U->>FE: pick a Destination Harbor (from GET /web/harbors), Release
     FE->>BE: PUT /web/ships/{id}/shippings {destinationHarbor}
     rect rgb(240,240,240)
     Note over BE,DB: one DB transaction

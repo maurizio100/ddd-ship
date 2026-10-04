@@ -1,0 +1,87 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  color: var(--hs-ink);
+}
+
+.page-header {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+    font-family: 'IM Fell English', serif;
+    font-size: 48px;
+    color: var(--hs-ink);
+    overflow-wrap: anywhere;
+  }
+}
+
+.kicker {
+  margin: 0;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--hs-muted);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  min-width: 0;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--hs-border);
+  background: var(--hs-card);
+
+  h2 {
+    margin: 0 0 16px;
+    font-family: 'IM Fell English', serif;
+    font-size: 28px;
+    font-weight: 400;
+  }
+}
+
+.ship {
+  &__catain {
+    display: block;
+    width: 100%;
+    max-width: 280px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    object-fit: cover;
+  }
+
+  &__line {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+  }
+}
+
+.sailors-code {
+  margin: 24px 0;
+  padding: 16px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--hs-border);
+  background: var(--hs-sand);
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+
+  button {
+    min-height: 44px;
+    border-radius: 9999px;
+  }
+}

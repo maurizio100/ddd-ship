@@ -1,40 +1,30 @@
-<section class="page-heading max-width-container">
-  <div class="section-grid max-width">
-    <h2 class="page-heading__heading">
-      <span class="page-heading__highlight">{{ shipping.name }}</span>
-      left the harbor together with
-      <span class="page-heading__highlight">{{shipping.catainName}}!</span>
+<div class="page">
+  <header class="page-header">
+    <p class="kicker">{{ shipping.name }} left the harbor</p>
+    <h1>Shipping Summary</h1>
+  </header>
+
+  <div class="summary">
+    <section class="panel ship" aria-labelledby="summary-ship-heading">
+      <h2 id="summary-ship-heading">{{ shipping.name }}</h2>
+      <img class="ship__catain" [src]="getImageUrl(shipping.catainId)" [alt]="shipping.catainName" />
+      <p class="ship__line">Commanded by {{ shipping.catainName }}</p>
       @if (shipping.destinationHarbor) {
-        <span data-testid="shipping-summary-destination-harbor">bound for
-          <span class="page-heading__highlight">{{ shipping.destinationHarbor }}</span></span>
+        <p class="ship__line" data-testid="shipping-summary-destination-harbor">
+          Bound for {{ shipping.destinationHarbor }}
+        </p>
       }
-    </h2>
-  </div>
-</section>
+    </section>
 
-<section class="shipping-summary max-width-container">
-  <div class="shipping-summary__styling section-grid max-width">
-    <div class="shipping-ship">
-      <img [src]="getImageUrl(shipping.catainId)" />
-    </div>
-    @if (shipping) {
-      <div class="shipping-cargo">
-        <app-cargos [shipping]="shipping" [showLoaded]="true"></app-cargos>
-      </div>
-    }
+    <section class="panel" aria-labelledby="summary-cargo-heading">
+      <h2 id="summary-cargo-heading">Loaded Cargo</h2>
+      <app-cargos [shipping]="shipping" [showLoaded]="true"></app-cargos>
+    </section>
   </div>
-</section>
 
-<section class="sailors-code max-width-container">
-  <p class="max-width sailors-code__styling">
-    {{ shipping.sailorsCode }}
-  </p>
-</section>
+  <p class="sailors-code">{{ shipping.sailorsCode }}</p>
 
-<section class="disembark-cta max-width-container">
-  <div class="max-width section-grid">
-    <div class="disembark-allships">
-      <button type="button" class="button__navigation" (click)="allShips()">View all Ships</button>
-    </div>
+  <div class="actions">
+    <button mat-stroked-button type="button" (click)="allShips()">View all Ships</button>
   </div>
-</section>
+</div>

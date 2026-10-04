@@ -1,9 +1,17 @@
-<header class="global-header max-width-container">
-  <div class="max-width global-header__banner">
-    <img src="/img/banner.png" alt="banner" />
+<header class="app-bar" data-testid="app-bar">
+  <div class="app-bar__row">
+    <span class="app-bar__brand">
+      <mat-icon class="app-bar__icon" fontIcon="anchor"></mat-icon>
+      <span class="app-bar__wordmark" data-testid="wordmark">Hexagonship</span>
+      @if (harborName()) {
+        <span class="app-bar__harbor" data-testid="app-harbor-name">Harbor of {{ harborName() }}</span>
+      }
+    </span>
+    <nav class="app-bar__nav" aria-label="Main">
+      <a class="app-bar__pill" data-testid="nav-fleet" routerLink="/ships" routerLinkActive="active">Fleet</a>
+    </nav>
   </div>
 </header>
 <main class="main">
   <router-outlet></router-outlet>
 </main>
-<footer class="global-footer max-width-container"></footer>
