@@ -1,56 +1,65 @@
-<section class="page-heading max-width-container">
-  <div class="section-grid max-width">
-    <h2 class="page-heading__heading">
-      New shipping for
-      @if (ship) {
-        <span class="page-heading__highlight">{{
-          ship.name | uppercase
-        }}</span>
-      }
-    </h2>
-  </div>
-</section>
+<div class="page">
+  <header class="page-header">
+    <p class="kicker">New shipping for</p>
+    <h1>@if (ship) {{{ ship.name }}}</h1>
+  </header>
 
-<section class="shipping-area max-width-container">
-  <div class="section-grid max-width">
-    <div class="cargo-area">
-      @if (ship) {
+  @if (ship) {
+    <div class="loading">
+      <section class="panel available" aria-labelledby="available-heading">
+        <h2 id="available-heading">Available Cargo</h2>
         <app-cargos
           [ship]="ship"
           [showLoaded]="false"
           [showLoadObserve]="cargoLoadSubject.asObservable()"
-          (shipUpdated)="onShipLoadUpdated($event)"
+          (loadRequested)="loadCargo($event)"
         ></app-cargos>
-      }
-    </div>
-    <div class="ship-area">
-      <div class="ship-image">
-        <img src="/img/ship.jpg" alt="ship"/>
-      </div>
-      <div class="ship-cargo">
-        <div class="ship-cargo-list">
-          @if (ship) {
-            <app-cargos
-              [ship]="ship"
-              [showLoaded]="true"
-              (shipUpdated)="onShipLoadUpdated($event)"
-            ></app-cargos>
-          }
-        </div>
-        <div class="ship-weight">
-          <p>
-            Current Weight:
-            @if (ship) {
-              <span class="ship-weight-status">
-                {{ ship.weight }} / {{ ship.maxweight }}
-              </span>
-            }
+      </section>
+
+      <section
+        class="panel deck"
+        [class.deck--over]="dragOver()"
+        cdkDropList
+        id="ship-drop-list"
+        data-testid="ship-drop-zone"
+        cdkDropListSortingDisabled
+        (cdkDropListDropped)="onCargoDropped($event)"
+        (cdkDropListEntered)="onDragEntered()"
+        (cdkDropListExited)="onDragExited()"
+        aria-labelledby="loaded-heading"
+      >
+        <img class="deck__ship" src="/img/ship.jpg" alt="" />
+        @if (dragOver()) {
+          <div class="deck__overlay" aria-hidden="true">Heave it aboard!</div>
+        }
+        <h2 id="loaded-heading">Loaded Cargo</h2>
+        @if (ship.cargo.length === 0) {
+          <p class="deck__empty">The hold is empty — drop Cargo here</p>
+        }
+        <app-cargos [ship]="ship" [showLoaded]="true" (shipUpdated)="onShipLoadUpdated($event)"></app-cargos>
+        <div class="weight" [class.weight--warning]="isNearlyFull()">
+          <p class="weight__label">
+            Current Weight
+            <span class="weight__value" data-testid="current-weight">{{ ship.weight }} / {{ ship.maxweight }}</span>
           </p>
+          <div
+            class="weight__bar"
+            role="progressbar"
+            aria-label="Current Weight"
+            aria-valuemin="0"
+            [attr.aria-valuemax]="ship.maxweight"
+            [attr.aria-valuenow]="ship.weight"
+          >
+            <div class="weight__fill" [style.width.%]="weightPercent()"></div>
+          </div>
         </div>
-      </div>
+        @if (loadRejection(); as rejection) {
+          <p class="deck__rejection" data-testid="load-rejection" role="alert">{{ rejection }}</p>
+        }
+      </section>
     </div>
-  </div>
-</section>
+  }
+</div>
 
 <section class="shipping-cta max-width-container">
   <div class="section-grid max-width">

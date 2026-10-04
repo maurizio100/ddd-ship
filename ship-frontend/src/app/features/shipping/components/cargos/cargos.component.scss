@@ -1,0 +1,140 @@
+.crates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+  gap: 14px;
+}
+
+.crate {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid var(--hs-border);
+  background: var(--hs-raised);
+  color: var(--hs-ink);
+  cursor: grab;
+  touch-action: none;
+  box-sizing: border-box;
+
+  &__picture {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 8px;
+    background: var(--hs-sand);
+    pointer-events: none;
+  }
+
+  &__stock {
+    align-self: flex-start;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    background: var(--hs-sand);
+    font-size: 13px;
+  }
+
+  &__name {
+    font-family: 'IM Fell English', serif;
+    font-size: 22px;
+  }
+
+  &__weight {
+    font-size: 14px;
+    color: var(--hs-muted);
+  }
+
+  &__load {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid var(--hs-ink);
+    background: var(--hs-card);
+    color: var(--hs-ink);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--hs-sand);
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--hs-brass);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--hs-ink) 35%, transparent);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.35;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 6px;
+  border-radius: 9999px;
+  background: var(--hs-card);
+  color: var(--hs-ink);
+
+  &__picture {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  &__name {
+    font-weight: 600;
+  }
+
+  &__remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--hs-ink);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--hs-sand);
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--hs-brass);
+      outline-offset: 2px;
+    }
+  }
+}
