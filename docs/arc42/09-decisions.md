@@ -10,5 +10,5 @@ Index of the architecture decision records in [`../adr/`](../adr/index.md). Main
 - [ADR-0004: Consume Kafka events in ship-backend through an idempotent inbox](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md) — Accepted — integration · ship-backend
 - [ADR-0005: Discover Harbors via harbor-opened events on a compacted topic](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md) — Accepted — integration · Shipping
 - [ADR-0006: Push fleet changes to the frontend with Server-Sent Events](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md) — Accepted — integration · ship-backend, ship-frontend
-- [ADR-0007: Unload Incoming Ships manually after Arrival](../adr/0007-unload-incoming-ships-manually-after-arrival.md) — Proposed — integration · ship-backend, ship-frontend
-- [ADR-0008: Carry Earnings home with the ship](../adr/0008-carry-earnings-home-with-the-ship.md) — Proposed — integration · ship-backend
+- [ADR-0007: Unload Incoming Ships manually after Arrival](../adr/0007-unload-incoming-ships-manually-after-arrival.md) — Accepted — integration · ship-backend, ship-frontend
+- [ADR-0008: Carry Earnings home with the ship](../adr/0008-carry-earnings-home-with-the-ship.md) — Accepted — integration · ship-backend

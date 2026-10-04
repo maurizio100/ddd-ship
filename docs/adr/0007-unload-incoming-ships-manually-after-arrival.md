@@ -1,7 +1,7 @@
 # ADR-0007: Unload Incoming Ships manually after Arrival
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-10-04

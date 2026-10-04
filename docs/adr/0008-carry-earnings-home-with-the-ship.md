@@ -1,7 +1,7 @@
 # ADR-0008: Carry Earnings home with the ship
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-10-04
