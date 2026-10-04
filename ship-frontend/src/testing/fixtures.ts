@@ -3,6 +3,7 @@ import { KnownHarbors } from '../app/features/shipping/models/known-harbors';
 import { Ship, ShippingState } from '../app/features/shipping/models/ship';
 import { ShippingSummary } from '../app/features/shipping/models/shipping-summary';
 import { ArrivalNotice } from '../app/features/ships/models/fleet-event';
+import { Catain } from '../app/features/catains/model/catain';
 import {
   Ship as AvailableShip,
   ShippingState as AvailableShipShippingState,
@@ -80,6 +81,15 @@ export function anArrivalNotice(overrides: Partial<ArrivalNotice> = {}): Arrival
     shipId: '5f1d7c2e-0000-4000-8000-000000000001',
     shipName: 'Black Pearl',
     originHarbor: 'Tortuga',
+    ...overrides,
+  };
+}
+
+/** A Catain the User can pick as the commander of a new Ship. */
+export function aCatain(overrides: Partial<Catain> = {}): Catain {
+  return {
+    id: 'c1a7a1n0-0000-4000-8000-000000000001',
+    name: 'Whiskers',
     ...overrides,
   };
 }
