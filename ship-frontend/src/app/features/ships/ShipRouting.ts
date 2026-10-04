@@ -5,7 +5,8 @@ import {CATAIN_STORE_PROVIDERS} from "../catains/store/CatainStoreProviders";
 export const SHIPS_ROUTES: Routes = [
   {
     path: '',
-    providers: [SHIPS_STORE_PROVIDERS],
+    // The ships list shows each ship's Catain Image, so the Catain store serves the whole feature.
+    providers: [SHIPS_STORE_PROVIDERS, CATAIN_STORE_PROVIDERS],
     children: [
       {
         path: '',  // matches /ships
@@ -15,7 +16,6 @@ export const SHIPS_ROUTES: Routes = [
       },
       {
         path: 'new',  // matches /ships/new
-        providers: [CATAIN_STORE_PROVIDERS],
         loadComponent: () =>
           import('./components/new-ship/new-ship.component')
             .then(m => m.NewShipComponent)

@@ -164,3 +164,9 @@
   font-style: italic;
   color: var(--hs-muted);
 }
+
+// The legacy global `p, a` rule in styles.css sets an unloaded font; this screen uses the theme's body font.
+.page p,
+.page a {
+  font-family: inherit;
+}
