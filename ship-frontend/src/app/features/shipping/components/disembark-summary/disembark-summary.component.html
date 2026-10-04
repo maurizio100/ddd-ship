@@ -7,7 +7,7 @@
   <div class="summary">
     <section class="panel ship" aria-labelledby="summary-ship-heading">
       <h2 id="summary-ship-heading">{{ shipping.name }}</h2>
-      <img class="ship__catain" [src]="getImageUrl(shipping.catainId)" alt="" />
+      <img class="ship__catain" [src]="getImageUrl(shipping.catainId)" [alt]="shipping.catainName" />
       <p class="ship__line">Commanded by {{ shipping.catainName }}</p>
       @if (shipping.destinationHarbor) {
         <p class="ship__line" data-testid="shipping-summary-destination-harbor">
