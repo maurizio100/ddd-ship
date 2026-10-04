@@ -1,7 +1,7 @@
 # ADR-0001: Structure ship-backend as a hexagon of Maven modules
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-10-02

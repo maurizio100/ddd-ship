@@ -4,8 +4,8 @@
 
 Index of the architecture decision records in [`../adr/`](../adr/index.md). Maintained by `adr-writing`.
 
-- [ADR-0001: Structure ship-backend as a hexagon of Maven modules](../adr/0001-hexagonal-architecture-with-maven-modules.md) — Proposed — structure · ship-backend
-- [ADR-0002: Publish domain events via a transactional outbox and Debezium](../adr/0002-transactional-outbox-via-debezium.md) — Proposed — integration · Shipping
+- [ADR-0001: Structure ship-backend as a hexagon of Maven modules](../adr/0001-hexagonal-architecture-with-maven-modules.md) — Accepted — structure · ship-backend
+- [ADR-0002: Publish domain events via a transactional outbox and Debezium](../adr/0002-transactional-outbox-via-debezium.md) — Accepted — integration · Shipping
 - [ADR-0003: Run each ship-backend instance as one Harbor](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md) — Accepted — structure · ship-backend
 - [ADR-0004: Consume Kafka events in ship-backend through an idempotent inbox](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md) — Accepted — integration · ship-backend
 - [ADR-0005: Discover Harbors via harbor-opened events on a compacted topic](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md) — Accepted — integration · Shipping
