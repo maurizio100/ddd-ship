@@ -76,7 +76,7 @@ describe('DisembarkSummaryComponent', () => {
     expect(el.querySelector('h1')?.textContent?.trim()).toBe('Shipping Summary');
     expect(el.textContent).toContain('Black Pearl');
     expect(el.textContent).toContain('Furry Jones');
-    expect(el.querySelector('img')?.getAttribute('alt')).toBe('');
+    expect(el.querySelector('img')?.getAttribute('alt')).toBe('Furry Jones');
     const button = Array.from(el.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'View all Ships')!;
     button.click();
     expect(router.navigate).toHaveBeenCalledWith(['/ships']);
