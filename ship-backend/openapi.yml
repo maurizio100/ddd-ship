@@ -56,7 +56,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ShipDetailResponse'
         '404':
-          description: Ship not found
+          $ref: '#/components/responses/NotFound'
     put:
       summary: Update a ship
       operationId: updateShip
@@ -75,7 +75,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ShipOverviewResponse'
         '404':
-          description: Ship not found
+          $ref: '#/components/responses/NotFound'
     delete:
       summary: Delete a ship
       operationId: deleteShip
@@ -83,6 +83,8 @@ paths:
       responses:
         '204':
           description: Ship deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /web/ships/{shipId}/cargos:
     parameters:
@@ -109,8 +111,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ShipDetailResponse'
+        '400':
+          description: cargoId is missing
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Ship or cargo not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The load is rejected and neither the ship nor the Stock changes: the ship would exceed its
+            Max Weight (title "Ship too heavy"), the Cargo is already loaded (title "Cargo already loaded"),
+            or the Harbor's Stock holds none of it (title "Cargo out of Stock"). `detail` names the Cargo.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /web/ships/{shipId}/cargos/{cargoId}:
     parameters:
@@ -138,7 +159,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ShipDetailResponse'
         '404':
-          description: Ship or cargo not found
+          $ref: '#/components/responses/NotFound'
 
   /web/ships/{shipId}/shippings/{shippingId}:
     parameters:
@@ -166,7 +187,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ShippingResponse'
         '404':
-          description: Shipping not found
+          $ref: '#/components/responses/NotFound'
 
   /web/ships/{shipId}/shippings:
     parameters:
@@ -188,11 +209,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/ShippingResponse'
         '404':
-          description: Ship not found
+          $ref: '#/components/responses/NotFound'
     put:
-      summary: Release (complete) a shipping
+      summary: Release a shipping to a Destination Harbor
+      description: >-
+        Releases the ship's Shipping to the Destination Harbor, which must be one of this Harbor's Known
+        Harbors (`GET /web/harbors`). The Shipping Published event names this Harbor as Origin Harbor.
       operationId: releaseShipping
       tags: [Shippings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseShippingRequest'
       responses:
         '200':
           description: Released shipping
@@ -200,23 +230,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ShippingResponse'
+        '400':
+          description: destinationHarbor is missing or blank
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
-          description: Ship not found
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            The Release is rejected and the ship is still being prepared: the Destination Harbor is not
+            one of the Known Harbors (title "Unknown Destination Harbor", `detail` names the Harbor), or
+            the ship is not being prepared, for instance because it is already at sea (title "Ship not
+            being prepared", `detail` names the ship). Nothing is written and no Shipping Published event
+            is added.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /web/cargos:
     get:
-      summary: Get all available cargos
+      summary: Get the Available Cargo of this Harbor
+      description: The catalog Cargo this Harbor's Stock holds at least one of, each with its Stock.
       operationId: getCargos
       tags: [Cargos]
       responses:
         '200':
-          description: List of cargos
+          description: The Available Cargo
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CargoResponse'
+                  $ref: '#/components/schemas/AvailableCargoResponse'
 
   /web/catains:
     get:
@@ -254,7 +302,60 @@ paths:
                 type: string
                 format: binary
 
+  /web/harbors:
+    get:
+      summary: Get this Harbor's Harbor Name and its Known Harbors
+      operationId: getKnownHarbors
+      tags: [Harbors]
+      responses:
+        '200':
+          description: The current Harbor and the other Harbors it has learned of
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnownHarbors'
+
+  /web/fleet-events:
+    get:
+      summary: Stream this Harbor's fleet changes as they happen
+      description: |
+        A `text/event-stream` (Server-Sent Events), not a resource. Opens with `retry: 3000` and a
+        `:connected` comment, then sends a `:heartbeat` comment every 15 s. Each event is pushed only after
+        the change it reports has committed:
+
+        - `event: ship-arrived`, data `ShipArrivedFleetEvent`: a ship arrived at this Harbor and joined its fleet.
+        - `event: ship-left`, data `ShipLeftFleetEvent`: a ship this Harbor Released arrived at its
+          Destination Harbor and left this Harbor's fleet.
+
+        Events are not replayed: a client that reconnects refetches `/web/ships` when it needs the current fleet.
+      operationId: subscribeToFleetEvents
+      tags: [Ships]
+      responses:
+        '200':
+          description: The open event stream
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-cache
+            X-Accel-Buffering:
+              description: Tells nginx not to buffer the stream
+              schema:
+                type: string
+                example: 'no'
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
 components:
+  responses:
+    NotFound:
+      description: The ship, shipping or cargo was not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
   schemas:
     ShipCreationRequest:
       type: object
@@ -279,6 +380,14 @@ components:
           type: string
           format: uuid
 
+    ReleaseShippingRequest:
+      type: object
+      required: [destinationHarbor]
+      properties:
+        destinationHarbor:
+          type: string
+          description: Harbor Name of the Destination Harbor, one of the Known Harbors
+
     ShipOverviewResponse:
       type: object
       properties:
@@ -292,6 +401,10 @@ components:
           description: Captain name
         shippingState:
           $ref: '#/components/schemas/ShippingState'
+        arrivedFrom:
+          type: string
+          nullable: true
+          description: Harbor Name of the Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here
 
     ShipDetailResponse:
       type: object
@@ -313,6 +426,10 @@ components:
           type: number
           format: float
           description: Maximum cargo capacity (15.0)
+        arrivedFrom:
+          type: string
+          nullable: true
+          description: Harbor Name of the Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here
 
     CargoResponse:
       type: object
@@ -326,6 +443,38 @@ components:
           type: number
           format: float
 
+    AvailableCargoResponse:
+      type: object
+      required: [id, name, weight, stock]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        weight:
+          type: number
+          format: float
+        stock:
+          type: integer
+          minimum: 1
+          description: How many of this Cargo the Harbor's Stock holds
+
+    ProblemDetail:
+      type: object
+      description: RFC 9457 Problem Details
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+
     CatainResponse:
       type: object
       properties:
@@ -335,8 +484,51 @@ components:
         name:
           type: string
 
+    KnownHarbors:
+      type: object
+      required: [harborName, knownHarbors]
+      properties:
+        harborName:
+          type: string
+          description: Harbor Name of the Harbor answering
+        knownHarbors:
+          type: array
+          description: Harbor Names of the other Harbors it has learned of, ordered by name; never its own
+          items:
+            type: string
+
+    ShipArrivedFleetEvent:
+      type: object
+      description: Data of the `ship-arrived` fleet event
+      required: [shipId, shipName, originHarbor]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        shipName:
+          type: string
+        originHarbor:
+          type: string
+          description: Harbor Name of the Origin Harbor the ship arrived from
+
+    ShipLeftFleetEvent:
+      type: object
+      description: Data of the `ship-left` fleet event
+      required: [shipId, shipName]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        shipName:
+          type: string
+        destinationHarbor:
+          type: string
+          nullable: true
+          description: Harbor Name of the Destination Harbor the ship arrived at
+
     ShippingResponse:
       type: object
+      required: [shippingState]
       properties:
         id:
           type: string
@@ -363,6 +555,12 @@ components:
         weight:
           type: number
           format: float
+        shippingState:
+          $ref: '#/components/schemas/ShippingState'
+        destinationHarbor:
+          type: string
+          nullable: true
+          description: Harbor Name of the Destination Harbor (only set when shipping is released)
 
     ShippingState:
       type: string

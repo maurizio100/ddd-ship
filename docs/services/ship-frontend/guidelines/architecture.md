@@ -26,10 +26,23 @@ actions), never through another feature's components or services.
 
 ## Routing
 
+### Application routes
+
 - `app.routes.ts` lazy-loads each feature's `<Feature>Routing.ts` (`loadChildren`) or a single page
   (`loadComponent`). Feature routes register their store providers on the route (`providers:`).
 - URLs follow the backend resource shape: `/ships`, `/ships/:id/cargo`,
   `/ships/:shipId/shipping/:shippingId`.
+
+### Backend proxy
+
+- The `/web` endpoint is proxied to the backend via nginx. The proxy is configured in
+  `nginx/default.conf.template` and its upstream is set by the `BACKEND_URL` environment variable.
+- All requests to `/web/...` are forwarded to the backend with forwarded headers (`Host`,
+  `X-Forwarded-For`, `X-Forwarded-Proto`) to preserve the client's identity and protocol.
+- `/web/fleet-events` (Server-Sent Events) has its own `location` before `location /web`: HTTP/1.1 with
+  an empty `Connection` header, `proxy_buffering off`, `proxy_cache off` and `proxy_read_timeout 1h`.
+  Buffered, events would reach the browser late or in bursts; with the default 60 s read timeout an
+  idle stream would be cut. On k8s the Ingress `ddd-ship-fleet-events-ingress` does the same.
 
 ## Components
 
@@ -46,7 +59,12 @@ actions), never through another feature's components or services.
 ## HTTP
 
 - The base URL comes from `environment.baseUrl` (`/web` in production, `http://localhost:8080/web`
-  in development). URLs are never hard-coded.
+  in development). URLs are never hard-coded, including the Catain image URL, which derives from
+  `environment.baseUrl`.
+- The `production` build configuration in `angular.json` replaces `environment.ts` with
+  `environment.prod.ts` through `fileReplacements`, so each Harbor's frontend calls its own backend
+  through the nginx `/web` proxy. `npm run build:check` builds and then fails if the bundle still
+  contains `localhost:8080`; the `Dockerfile` runs it.
 - Services return `Observable`s from `HttpClient` and hold no state.
 
 ## Formatting

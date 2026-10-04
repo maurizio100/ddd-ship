@@ -11,7 +11,8 @@ fun toShipResponse(ship: ShipDTO) =
         id = ship.id.id,
         name = ship.name,
         catain = ship.catain,
-        shippingState = ship.shippingState
+        shippingState = ship.shippingState,
+        arrivedFrom = ship.arrivedFrom
     )
 fun toShipDetailResponse(ship: ShipDetailDTO) =
     ShipDetailResponse(
@@ -25,5 +26,6 @@ fun toShipDetailResponse(ship: ShipDetailDTO) =
             )
         },
         weight = ship.actualWeight,
-        maxweight = ship.maxWeight
+        maxweight = ship.maxWeight,
+        arrivedFrom = ship.arrivedFrom
     )

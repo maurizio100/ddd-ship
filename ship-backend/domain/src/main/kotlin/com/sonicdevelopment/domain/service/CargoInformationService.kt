@@ -1,23 +1,27 @@
 package com.sonicdevelopment.domain.service
 
-import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
-import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
+import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
+import com.sonicdevelopment.domain.ports.driving.cargo.AvailableCargoDTO
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoInformationPort
 import org.springframework.stereotype.Service
 
 @Service
 class CargoInformationService(
-    private val cargoQueryPort: CargoQueryPort
+    private val cargoQueryPort: CargoQueryPort,
+    private val stockRepositoryPort: StockRepositoryPort
 ): CargoInformationPort {
-    override fun getAvailableCargo(): List<CargoDTO> {
-        return cargoQueryPort.findAvailableCargo().map { toCargoDTO(it) }
-    }
 
-    private fun toCargoDTO(cargo: Cargo) =
-        CargoDTO(
-            id = cargo.id,
-            name = cargo.name,
-            weight = cargo.weight
-        )
+    /** The Available Cargo: the catalog Cargo this Harbor's Stock holds at least one of, in catalog order. */
+    override fun getAvailableCargo(): List<AvailableCargoDTO> {
+        val stock = stockRepositoryPort.getStock()
+        return cargoQueryPort.findAllCargo().mapNotNull { cargo ->
+            val quantity = stock[cargo.id] ?: 0
+            if (quantity > 0) {
+                AvailableCargoDTO(id = cargo.id, name = cargo.name, weight = cargo.weight, stock = quantity)
+            } else {
+                null
+            }
+        }
+    }
 }

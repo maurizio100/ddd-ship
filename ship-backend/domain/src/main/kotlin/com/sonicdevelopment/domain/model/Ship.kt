@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.enums.ShippingState
@@ -12,6 +13,8 @@ class Ship(
     name: String? = null,
     val catainId: CatainId,
     val catainName: String,
+    /** The Origin Harbor of the Arrival that last took this ship into this Harbor's fleet; `null` if it was registered here. */
+    val arrivedFrom: HarborName? = null,
     var activeShipping: Shipping? = null,
     private val cargoLoad: MutableMap<CargoId, Cargo> = mutableMapOf()
 ) {
@@ -35,8 +38,22 @@ class Ship(
         throw IllegalArgumentException()
     }
 
-    fun release(shippingQuote: ShippingQuote) {
-        activeShipping?.release(shippingQuote)
+    fun release(shippingQuote: ShippingQuote, destinationHarbor: HarborName) {
+        val preparing = activeShipping?.takeIf { it.shippingState == ShippingState.PREPARING }
+            ?: throw ShippingNotPreparingException("$shipName is not being prepared")
+        preparing.release(shippingQuote, destinationHarbor)
+    }
+
+    /**
+     * The voyage is over: its ship has arrived at the Destination Harbor. Ends the Active Shipping only if it
+     * is [shippingId] and at sea; returns whether it did, and changes nothing otherwise.
+     */
+    fun endShipping(shippingId: ShippingId): Boolean {
+        val atSea = activeShipping
+            ?.takeIf { it.id == shippingId && it.shippingState == ShippingState.SHIPPING }
+            ?: return false
+        atSea.end()
+        return true
     }
 
     fun createSailorsCode(): SailorsCode {
@@ -58,8 +75,8 @@ class Ship(
 
     private var currentWeight: Float = calculateWeight()
     fun addCargo(cargo: Cargo) {
-        if (cargoLoad.contains(cargo.id)) throw ItemAlreadyLoadedException("The cargo is already loaded on the ship!")
-        if (isShipLoadToHeavy(cargo)) throw ShipTooHeavyException("The ship gets too heavy with that cargo!")
+        if (cargoLoad.contains(cargo.id)) throw ItemAlreadyLoadedException("${cargo.name} is already loaded on the ship")
+        if (isShipLoadToHeavy(cargo)) throw ShipTooHeavyException("Loading ${cargo.name} would exceed the Max Weight of $MAX_WEIGHT")
 
         cargoLoad[cargo.id] = cargo
         currentWeight += cargo.weight
@@ -68,13 +85,16 @@ class Ship(
     private fun isShipLoadToHeavy(cargo: Cargo) =
         (currentWeight + cargo.weight)  > MAX_WEIGHT
 
-    fun removeCargo(cargo: Cargo) {
-        cargoLoad.remove(cargo.id)
+    /** Unloads [cargo]; returns whether it was on board. The Current Weight changes only if it was. */
+    fun removeCargo(cargo: Cargo): Boolean {
+        if (cargoLoad.remove(cargo.id) == null) return false
+
         if (currentWeight < cargo.weight) {
             currentWeight = 0.0F
         } else {
             currentWeight -= cargo.weight
         }
+        return true
     }
 
     val weight: Float

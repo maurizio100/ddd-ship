@@ -18,6 +18,7 @@
 
     "schema.include.list": "public",
     "table.include.list": "public.shipping_outbox",
+    "publication.autocreate.mode": "filtered",
     "topic.prefix": "hexagonship",
 
 

@@ -1,7 +1,10 @@
 package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.converter.ShippingConverter
+import com.sonicdevelopment.domain.exception.UnknownHarborException
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
+import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
@@ -16,7 +19,9 @@ class ShippingManagementService(
     private val shipRepositoryPort: ShipRepositoryPort,
     private val shippingRepositoryPort: ShippingRepositoryPort,
     private val quoteRepositoryPort: QuoteRepositoryPort,
-    private val shippingOutboxRepository: ShippingOutboxRepository
+    private val shippingOutboxRepository: ShippingOutboxRepository,
+    private val currentHarbor: HarborName,
+    private val knownHarborRepositoryPort: KnownHarborRepositoryPort,
 ): ShippingManagementPort {
     override fun createShipping(shipId: ShipId): ShippingDetailsDTO? {
         val foundShip = shipRepositoryPort.getShipDetails(shipId) ?: return null
@@ -29,14 +34,22 @@ class ShippingManagementService(
         } ?: throw IllegalStateException()
     }
 
+    /**
+     * Releases the ship to [destinationHarbor], which must be one of the Known Harbors; otherwise
+     * nothing is written. The Shipping and its Shipping Published (with this Harbor as Origin Harbor)
+     * are written in one transaction.
+     */
     @Transactional
-    override fun releaseShipping(shipId: ShipId): ShippingDetailsDTO? {
+    override fun releaseShipping(shipId: ShipId, destinationHarbor: HarborName): ShippingDetailsDTO? {
         val foundShip = shipRepositoryPort.getShipDetails(shipId) ?: return null
+        if (destinationHarbor !in knownHarborRepositoryPort.getKnownHarbors()) {
+            throw UnknownHarborException("${destinationHarbor.name} is not a Known Harbor")
+        }
         val quoteForSailorsCode = quoteRepositoryPort.getQuoteForSailorsCode(foundShip.createSailorsCode())
 
-        foundShip.release(quoteForSailorsCode)
+        foundShip.release(quoteForSailorsCode, destinationHarbor)
         shippingRepositoryPort.updateActiveShipping(foundShip)
-        shippingOutboxRepository.broadcastShipping(foundShip)
+        shippingOutboxRepository.broadcastShipping(foundShip, currentHarbor)
 
         return foundShip.activeShipping?.let {
             ShippingConverter.toShippingDetailDTO(foundShip, it)

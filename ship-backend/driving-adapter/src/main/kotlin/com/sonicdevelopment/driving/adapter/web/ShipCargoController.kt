@@ -20,7 +20,7 @@ class ShipCargoController(
 
     @PostMapping("/{shipId}/cargos")
     fun addCargo(@PathVariable("shipId") shipId: UUID, @RequestBody cargoLoad: CargoLoadRequest): ShipDetailResponse {
-        val cargoId = cargoLoad.cargoId ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
+        val cargoId = cargoLoad.cargoId ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "cargoId is missing")
         val updatedShip = cargoLoadManagementPort.addCargo(ShipId(shipId), CargoId(cargoId))
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
 
@@ -28,7 +28,7 @@ class ShipCargoController(
     }
 
     @DeleteMapping("/{shipId}/cargos/{cargoId}")
-    fun addCargo(@PathVariable("shipId") shipId: UUID, @PathVariable("cargoId") cargoId: UUID): ShipDetailResponse {
+    fun removeCargo(@PathVariable("shipId") shipId: UUID, @PathVariable("cargoId") cargoId: UUID): ShipDetailResponse {
         val updatedShip = cargoLoadManagementPort.removeCargo(ShipId(shipId), CargoId(cargoId))
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
 

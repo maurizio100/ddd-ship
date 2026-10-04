@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 class CargoQueryAdapter(
     private val cargoRepository: CargoRepository
 ): CargoQueryPort {
-    override fun findAvailableCargo() =
+    override fun findAllCargo() =
         cargoRepository.findAll().map{toCargo(it)}
 
     override fun findCargo(cargoId: CargoId) =

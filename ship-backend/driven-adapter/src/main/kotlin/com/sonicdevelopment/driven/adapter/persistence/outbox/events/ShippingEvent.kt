@@ -26,7 +26,9 @@ data class ShippingEvent @JsonCreator constructor(
         @JsonProperty("shippingId") val shippingId: UUID,
         @JsonProperty("weight") val weight: Float,
         @JsonProperty("shippingQuote") val shippingQuote: String?,
-        @JsonProperty("cargo") val cargo: List<CargoEventData>
+        @JsonProperty("cargo") val cargo: List<CargoEventData>,
+        @JsonProperty("originHarbor") val originHarbor: String,
+        @JsonProperty("destinationHarbor") val destinationHarbor: String
     ) : Serializable {
         data class CargoEventData @JsonCreator constructor(
             @JsonProperty("cargoId") val cargoId: UUID,

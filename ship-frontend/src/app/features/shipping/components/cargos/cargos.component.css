@@ -28,3 +28,23 @@
 .cargo-item:hover {
     opacity: 0.5;
 }
+.cargo-item {
+    position: relative;
+}
+
+.cargo-item .cargo-stock {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    flex-grow: 0;
+    min-width: 1.4em;
+    padding: 0 0.2em;
+    border-radius: 0.7em;
+    background-color: white;
+    font-size: 0.8em;
+}
+
+.load-rejection {
+    color: darkred;
+    font-weight: bold;
+}

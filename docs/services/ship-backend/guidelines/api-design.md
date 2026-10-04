@@ -10,6 +10,9 @@
 - A command on a ship returns the updated ship (`ShipDetailResponse`) so the client doesn't need a
   second request.
 - `ship-backend/openapi.yml` is the contract and is updated in the same change as the endpoint.
+- `GET /web/fleet-events` is a `text/event-stream` (Server-Sent Events), not a resource. Its event names
+  (`ship-arrived`, `ship-left`) and their data schemas are documented in `openapi.yml` like any endpoint.
+  It answers with `Cache-Control: no-cache` and `X-Accel-Buffering: no`.
 
 ## Errors
 
@@ -29,6 +32,7 @@
   language ("Loading Rum would exceed the Max Weight of 15.0").
 - Controllers don't build error responses themselves. They return the port's result or throw.
 
-Some existing endpoints still answer with `ResponseStatusException`, return `200` on a rejected
-cargo load, or let violations surface as `500`. Bring an endpoint up to these rules when a story
-changes it.
+The handler is `ProblemDetailsExceptionHandler`. It extends `ResponseEntityExceptionHandler`, so a
+`ResponseStatusException` thrown for a `404` or `400` is rendered as Problem Details too. Some existing
+endpoints still let rule violations (`IllegalArgumentException`, `IllegalStateException`) surface as
+`500`. Bring an endpoint up to these rules when a story changes it.

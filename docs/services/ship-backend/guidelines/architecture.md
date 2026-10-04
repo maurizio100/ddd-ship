@@ -9,7 +9,7 @@ the dependency rule:
 | Module | Contains | May depend on |
 |---|---|---|
 | `domain` | model, invariants, domain services, driving and driven ports, domain exceptions | `spring-context`, `jakarta.transaction` only: no web, JPA, Jackson or MinIO |
-| `driving-adapter` | REST controllers, request/response models, mappers, the exception handler | `domain` |
+| `driving-adapter` | REST controllers, request/response models, mappers, the exception handler; Kafka listeners and inbound event copies; the SSE fleet-events adapter, which implements the driven port `FleetEventsPort` | `domain` |
 | `driven-adapter` | JPA entities and repositories, port adapters, outbox writer and event payloads, MinIO client | `domain` |
 | `application` | Spring Boot main, configuration, Flyway migrations | all of the above |
 
@@ -34,8 +34,12 @@ domain
   converter/        model ↔ DTO conversion
 driving.adapter.web
   requestmodel/ responsemodel/ mapper/
+  fleetevents/               SSE stream: controller, emitter registry, FleetEventsPort adapter
+driving.adapter.messaging    Kafka listeners, InboundMessageReader
+  events/                    inbound event copies (<Name>InboundEvent)
 driven.adapter
   persistence/<concept>/     entity, Spring Data repository, port adapter
+  persistence/inbox/         inbox of consumed event ids
   persistence/outbox/events/ outbox event payloads
   remote/<system>/           clients for remote systems (minio)
 ```
@@ -49,3 +53,35 @@ driven.adapter
   If a state change must be published, the outbox row is written in the same transaction (see
   [`persistence.md`](persistence.md)).
 - Domain objects never carry JPA annotations; persistence uses separate `*PersistenceEntity` classes.
+- **Pushes to the browser** go through the driven port `FleetEventsPort`, called by the domain service as
+  the last step of the transaction that changes the fleet, never on a path that ignores the event. Its
+  adapter sends only after commit (`TransactionSynchronization.afterCommit`), so nothing is pushed on
+  rollback, and a failed push never fails the caller
+  ([ADR-0006](../../../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md)). It is
+  the one driven port implemented in `driving-adapter`, because it needs the HTTP connections the
+  controller owns.
+
+## Consuming events
+
+- A Kafka listener only maps and delegates: it reads the record with `InboundMessageReader`, maps the
+  payload onto its inbound copy and calls a driving port with the `EventId`. It never touches the
+  inbox or a driven port.
+- Inbound copies (`messaging/events/`) are the backend's own classes, never the outbox payloads from
+  `driven.adapter.persistence.outbox.events`, and they ignore unknown fields.
+- The domain service that handles an event takes its `EventId` and, inside its transactional method,
+  calls `InboxRepositoryPort.recordConsumedEvent` first. If that returns `false` the event was already
+  consumed, and the service returns without any effect. The inbox row and the state change commit
+  together ([ADR-0004](../../../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)).
+- Every consumed event is inbox-recorded this way, including `harbor-opened`. Where the same fact can
+  arrive under a new event id (a Harbor that opens again writes a new outbox row), the effect is
+  additionally idempotent on its business key: Known Harbors are stored once per Harbor Name.
+- A `@KafkaListener` that has an `id` (needed to start or stop it through
+  `KafkaListenerEndpointRegistry`) must set `idIsGroup = false`. Otherwise the id replaces the
+  Harbor's consumer group.
+- The backend must start with Kafka unreachable. Where no Kafka runs (app-only Compose, k8s),
+  `SPRING_KAFKA_LISTENER_AUTO_STARTUP=false` keeps the listeners idle. Don't add anything that blocks
+  startup on the broker, such as `NewTopic` beans or a missing-topics check. Work done on startup
+  (opening the Harbor) only writes to the outbox and never talks to Kafka.
+- The consumer group is `ship-backend-<Harbor Name>`, derived from `harbor.name` (`HARBOR_NAME`),
+  which every instance must set
+  ([ADR-0003](../../../adr/0003-run-each-ship-backend-instance-as-one-harbor.md)).

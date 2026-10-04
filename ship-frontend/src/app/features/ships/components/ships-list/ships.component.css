@@ -11,9 +11,35 @@
   background-color: white;
 }
 
+/* Ships that have just arrived; the region is always rendered so screen readers announce new notices */
+
+.arrival-notice {
+  grid-column: span 12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.3em 0.8em;
+  background-color: #bbffff;
+  border: 1px dashed black;
+  border-radius: 5px;
+}
+
+.arrival-notice__text {
+  margin: 0;
+}
+
+.arrival-notice__dismiss {
+  border: none;
+  background: none;
+  padding: 0 0.3em;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
 .ship {
   grid-column: span 3;
-  max-height: 300px;
+  max-height: 320px;
   display: flex;
   flex-direction: column;
   gap: 0.2em;
@@ -29,7 +55,17 @@
   border: 1px dashed black;
   border-radius: 5px;
   width: 100%;
-  max-height: 100px;
+  max-height: 115px;
+}
+
+.ship__stats-arrived-from {
+  display: inline-block;
+  margin: 0;
+  padding: 0 0.4em;
+  font-size: 0.8em;
+  background-color: #bbffff;
+  border: 1px dashed black;
+  border-radius: 5px;
 }
 
 .ship__stats-name {
@@ -68,7 +104,7 @@
 }
 
 .ships-list>.section-grid {
-  grid-auto-rows: 17em;
+  grid-auto-rows: 19em;
 }
 
 .shipping-state__shipping {

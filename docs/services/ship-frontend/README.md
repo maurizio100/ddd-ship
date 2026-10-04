@@ -9,8 +9,23 @@ decides whether a load or a Release is allowed. The harbor terminal is not part 
 - **Building block:** ship-frontend ([05-building-blocks.md](../../arc42/05-building-blocks.md), Level 1)
 - **Code lives in:** `ship-frontend/`
 - **Tech:** Angular 20 (standalone components), NgRx store + effects, TypeScript 5.9, served by nginx
-- **Build & test:** `cd ship-frontend && npm test -- --watch=false --browsers=ChromeHeadless`
-- **Talks to:** ship-backend (REST `/web`, including the Catain Images)
+- **Build & test:** `cd ship-frontend && npm test -- --watch=false --browsers=ChromeHeadless`; production bundle guard: `cd ship-frontend && npm run build:check`
+- **Talks to:** ship-backend (REST `/web`, including the Catain Images; the fleet-events stream `/web/fleet-events` over Server-Sent Events)
+
+## Routing
+
+The frontend is a single-page application (SPA) served by nginx. The `/web` endpoint proxies to
+the backend via an nginx `location /web` block, whose upstream is set by the `BACKEND_URL`
+environment variable:
+
+- **In Kubernetes:** the Ingress routes `/web` directly to the backend Service, so the proxy is
+  not used.
+- **In Compose:** the frontend container's `BACKEND_URL` env var specifies the backend's network
+  address (`http://hexagonship-backend:8080` for the default setup, `http://${HARBOR_SLUG}-backend:8080`
+  per Harbor). The nginx proxy forwards `/web/...` requests to the backend unchanged, along with
+  forwarded headers (`Host`, `X-Forwarded-For`, `X-Forwarded-Proto`).
+- **The fleet-events stream** (`/web/fleet-events`) has its own unbuffered `location` in nginx, and its
+  own Ingress on k8s (see `guidelines/architecture.md`).
 
 ## Documents in this folder
 

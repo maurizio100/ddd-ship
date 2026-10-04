@@ -18,6 +18,8 @@ services:
     build:
       dockerfile: Dockerfile
       context: ship-frontend/.
+    environment:
+      BACKEND_URL: http://hexagonship-backend:8080
     networks:
       - ship-network
     ports:
@@ -34,6 +36,7 @@ services:
       context: ship-backend/.
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      HARBOR_NAME: "Hexagon Harbor"
     networks:
       - ship-network
       - kafka_network

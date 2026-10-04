@@ -29,6 +29,10 @@ Keep three concerns apart, so each can be tested without Kafka:
 Events arrive at least once. A duplicate is announced twice, which is acceptable for a departure
 board, so the terminal keeps no dedup store.
 
+The terminal filters records by the `eventType` header (set by Debezium EventRouter). Only
+`shipping-published` events are announced; other event types (e.g. `ship-arrived`) are skipped with
+a debug log. Unknown event types never stop the poll loop.
+
 ## Wording
 
 The output uses the domain terms, with the ship's Catain shown under the "Captain Name" label (an

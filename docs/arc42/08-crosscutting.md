@@ -16,12 +16,16 @@ ship's identity across all Harbors and travels in events; the surrogate key neve
 - The schema is owned by **Flyway** (`application/src/main/resources/db/migration`, `V1__init.sql` …); Hibernate DDL generation is off (`ddl-auto: none`).
 - Reference data (Cargo catalog, Catain roster, Shipping Quotes) is seeded by migrations `V2`–`V4`.
 - Binary data (Catain Images) lives in MinIO, not in the database.
-- Planned: per-Harbor tables for the Stock (with a Starting Stock seeded by migration), the inbox of consumed event ids ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and the Known Harbors ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
+- Each Harbor's **Stock** lives in its own database, in `stocks` (one row per catalog Cargo). `V7__stocks.sql` seeds the Starting Stock (3 of every Cargo); Flyway applies it once per database, i.e. when the Harbor opens for the first time. The Stock is changed only through `StockRepositoryPort`, inside the caller's transaction, and never drops below 0 (a conditional `UPDATE … WHERE stock_quantity > 0` backed by a `CHECK` constraint). It is not published.
+- Each Harbor also has an inbox of consumed event ids in `inbox_events` (`V5`, [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and its Known Harbors in `known_harbors` (`V6`, [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
 
 ## 8.3 Transactions and event publication
 
-The only explicit transaction boundary is `ShippingManagementService.releaseShipping` (`@Transactional`):
-the shipping state change and the `shipping_outbox` insert commit together. Publication to Kafka is
+`ShippingManagementService.releaseShipping` (`@Transactional`) commits the shipping state change and
+the `shipping_outbox` insert together. `CargoLoadManagementService.addCargo` and `removeCargo` are
+transactional too: a load takes one Cargo out of the Stock and an unload of Loaded Cargo puts one back,
+in the same transaction as the cargo load, so a rejected load (Max Weight, already loaded, out of
+Stock) rolls back and leaves the Stock unchanged. Publication to Kafka is
 asynchronous and at-least-once via Debezium; consumers must tolerate duplicates.
 See [ADR-0002](../adr/0002-transactional-outbox-via-debezium.md).
 
@@ -30,12 +34,18 @@ a second kind of transaction boundary, the handling of a consumed event. The inb
 change and any outbox row it causes (for example `ship-arrived`) commit together; an event id already
 in the inbox is skipped, so redelivery has no effect.
 
+Pushes to the browser (the fleet-events stream, 8.7) happen only after commit: the domain announces a
+fleet change through the driven port `FleetEventsPort` inside its transaction, and the SSE adapter
+registers a `TransactionSynchronization` that pushes in `afterCommit`. A rolled-back change is never
+pushed, and a failed push never fails the committed change. There are still no internal application
+events ([ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md)).
+
 ## 8.4 Error handling (current state)
 
-- Missing resources: driving adapters map `null` from a port to `404` (`ResponseStatusException`, "Unable to find resource").
-- Domain rule violations on cargo loading (`ShipTooHeavyException`, `ItemAlreadyLoadedException`) are caught in the service and the **unchanged ship is returned with 200**; the client cannot tell the load was rejected.
-- Other violations (`IllegalArgumentException` / `IllegalStateException`, e.g. a second Shipping, unknown Catain) are not mapped and surface as `500`.
-- There is no global exception handler and no error response format.
+- One global handler, `ProblemDetailsExceptionHandler` (`@RestControllerAdvice` in `driving-adapter`), renders errors as RFC 9457 Problem Details (`application/problem+json`).
+- Missing resources: driving adapters map `null` from a port to `404` (`ResponseStatusException`, "Unable to find resource"), rendered as Problem Details.
+- Cargo loading rule violations (`ShipTooHeavyException`, `ItemAlreadyLoadedException`, `CargoOutOfStockException`) propagate from the domain and are answered with `409`; `detail` is the exception's message in domain language. A load without `cargoId` is a `400`.
+- Other violations (`IllegalArgumentException` / `IllegalStateException`, e.g. a second Shipping, unknown Catain) are not mapped yet and surface as `500`.
 
 ## 8.5 Configuration
 
@@ -54,6 +64,11 @@ logging, metrics or tracing beyond framework defaults. The terminal prints event
 
 REST/JSON under `/web`, resources nested under the ship (`/web/ships/{id}/cargos`,
 `/web/ships/{id}/shippings`). Contract: `ship-backend/openapi.yml`. No versioning.
+
+The one streaming exception under `/web` is `GET /web/fleet-events`, a `text/event-stream` (Server-Sent
+Events) with the events `ship-arrived` and `ship-left`. It is not a resource; it answers with
+`Cache-Control: no-cache` and `X-Accel-Buffering: no`, and proxies route it unbuffered
+([ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md)).
 
 ## 8.8 Test Strategy
 

@@ -41,8 +41,25 @@ test. Adapter tests are written when the story touches that adapter.
 ## Isolation
 
 - One Postgres Testcontainer per JVM (singleton, reused across test classes), migrated by Flyway.
+  Driven-adapter tests load the migrations from the `application` module with
+  `spring.flyway.locations: filesystem:../application/src/main/resources/db/migration` and use
+  `@AutoConfigureTestDatabase(replace = NONE)`, since H2 is on the compile classpath.
+- Application tests run with an unreachable Kafka (`spring.kafka.bootstrap-servers=localhost:1`) and
+  a `harbor.name`, unless they test messaging.
+- Messaging acceptance tests import the singleton `KafkaTestcontainer` (`apache/kafka`, one per JVM,
+  topics created up front) when a scenario is about consumer-group or read-from-the-beginning
+  behaviour a mocked listener cannot show. Another Harbor's event is simulated by producing the
+  record Debezium would relay (`id` and `eventType` headers, payload as a JSON string literal), and
+  "processed" is awaited with Awaitility on the event id in `inbox_events`. Each Harbor is its own
+  `@Nested` class with its own `harbor.name` and `@DirtiesContext(AFTER_CLASS)`, so two Harbor
+  listeners never run at the same time. To observe a Harbor that opens later, set
+  `spring.kafka.listener.auto-startup=false` and start its container through
+  `KafkaListenerEndpointRegistry`.
 - Before each acceptance or driven-adapter test, truncate the mutable tables (`ships_cargos`,
-  `shippings`, `ships`, `shipping_outbox`). Reference tables (`cargos`, `catains`, `quotes`) are left
-  intact.
+  `shippings`, `ships`, `shipping_outbox`, `inbox_events`, `known_harbors`). Reference tables (`cargos`, `catains`, `quotes`) are left
+  intact. `stocks` is not truncated but reset to the Starting Stock (`resetStockToStartingStock()`),
+  since an empty Stock would make every Cargo unavailable.
+- A scenario about a Harbor opening for the first time creates a fresh database in the shared
+  Postgres container and runs Flyway against it, rather than relying on the already-migrated one.
 - Tests don't depend on the wall clock. Code that reads the time (the Sailors Code uses the current
   minute) takes a `java.time.Clock`, and tests pass a fixed one.

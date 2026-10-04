@@ -1,4 +1,5 @@
-import {Component, inject, OnInit} from "@angular/core";
+import {Component, inject, OnInit, signal} from "@angular/core";
+import {HttpErrorResponse} from "@angular/common/http";
 import {Location, NgOptimizedImage, UpperCasePipe} from "@angular/common";
 import {CargosComponent} from "../cargos/cargos.component";
 import {Ship} from "../../models/ship";
@@ -6,6 +7,9 @@ import {Subject} from "rxjs";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ShippingService} from "../../services/shipping.service";
 import {DisembarkService} from "../../services/disembark.service";
+import {HarborService} from "../../services/harbor.service";
+
+const RELEASE_REJECTED = 'The ship could not be Released';
 
 
 @Component({
@@ -21,10 +25,14 @@ import {DisembarkService} from "../../services/disembark.service";
 export class ShipDetailComponent implements OnInit {
   ship!: Ship;
   cargoLoadSubject = new Subject<Ship>();
+  knownHarbors = signal<string[]>([]);
+  destinationHarbor = signal<string | null>(null);
+  releaseRejection = signal<string | null>(null);
 
   private readonly route = inject(ActivatedRoute);
   private readonly shippingService = inject(ShippingService);
   private readonly disembarkService = inject(DisembarkService);
+  private readonly harborService = inject(HarborService);
   private readonly location = inject(Location);
   private readonly router = inject(Router);
 
@@ -32,6 +40,47 @@ export class ShipDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.getShip();
+    this.getKnownHarbors();
+  }
+
+  getKnownHarbors(): void {
+    this.harborService
+      .getKnownHarbors()
+      .subscribe((harbors) => this.knownHarbors.set(harbors.knownHarbors));
+  }
+
+  chooseDestinationHarbor(harbor: string): void {
+    this.destinationHarbor.set(harbor || null);
+    this.releaseRejection.set(null);
+  }
+
+  isTabStop(harbor: string, index: number): boolean {
+    const chosen = this.destinationHarbor();
+    return chosen ? chosen === harbor : index === 0;
+  }
+
+  onHarborKeydown(event: KeyboardEvent, index: number): void {
+    const harbors = this.knownHarbors();
+    let target = index;
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        target = (index + 1) % harbors.length;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        target = (index - 1 + harbors.length) % harbors.length;
+        break;
+      case ' ':
+      case 'Enter':
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    this.chooseDestinationHarbor(harbors[target]);
+    const cards = (event.currentTarget as HTMLElement).parentElement?.children;
+    (cards?.[target] as HTMLElement | undefined)?.focus();
   }
 
   getShip(): void {
@@ -40,14 +89,18 @@ export class ShipDetailComponent implements OnInit {
   }
 
   disembark(): void {
-    if (this.ship) {
+    const destinationHarbor = this.destinationHarbor();
+    if (this.ship && destinationHarbor) {
       this.disembarkService
-        .releaseShip(this.ship)
-        .subscribe((shippingSummary) =>
-          this.router.navigate(
-            [`/ships/${shippingSummary.shipId}/shipping/${shippingSummary.id}`]
-          )
-        );
+        .releaseShip(this.ship, destinationHarbor)
+        .subscribe({
+          next: (shippingSummary) =>
+            this.router.navigate(
+              [`/ships/${shippingSummary.shipId}/shipping/${shippingSummary.id}`]
+            ),
+          error: (error: HttpErrorResponse) =>
+            this.releaseRejection.set(error.error?.detail ?? RELEASE_REJECTED),
+        });
     }
   }
 

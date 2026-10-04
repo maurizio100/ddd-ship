@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.shipping
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CargoId
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
@@ -40,6 +41,7 @@ class ShippingRepositoryAdapter(
 
         persistedShipping.shppingState = ShippingStateEnumEntity.valueOf(shipping.shippingState.name)
         persistedShipping.sailorsCode = shipping.shippingQuote?.quote
+        persistedShipping.destinationHarbor = shipping.destinationHarbor?.name
 
         shippingRepository.save(persistedShipping)
     }
@@ -63,6 +65,7 @@ class ShippingRepositoryAdapter(
             actualWeight = 0.0f,
             catainId = shippingPersistenceEntity.ship.catain.catainId,
             catainName = shippingPersistenceEntity.ship.catain.catainName,
+            destinationHarbor = shippingPersistenceEntity.destinationHarbor?.let { HarborName(it) },
         )
 
     private fun toCargoDTO(cargo: CargoPersistenceEntity) =

@@ -47,10 +47,86 @@
   color: blue;
 }
 
+.shipping-destination {
+  grid-column: 1/9;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.harbor-picker {
+  flex-basis: 100%;
+}
+
+.harbor-picker__heading {
+  font-family: 'bebas-neue', sans-serif;
+  font-size: 1.5em;
+  margin-bottom: 0.3em;
+}
+
+.harbor-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75em;
+}
+
+.harbor-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 10em;
+  padding: 0.75em 2.2em 0.75em 1em;
+  border: 1px solid black;
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.harbor-card:hover {
+  background-color: #cfd8dc;
+}
+
+.harbor-card--selected,
+.harbor-card--selected:hover {
+  border: 2px solid blue;
+  padding: calc(0.75em - 1px) calc(2.2em - 1px) calc(0.75em - 1px) calc(1em - 1px);
+  background-color: #e8eefc;
+}
+
+.harbor-card__name {
+  font-weight: bold;
+}
+
+.harbor-card--selected .harbor-card__name {
+  color: blue;
+}
+
+.harbor-card__check {
+  position: absolute;
+  right: 0.6em;
+  color: blue;
+  font-weight: bold;
+}
+
+.harbor-card:focus-visible {
+  outline: 3px solid blue;
+  outline-offset: 2px;
+}
+
+.shipping-release-rejection {
+  flex-basis: 100%;
+  color: firebrick;
+  font-weight: bold;
+}
+
 .shipping-back {
-  grid-column: 10/11;
+  grid-column: 9/10;
+  align-self: end;
 }
 
 .shipping-embark {
-  grid-column: 11/13;
+  grid-column: 10/13;
+  align-self: end;
 }

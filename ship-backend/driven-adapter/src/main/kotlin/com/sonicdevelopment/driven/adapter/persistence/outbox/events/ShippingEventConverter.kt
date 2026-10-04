@@ -1,12 +1,15 @@
 package com.sonicdevelopment.driven.adapter.persistence.outbox.events
 
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEvent.ShippingEventData.CargoEventData
 
 object ShippingEventConverter {
 
-    fun toShippingEvent(foundShip: Ship): ShippingEvent {
+    fun toShippingEvent(foundShip: Ship, originHarbor: HarborName): ShippingEvent {
         val shipping = foundShip.activeShipping ?: throw IllegalStateException()
+        val destinationHarbor = shipping.destinationHarbor
+            ?: throw IllegalStateException("A released Shipping must have a Destination Harbor")
         return ShippingEvent(
             shipEventData = ShippingEvent.ShipEventData(
                 shipId = foundShip.id.id, shipName = foundShip.shipName
@@ -19,7 +22,9 @@ object ShippingEventConverter {
                 cargo = foundShip.loadedCargo.map {
                     CargoEventData(it.id.id, it.name)
                 },
-                weight = foundShip.weight
+                weight = foundShip.weight,
+                originHarbor = originHarbor.name,
+                destinationHarbor = destinationHarbor.name
             )
         )
     }

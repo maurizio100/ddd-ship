@@ -1,9 +1,9 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
 import {Store} from "@ngrx/store";
-import {AsyncPipe} from "@angular/common";
 import {Ship, ShippingState} from "../../models/ship";
-import {selectAllShips} from "../../store/selectors/ship.selectors";
+import {selectAllShips, selectArrivalNotices} from "../../store/selectors/ship.selectors";
+import {ArrivalNotice} from "../../models/fleet-event";
 import {ShipService} from "../../services/ship.service";
 import * as ShipActions from "../../store/actions/ship.actions";
 
@@ -12,21 +12,30 @@ import * as ShipActions from "../../store/actions/ship.actions";
   templateUrl: './ships.component.html',
   styleUrls: ['./ships.component.css'],
   imports: [
-    AsyncPipe,
     RouterLink
   ]
 })
-export class ShipsComponent implements OnInit {
+export class ShipsComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store<{ships: Ship[]}>);
   private readonly shipService = inject(ShipService);
   private readonly router = inject(Router);
 
-  ships$ = this.store.select(selectAllShips);
+  ships = this.store.selectSignal(selectAllShips);
+  arrivalNotices = this.store.selectSignal(selectArrivalNotices);
 
   constructor() {}
 
   ngOnInit(): void {
     this.store.dispatch(ShipActions.loadShips());
+    this.store.dispatch(ShipActions.watchFleet());
+  }
+
+  ngOnDestroy(): void {
+    this.store.dispatch(ShipActions.stopWatchingFleet());
+  }
+
+  dismiss(notice: ArrivalNotice) {
+    this.store.dispatch(ShipActions.dismissArrivalNotice({shipId: notice.shipId}));
   }
 
   createShipping(ship: Ship) {
