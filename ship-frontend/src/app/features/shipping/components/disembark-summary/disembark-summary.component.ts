@@ -1,3 +1,4 @@
+import {MatButtonModule} from '@angular/material/button';
 import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import { DisembarkService } from '../../services/disembark.service';
@@ -8,9 +9,10 @@ import { environment } from '../../../../../environments/environment';
 @Component({
   selector: 'app-disembark-summary',
   templateUrl: './disembark-summary.component.html',
-  styleUrls: ['./disembark-summary.component.css'],
+  styleUrls: ['./disembark-summary.component.scss'],
   imports: [
-    CargosComponent
+    CargosComponent,
+    MatButtonModule
   ]
 })
 export class DisembarkSummaryComponent implements OnInit {
