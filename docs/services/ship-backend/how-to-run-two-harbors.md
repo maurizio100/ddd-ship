@@ -43,6 +43,10 @@ Run from the repo root. Build the backend and frontend images the first time (th
    (`<slug>-db-postgres`) and replication slot.
    They set `publication.autocreate.mode` to `filtered`, so the `dbz_publication` Debezium creates
    covers only `public.shipping_outbox`.
+   To add another Harbor, copy an env file in `harbors/` and a connector in `kafka-connect/connectors/`
+   with its own slug, ports, connector name, `database.hostname` and `slot.name`. Keep
+   `"database.port": "5432"`: Kafka Connect reaches the database inside the Docker network, not on
+   the env file's `POSTGRES_PORT`.
 
 ## Expected result
 
