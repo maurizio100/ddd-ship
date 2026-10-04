@@ -6,8 +6,8 @@
 
 The ubiquitous language lives in [`../domain/`](../domain/README.md) and is used verbatim in code,
 including the "Catain" spelling. Identity is carried by UUID value objects (`ShipId`, `CargoId`,
-`ShippingId`, `CatainId`); persistence entities additionally have a numeric surrogate key. Planned
-([ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md)): the UUID `ShipId` is the
+`ShippingId`, `CatainId`); persistence entities additionally have a numeric surrogate key. Per
+[ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md), the UUID `ShipId` is the
 ship's identity across all Harbors and travels in events; the surrogate key never leaves its Harbor.
 
 ## 8.2 Persistence
@@ -18,6 +18,7 @@ ship's identity across all Harbors and travels in events; the surrogate key neve
 - Binary data (Catain Images) lives in MinIO, not in the database.
 - Each Harbor's **Stock** lives in its own database, in `stocks` (one row per catalog Cargo). `V7__stocks.sql` seeds the Starting Stock (3 of every Cargo); Flyway applies it once per database, i.e. when the Harbor opens for the first time. The Stock is changed only through `StockRepositoryPort`, inside the caller's transaction, and never drops below 0 (a conditional `UPDATE … WHERE stock_quantity > 0` backed by a `CHECK` constraint). It is not published.
 - Each Harbor also has an inbox of consumed event ids in `inbox_events` (`V5`, [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and its Known Harbors in `known_harbors` (`V6`, [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
+- **Money** (decided, not built, EPIC-003, [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): dollars to two decimals, an exact decimal in the domain, `NUMERIC(…, 2)` in PostgreSQL and a decimal string in event JSON, never a binary float. Each Harbor's **Savings** (Starting Savings 1000.00 $) change only through a port inside the caller's transaction and never drop below 0, like the Stock. **Prices** are seeded identically at every Harbor, like the catalog. A ship's Earnings and Home Harbor are stored with the ship and travel in `shipping-published`.
 
 ## 8.3 Transactions and event publication
 
@@ -29,10 +30,16 @@ Stock) rolls back and leaves the Stock unchanged. Publication to Kafka is
 asynchronous and at-least-once via Debezium; consumers must tolerate duplicates.
 See [ADR-0002](../adr/0002-transactional-outbox-via-debezium.md).
 
-Planned ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)):
-a second kind of transaction boundary, the handling of a consumed event. The inbox row, the state
+Per [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md),
+a second kind of transaction boundary is the handling of a consumed event. The inbox row, the state
 change and any outbox row it causes (for example `ship-arrived`) commit together; an event id already
 in the inbox is skipped, so redelivery has no effect.
+
+Decided, not built (EPIC-003, [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md),
+[ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): unloading an Incoming Ship and buying at
+the Market are REST-driven transactions that change the Stock and the Savings together; a refusal
+writes the return `shipping-published` outbox row in the same transaction. Crediting Earnings at the
+Home Harbor happens inside the Arrival's inbox transaction.
 
 Pushes to the browser (the fleet-events stream, 8.7) happen only after commit: the domain announces a
 fleet change through the driven port `FleetEventsPort` inside its transaction, and the SSE adapter
@@ -51,7 +58,7 @@ events ([ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-se
 
 Spring `application.yml` holds defaults (DB URL, MinIO URL and bucket `catains`); the `local` profile
 (`application-local.yml`) targets a locally running stack. On Kubernetes, values come from the
-`backend-config` ConfigMap and the credential Secrets as environment variables. Planned: every
+`backend-config` ConfigMap and the credential Secrets as environment variables. Every
 instance is configured with its **Harbor Name** ([ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md)),
 which also derives its Kafka consumer group, and with the Kafka bootstrap servers.
 

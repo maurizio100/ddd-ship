@@ -1,6 +1,6 @@
 # 0001: Build the UI on Angular Material with a pirate theme
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-10-04
 - **Component:** ship-frontend
 

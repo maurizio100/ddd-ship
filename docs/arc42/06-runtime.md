@@ -32,11 +32,14 @@ sequenceDiagram
     FE->>BE: POST /web/ships/{id}/cargos
     BE->>DB: load ship and cargo
     BE->>BE: Ship.addCargo (Max Weight 15.0, no duplicates)
+    BE->>DB: take one from the Stock
     BE->>DB: update cargo load
     BE-->>FE: ship details (weight / max weight)
 ```
 
-A rejected load (too heavy, already loaded) returns the unchanged ship details with HTTP 200, not an error.
+A rejected load (too heavy, already loaded, out of Stock) changes nothing and is answered with `409` (8.4).
+Decided, not built: the User drags the Cargo onto the ship (STORY-016), and a ship may carry several of
+the same Cargo (STORY-022).
 
 ## 6.3 Release a shipping (transactional outbox)
 
@@ -122,6 +125,36 @@ sequenceDiagram
 Once each of these transactions commits, the Harbor pushes the change to its Users' open fleet pages
 (6.6).
 
+### Decided, not built yet: Incoming Ships and Earnings (EPIC-003)
+
+Per [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md) and
+[ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md), the Destination transaction changes in two
+places; everything else above stays, including `ship-arrived` in the same transaction:
+
+- *Unloading on Arrival – add Cargo to Stock* is replaced by *take the ship into the fleet as an
+  Incoming Ship, its Cargo (with quantities) still aboard*. The Stock changes only when a User unloads
+  it (6.7).
+- If this Harbor is the ship's Home Harbor, the Earnings carried in `shipping-published` go into the
+  Savings and the ship's Earnings become zero, in the same inbox transaction, so a redelivered event
+  credits nothing twice.
+
+## 6.5 Harbor startup and discovery
+
+Per [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md). Built by STORY-003.
+
+```mermaid
+sequenceDiagram
+    participant H as Harbor backend
+    participant DB as PostgreSQL
+    participant K as Kafka
+    H->>DB: insert outbox row (harbor-opened, Harbor Name)
+    DB->>K: Debezium to hexagonship-harbor (compacted)
+    K->>H: read hexagonship-harbor from the beginning
+    H->>DB: store Known Harbors
+```
+
+A Release then offers the Known Harbors other than the current one as Destination Harbor.
+
 ## 6.6 Fleet changes pushed to the browser
 
 Per [ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md). The Available
@@ -162,21 +195,45 @@ sequenceDiagram
 The registry of open streams is in memory per instance (R-11). A disconnected tab reconnects by itself
 after 3 s; events in between are not replayed.
 
-## 6.5 Harbor startup and discovery (planned)
+Decided, not built (EPIC-003): the harbor management page reacts to the same `ship-arrived` event by
+refetching its Incoming Ships.
 
-Per [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md). Not built yet.
+## 6.7 Unload or refuse an Incoming Ship (decided, not built yet)
+
+Per [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md) and
+[ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md) (EPIC-003, STORY-026 to STORY-029). Both
+are REST-driven, each in one DB transaction at the Destination Harbor.
 
 ```mermaid
 sequenceDiagram
-    participant H as Harbor backend
+    actor U as User
+    participant FE as ship-frontend
+    participant BE as ship-backend
     participant DB as PostgreSQL
     participant K as Kafka
-    H->>DB: insert outbox row (harbor-opened, Harbor Name)
-    DB->>K: Debezium to hexagonship-harbor (compacted)
-    K->>H: read hexagonship-harbor from the beginning
-    H->>DB: store Known Harbors
+    U->>FE: harbor management page, Incoming Ship
+    alt unload
+        FE->>BE: unload the Incoming Ship
+        rect rgb(240,240,240)
+        Note over BE,DB: one DB transaction
+        BE->>BE: Delivery Price = sum of the Prices of all Cargo aboard
+        BE->>DB: take the Delivery Price from the Savings (refused if they fall short, nothing written)
+        BE->>DB: put the Cargo into the Stock
+        BE->>DB: add the Delivery Price to the ship's Earnings
+        end
+    else refuse
+        FE->>BE: refuse the Incoming Ship
+        rect rgb(240,240,240)
+        Note over BE,DB: one DB transaction
+        BE->>DB: new Shipping to the ship's Home Harbor, Cargo and Earnings aboard
+        BE->>DB: ship leaves the fleet
+        BE->>DB: insert outbox row (shipping-published to the Home Harbor)
+        end
+        DB->>K: Debezium, then Arrival at the Home Harbor as in 6.4
+    end
 ```
 
-A Release then offers the Known Harbors other than the current one as Destination Harbor.
+At its Home Harbor an unloaded ship's Earnings go into the Savings at once. Open: what happens when a
+ship's own Home Harbor refuses it (R-12).
 
 > TODO: error scenarios (Debezium down, consumer offline) once the quality scenarios in chapter 10 are set.
