@@ -41,5 +41,6 @@ describe('AppComponent', () => {
     const icon = fixture.nativeElement.querySelector('mat-icon') as HTMLElement;
     expect(icon.classList).toContain('material-symbols-outlined');
     expect(icon.classList).not.toContain('material-icons');
+    expect(icon.classList).toContain('mat-ligature-font');
   });
 });
