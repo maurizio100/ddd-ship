@@ -231,11 +231,7 @@
   flex-direction: column;
   gap: 24px;
   min-width: 0;
-  position: sticky;
-  top: 16px;
   align-self: start;
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
   // room for the drop-target ring of the ship, which overflow would otherwise clip
   padding: 4px;
   margin: -4px;
@@ -245,4 +241,22 @@
 // already shows the drop target, so the full-size crate placeholder must not stretch the ship.
 :host ::ng-deep #ship-drop-list > .cdk-drag-placeholder {
   display: none;
+}
+
+// Two columns (the .loading grid fits two 320px columns from about 720px): the ship column stays in
+// view and is capped to the viewport. In one column it simply follows the Available Cargo.
+@media (min-width: 720px) {
+  .aside {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+}
+
+// Short screens: a smaller ship picture lets the whole column, Release included, fit the viewport.
+@media (min-width: 720px) and (max-height: 900px) {
+  .deck__ship {
+    max-height: 110px;
+  }
 }
