@@ -129,88 +129,97 @@
   }
 }
 
-.shipping-destination {
-  grid-column: 1/9;
+.release {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5em;
-}
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 32px;
+  padding-bottom: 32px;
+  color: var(--hs-ink);
 
-.harbor-picker {
-  flex-basis: 100%;
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+
+    button {
+      min-height: 44px;
+      border-radius: 9999px;
+      max-width: 100%;
+    }
+  }
 }
 
 .harbor-picker__heading {
-  font-family: 'bebas-neue', sans-serif;
-  font-size: 1.5em;
-  margin-bottom: 0.3em;
+  margin: 0 0 12px;
+  font-family: 'IM Fell English', serif;
+  font-size: 28px;
+  font-weight: 400;
 }
 
 .harbor-cards {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75em;
+  gap: 12px;
 }
 
 .harbor-card {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5em;
-  min-width: 10em;
-  padding: 0.75em 2.2em 0.75em 1em;
-  border: 1px solid black;
-  border-radius: 5px;
+  gap: 8px;
+  min-width: 160px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--hs-border);
+  border-radius: 12px;
+  background: var(--hs-card);
+  color: var(--hs-ink);
   cursor: pointer;
   user-select: none;
+
+  &:hover {
+    background: var(--hs-sand);
+  }
+
+  &--selected,
+  &--selected:hover {
+    border-color: var(--mat-sys-primary);
+    background: var(--hs-card);
+  }
+
+  &__name {
+    flex: 1;
+    font-family: 'IM Fell English', serif;
+    font-size: 21px;
+    overflow-wrap: anywhere;
+  }
+
+  &--selected &__name,
+  &__check {
+    color: var(--mat-sys-primary);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--hs-brass);
+    outline-offset: 2px;
+  }
 }
 
-.harbor-card:hover {
-  background-color: #cfd8dc;
-}
-
-.harbor-card--selected,
-.harbor-card--selected:hover {
-  border: 2px solid blue;
-  padding: calc(0.75em - 1px) calc(2.2em - 1px) calc(0.75em - 1px) calc(1em - 1px);
-  background-color: #e8eefc;
-}
-
-.harbor-card__name {
-  font-weight: bold;
-}
-
-.harbor-card--selected .harbor-card__name {
-  color: blue;
-}
-
-.harbor-card__check {
-  position: absolute;
-  right: 0.6em;
-  color: blue;
-  font-weight: bold;
-}
-
-.harbor-card:focus-visible {
-  outline: 3px solid blue;
-  outline-offset: 2px;
+.shipping-no-known-harbor {
+  margin: 0;
+  font-style: italic;
+  color: var(--hs-muted);
 }
 
 .shipping-release-rejection {
-  flex-basis: 100%;
-  color: firebrick;
-  font-weight: bold;
-}
-
-.shipping-back {
-  grid-column: 9/10;
-  align-self: end;
-}
-
-.shipping-embark {
-  grid-column: 10/13;
-  align-self: end;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-weight: 600;
 }
 
 // Keep the ship in view while Cargo further down the list is dragged.

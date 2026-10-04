@@ -7,7 +7,7 @@ of the world as a Shipping Published event.
 Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the folder beside this file.
 
 ## Participants
-- User — starts a new shipping for a ship and Releases it ("Start Journey").
+- User — starts a new shipping for a ship and Releases it ("Start Journey" was the former UI label, replaced by Release in STORY-021).
 - Kafka (via the transactional outbox and Debezium) — carries the Shipping Published event out.
 
 ## Behaviour

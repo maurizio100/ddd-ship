@@ -146,7 +146,7 @@ describe('ShipDetailComponent (Release to a Destination Harbor)', () => {
   it('Selecting a card marks only it as checked and names the Harbor on the button', () => {
     render(['Port Royal', 'Nassau']);
     expect(releaseButton().disabled).toBeTrue();
-    expect(releaseButton().textContent!.trim()).toBe('Start Journey');
+    expect(releaseButton().textContent!.trim()).toBe('Release');
     expect(byTestId('shipping-destination-harbor-selected')).toBeNull();
 
     choose('Nassau');
@@ -155,7 +155,7 @@ describe('ShipDetailComponent (Release to a Destination Harbor)', () => {
     expect(fixture.nativeElement.querySelectorAll('[data-testid="shipping-destination-harbor-selected"]').length).toBe(1);
     expect(cards()[1].querySelector('[data-testid="shipping-destination-harbor-selected"]')).not.toBeNull();
     expect(releaseButton().disabled).toBeFalse();
-    expect(releaseButton().textContent!.replace(/\s+/g, ' ').trim()).toBe('Start Journey → Nassau');
+    expect(releaseButton().textContent!.replace(/\s+/g, ' ').trim()).toBe('Release → Nassau');
   });
 
   it('The cards form a radio group with a single tab stop', () => {

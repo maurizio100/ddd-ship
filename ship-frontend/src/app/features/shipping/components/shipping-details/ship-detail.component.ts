@@ -9,6 +9,7 @@ import {ShippingService} from "../../services/shipping.service";
 import {DisembarkService} from "../../services/disembark.service";
 import {HarborService} from "../../services/harbor.service";
 import {CdkDragDrop, CdkDropList} from "@angular/cdk/drag-drop";
+import {MatButtonModule} from "@angular/material/button";
 import {MatIconModule} from "@angular/material/icon";
 import {Cargo} from "../../models/cargo";
 import {loadRejectionMessage} from "../../services/load-rejection";
@@ -23,7 +24,8 @@ const RELEASE_REJECTED = 'The ship could not be Released';
   imports: [
     CargosComponent,
     CdkDropList,
-    MatIconModule
+    MatIconModule,
+    MatButtonModule
   ]
 })
 export class ShipDetailComponent implements OnInit {

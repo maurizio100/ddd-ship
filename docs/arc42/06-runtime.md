@@ -54,7 +54,7 @@ sequenceDiagram
     participant CDC as Debezium
     participant K as Kafka
     participant T as ship-terminal
-    U->>FE: pick a Destination Harbor (from GET /web/harbors), Start Journey
+    U->>FE: pick a Destination Harbor (from GET /web/harbors), Release
     FE->>BE: PUT /web/ships/{id}/shippings {destinationHarbor}
     rect rgb(240,240,240)
     Note over BE,DB: one DB transaction
