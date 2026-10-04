@@ -1,71 +1,71 @@
-<section class="page-heading max-width-container">
-  <div class="section-grid max-width">
-    <h2 class="page-heading__heading">Available Ships</h2>
-    <div class="new-ship__button">
-      <a
-        class="ship__actions-action ship__actions-action-green"
-        routerLink="/ships/new"
-        >
-        Create New Ship
-      </a>
+<div class="page">
+  <header class="page-header">
+    <div>
+      <p class="kicker">The ship's register</p>
+      <h1>Available Ships</h1>
     </div>
-  </div>
-  <div class="section-grid max-width arrival-notices" role="status" aria-live="polite" data-testid="ships-arrival-notices">
+    <a mat-flat-button routerLink="/ships/new">Create New Ship</a>
+  </header>
+
+  <div class="notices" role="status" aria-live="polite" data-testid="ships-arrival-notices">
     @for (notice of arrivalNotices(); track notice.shipId) {
-      <div class="arrival-notice">
-        <p class="arrival-notice__text" data-testid="ships-arrival-notice">{{ notice.shipName }} arrived from {{ notice.originHarbor }}</p>
+      <div class="notice">
+        <mat-icon class="notice-icon" fontIcon="anchor" aria-hidden="true"></mat-icon>
+        <p class="notice-text" data-testid="ships-arrival-notice">{{ notice.shipName }} arrived from {{ notice.originHarbor }}</p>
         <button
+          mat-icon-button
           type="button"
-          class="arrival-notice__dismiss"
+          class="notice-dismiss"
           aria-label="Dismiss"
           data-testid="ships-arrival-notice-dismiss"
           (click)="dismiss(notice)"
-          >&times;</button>
+        >
+          <mat-icon fontIcon="close"></mat-icon>
+        </button>
       </div>
     }
   </div>
-</section>
 
-<section class="ships-list max-width-container">
-  <div class="section-grid max-width">
-    @for (ship of ships(); track ship) {
-
-      <div class="ship" data-testid="ship">
-        <div class="ship__image">
-          <img [src]="getImageUrl(ship)" />
+  <div class="grid">
+    @for (ship of ships(); track ship.id) {
+      <article class="card" data-testid="ship">
+        <div class="picture">
+          <img [src]="getImageUrl(ship)" alt="" data-testid="ship-picture" />
+          <span class="status" data-testid="ship-status">{{ statusLabel(ship) }}</span>
         </div>
-        <div class="ship__stats">
-          <p class="ship__stats-name" data-testid="ship-name">{{ ship.name }}</p>
-          <p>{{ ship.catain }}</p>
+        <div class="body">
+          <div class="ring" data-testid="ship-catain">
+            @if (catainImageUrl(ship); as url) {
+              @if (!imageFailed(ship)) {
+                <img [src]="url" [alt]="ship.catain" (error)="onImageError(ship)" data-testid="ship-catain-image" />
+              } @else {
+                <mat-icon fontIcon="pets" data-testid="ship-catain-fallback"></mat-icon>
+              }
+            } @else {
+              <mat-icon fontIcon="pets" data-testid="ship-catain-fallback"></mat-icon>
+            }
+          </div>
+          <h2 class="ship-name" data-testid="ship-name">{{ ship.name }}</h2>
+          <p class="under" data-testid="ship-catain-name">under {{ ship.catain }}</p>
           @if (ship.arrivedFrom) {
-            <p class="ship__stats-arrived-from" data-testid="ship-arrived-from">
-              ⚓ arrived from {{ ship.arrivedFrom }}
+            <p class="arrived-from" data-testid="ship-arrived-from">
+              <mat-icon fontIcon="anchor" aria-hidden="true"></mat-icon>
+              Arrived from {{ ship.arrivedFrom }}
             </p>
           }
-        </div>
-        <div class="ship__actions">
-          @if (canCreateNewShipping(ship)) {
-            <a
-              data-testid="new-shipping"
-              (click)="createShipping(ship)"
-              class="ship__actions-action ship__actions-action-green"
-              >New shipping</a
-              >
+          <div class="actions">
+            @if (canCreateNewShipping(ship)) {
+              <button mat-flat-button type="button" data-testid="new-shipping" (click)="createShipping(ship)">New shipping</button>
             }
             @if (shippingExists(ship)) {
-              <a
-                (click)="editShipping(ship)"
-                class="ship__actions-action ship__actions-action-orange"
-                >Edit shipping</a
-                >
-              }
-              @if (isShipAway(ship)) {
-                <div class="shipping-state__shipping">
-                  <p data-testid="ship-at-sea">{{ ship.name }} is at sea</p>
-                </div>
-              }
-            </div>
+              <button mat-stroked-button type="button" (click)="editShipping(ship)">Edit shipping</button>
+            }
+            @if (isShipAway(ship)) {
+              <p class="at-sea" data-testid="ship-at-sea">{{ ship.name }} is at sea</p>
+            }
           </div>
-        }
-      </div>
-    </section>
+        </div>
+      </article>
+    }
+  </div>
+</div>

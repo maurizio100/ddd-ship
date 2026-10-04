@@ -207,7 +207,7 @@ describe('ShipsComponent (ship card)', () => {
     expect(img.getAttribute('src')).toMatch(/\/catains\/cat-1\/image$/);
     expect(img.getAttribute('alt')).toBe('Furry Jones');
     expect(one('ship-catain-fallback')).toBeNull();
-    expect(one('ship-catain')!.textContent).toContain('under Furry Jones');
+    expect(one('ship-catain-name')!.textContent).toContain('under Furry Jones');
   });
 
   it('falls back to an icon for an unknown Catain', () => {
