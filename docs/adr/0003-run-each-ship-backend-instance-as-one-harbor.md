@@ -1,7 +1,7 @@
 # ADR-0003: Run each ship-backend instance as one Harbor
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-10-03

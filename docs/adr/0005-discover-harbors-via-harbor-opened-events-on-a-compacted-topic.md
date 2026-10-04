@@ -1,7 +1,7 @@
 # ADR-0005: Discover Harbors via harbor-opened events on a compacted topic
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-10-03
