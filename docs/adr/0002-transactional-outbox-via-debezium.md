@@ -1,7 +1,7 @@
 # ADR-0002: Publish domain events via a transactional outbox and Debezium
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-10-02
