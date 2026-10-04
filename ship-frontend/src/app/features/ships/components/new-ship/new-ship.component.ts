@@ -1,6 +1,6 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnInit, signal} from '@angular/core';
 import { Router } from '@angular/router';
-import {AsyncPipe, Location, NgClass} from '@angular/common';
+import {AsyncPipe, Location} from '@angular/common';
 import {Store} from "@ngrx/store";
 import {Actions, ofType} from "@ngrx/effects";
 import {take} from "rxjs";
@@ -10,16 +10,23 @@ import {Catain} from "../../../catains/model/catain";
 import {NewShipRequest} from "../../models/new-ship-request";
 import * as ShipActions from "../../store/actions/ship.actions";
 import * as CatainsActions from "../../../catains/store/catains.actions";
+import {MatFormFieldModule} from "@angular/material/form-field";
+import {MatInputModule} from "@angular/material/input";
+import {MatButtonModule} from "@angular/material/button";
+import {MatIconModule} from "@angular/material/icon";
 import {environment} from "../../../../../environments/environment";
 
 @Component({
   selector: 'app-new-ship',
   templateUrl: './new-ship.component.html',
-  styleUrls: ['./new-ship.component.css'],
+  styleUrl: './new-ship.component.scss',
   imports: [
     FormsModule,
-    NgClass,
-    AsyncPipe
+    AsyncPipe,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule
   ]
 })
 export class NewShipComponent implements OnInit {
@@ -38,12 +45,26 @@ export class NewShipComponent implements OnInit {
     catainId: '',
   };
 
+  private readonly failedImages = signal<ReadonlySet<string>>(new Set());
+
   ngOnInit(): void {
     this.catainStore.dispatch(CatainsActions.loadCatains());
   }
 
   getImageUrl(id: string): string {
     return `${this.catainsUrl}/${id}/image`;
+  }
+
+  isSelected(id: string): boolean {
+    return id === this.shipRequest.catainId;
+  }
+
+  imageFailed(id: string): boolean {
+    return this.failedImages().has(id);
+  }
+
+  onImageError(id: string): void {
+    this.failedImages.update((failed) => new Set(failed).add(id));
   }
 
   createShip() {

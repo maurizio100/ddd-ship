@@ -19,7 +19,7 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
   const whiskers = aCatain();
   const mittens = aCatain({ id: 'c1a7a1n0-0000-4000-8000-000000000002', name: 'Mittens' });
 
-  function render(catains: Catain[] = [whiskers, mittens]): void {
+  async function render(catains: Catain[] = [whiskers, mittens]): Promise<void> {
     location = jasmine.createSpyObj<Location>('Location', ['back']);
     TestBed.configureTestingModule({
       imports: [NewShipComponent],
@@ -33,6 +33,8 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
     store = TestBed.inject(MockStore);
     spyOn(store, 'dispatch');
     fixture = TestBed.createComponent(NewShipComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
     fixture.detectChanges();
   }
 
@@ -61,21 +63,21 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
 
   const createButton = (): HTMLButtonElement => all('create-ship')[0] as HTMLButtonElement;
 
-  it('Every Catain is offered as a radio with its name as alt text', () => {
-    render();
+  it('Every Catain is offered as a radio with its name as alt text', async () => {
+    await render();
 
     expect(radios().length).toBe(2);
     expect(all('catain-image').map((img) => img.getAttribute('alt'))).toEqual(['Whiskers', 'Mittens']);
   });
 
-  it('Loading the screen requests the Catains', () => {
-    render();
+  it('Loading the screen requests the Catains', async () => {
+    await render();
 
     expect(store.dispatch).toHaveBeenCalledWith(CatainsActions.loadCatains());
   });
 
   it('Choosing a Catain marks it selected and badged', async () => {
-    render();
+    await render();
 
     await choose(1);
 
@@ -87,7 +89,7 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
   });
 
   it('A Catain can be chosen with the keyboard', async () => {
-    render();
+    await render();
 
     expect(radios().every((radio) => radio.type === 'radio' && radio.name === 'catain')).toBeTrue();
     expect(radios().every((radio) => radio.tabIndex !== -1)).toBeTrue();
@@ -100,7 +102,7 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
   });
 
   it('Create Ship is disabled until name and Catain are set, then adds the Ship', async () => {
-    render();
+    await render();
     expect(createButton().disabled).toBeTrue();
 
     await fillName('Black Pearl');
@@ -116,16 +118,16 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
     );
   });
 
-  it('Cancel navigates back', () => {
-    render();
+  it('Cancel navigates back', async () => {
+    await render();
 
     (all('cancel')[0] as HTMLButtonElement).click();
 
     expect(location.back).toHaveBeenCalled();
   });
 
-  it('A Catain Image that fails to load shows the fallback icon', () => {
-    render();
+  it('A Catain Image that fails to load shows the fallback icon', async () => {
+    await render();
     expect(all('catain-image-fallback')).toEqual([]);
 
     all('catain-image')[0].dispatchEvent(new Event('error'));
