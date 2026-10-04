@@ -21,4 +21,4 @@ open only the decisions that bear on your task.>
 
 | ID | Decision | Status | Category | Date |
 | --- | --- | --- | --- | --- |
-| — | _No decisions recorded yet._ | | | |
+| 0001 | [Build the UI on Angular Material with a pirate theme](0001-build-the-ui-on-angular-material-with-a-pirate-theme.md) | Proposed | technology | 2026-10-04 |
