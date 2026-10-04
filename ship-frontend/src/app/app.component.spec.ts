@@ -1,6 +1,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {provideRouter, Router} from '@angular/router';
 import {AppComponent} from './app.component';
+import {provideMaterialSymbols} from './app.config';
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -11,7 +12,7 @@ describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter([{path: 'ships', children: []}])]
+      providers: [provideMaterialSymbols(), provideRouter([{path: 'ships', children: []}])]
     }).compileComponents();
     fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -34,5 +35,11 @@ describe('AppComponent', () => {
     await router.navigateByUrl('/ships');
     fixture.detectChanges();
     expect(byTestId('nav-fleet')?.classList).toContain('active');
+  });
+
+  it('renders icons with the Material Symbols Outlined font set', () => {
+    const icon = fixture.nativeElement.querySelector('mat-icon') as HTMLElement;
+    expect(icon.classList).toContain('material-symbols-outlined');
+    expect(icon.classList).not.toContain('material-icons');
   });
 });

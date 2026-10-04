@@ -8,6 +8,7 @@ import { isDevMode } from '@angular/core';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import {provideEffects} from "@ngrx/effects";
+import { provideMaterialSymbols } from './app/app.config';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -15,6 +16,7 @@ bootstrapApplication(AppComponent, {
     provideHttpClient(withInterceptorsFromDi()),
     provideStore(),
     provideEffects(),
+    provideMaterialSymbols(),
     provideStoreDevtools({ maxAge: 25, logOnly: !isDevMode() })
   ],
 });

@@ -97,13 +97,13 @@ html {
     outlined-container-height: 44px,
     text-container-height: 44px,
     protected-container-height: 44px,
-    outlined-outline-color: #1B2A3A,
+    outlined-outline-color: var(--hs-ink),
   ));
   @include mat.card-overrides((
     elevated-container-shape: 16px,
     outlined-container-shape: 16px,
     filled-container-shape: 16px,
-    outlined-outline-color: #D9C79E,
+    outlined-outline-color: var(--hs-border),
   ));
   @include mat.chips-overrides((
     container-shape-radius: 9999px,
