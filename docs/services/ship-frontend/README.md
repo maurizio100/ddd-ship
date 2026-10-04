@@ -34,4 +34,5 @@ Read this index first and then open **only** the documents your task needs.
 | Document | What it contains | Read it when |
 | --- | --- | --- |
 | `guidelines/` | Architecture (layout, routing, components), state and data (NgRx), testing. `guidelines/README.md` indexes them. | Writing or reviewing production or test code in this component |
+| `design-guidelines.md` | The pirate theme: colour tokens and their Angular Material mapping, fonts, component shapes, UI wording, screen patterns, accessibility | Building or restyling any screen |
 | `decisions/` | Component-scoped mini-ADRs — decisions binding only this component. `decisions/README.md` indexes them all. | Planning or reviewing a change: scan the index, open the entries that bear on it, and check the change does not contradict one. |
