@@ -8,6 +8,8 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {ShippingService} from "../../services/shipping.service";
 import {DisembarkService} from "../../services/disembark.service";
 import {HarborService} from "../../services/harbor.service";
+import {CdkDragDrop} from "@angular/cdk/drag-drop";
+import {Cargo} from "../../models/cargo";
 
 const RELEASE_REJECTED = 'The ship could not be Released';
 
@@ -114,4 +116,7 @@ export class ShipDetailComponent implements OnInit {
     this.ship.weight = ship.weight;
     this.cargoLoadSubject.next(ship);
   }
+
+  /** Signature only (STORY-016): loads the dropped Cargo when it comes from another list. */
+  onCargoDropped(event: CdkDragDrop<Cargo[]>): void {}
 }
