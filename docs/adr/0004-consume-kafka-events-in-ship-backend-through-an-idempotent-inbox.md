@@ -1,7 +1,7 @@
 # ADR-0004: Consume Kafka events in ship-backend through an idempotent inbox
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-10-03

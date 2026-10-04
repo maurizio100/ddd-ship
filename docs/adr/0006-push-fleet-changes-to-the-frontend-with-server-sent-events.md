@@ -1,7 +1,7 @@
 # ADR-0006: Push fleet changes to the frontend with Server-Sent Events
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-10-04
