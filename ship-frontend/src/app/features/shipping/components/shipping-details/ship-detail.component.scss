@@ -212,3 +212,16 @@
   grid-column: 10/13;
   align-self: end;
 }
+
+// Keep the ship in view while Cargo further down the list is dragged.
+.deck {
+  position: sticky;
+  top: 16px;
+  align-self: start;
+}
+
+// CDK moves the dragged crate's placeholder into the ship while it hovers there; the overlay
+// already shows the drop target, so the full-size crate placeholder must not stretch the ship.
+:host ::ng-deep #ship-drop-list > .cdk-drag-placeholder {
+  display: none;
+}

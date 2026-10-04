@@ -28,7 +28,7 @@
         (cdkDropListExited)="onDragExited()"
         aria-labelledby="loaded-heading"
       >
-        <img class="deck__ship" src="/img/ship.jpg" [alt]="ship.name" />
+        <img class="deck__ship" src="/img/ship.jpg" alt="" />
         @if (dragOver()) {
           <div class="deck__overlay" aria-hidden="true">Heave it aboard!</div>
         }
