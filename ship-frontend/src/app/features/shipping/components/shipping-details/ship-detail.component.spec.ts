@@ -86,6 +86,21 @@ describe('ShipDetailComponent (Release to a Destination Harbor)', () => {
     fixture.detectChanges();
   }
 
+  it('The release controls sit beside the ship, after it, and outside the drop zone', () => {
+    render(['Port Royal']);
+
+    const aside = fixture.nativeElement.querySelector('.aside') as HTMLElement;
+    const dropZone = byTestId('ship-drop-zone')!;
+    const radiogroup = byTestId('shipping-destination-harbors')!;
+
+    expect(aside).not.toBeNull();
+    expect(aside.contains(dropZone)).toBeTrue();
+    expect(aside.contains(releaseButton())).toBeTrue();
+    expect(dropZone.compareDocumentPosition(releaseButton()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(dropZone.contains(releaseButton())).toBeFalse();
+    expect(dropZone.contains(radiogroup)).toBeFalse();
+  });
+
   it('The Destination Harbor choices are the Known Harbors', () => {
     // Given "Tortuga" knows the Harbors "Port Royal" and "Nassau" and a ship is being prepared
     render(['Port Royal', 'Nassau']);
