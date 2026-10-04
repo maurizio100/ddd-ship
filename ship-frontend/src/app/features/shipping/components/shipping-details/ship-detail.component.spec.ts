@@ -3,13 +3,19 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Location } from '@angular/common';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { environment } from '../../../../../environments/environment';
+import { AvailableCargo } from '../../models/cargo';
+import { Ship } from '../../models/ship';
 
 import { ShipDetailComponent } from './ship-detail.component';
 import { CargoService } from '../../services/cargo.service';
 import { DisembarkService } from '../../services/disembark.service';
 import { HarborService } from '../../services/harbor.service';
 import { ShippingService } from '../../services/shipping.service';
-import { aShip, aShippingSummary, someKnownHarbors } from '../../../../../testing/fixtures';
+import { aCargo, anAvailableCargo, aShip, aShippingSummary, someKnownHarbors } from '../../../../../testing/fixtures';
 
 describe('ShipDetailComponent (Release to a Destination Harbor)', () => {
   const ship = aShip();
@@ -183,5 +189,192 @@ describe('ShipDetailComponent (Release to a Destination Harbor)', () => {
     render([]);
     expect(byTestId('shipping-destination-harbors')).toBeNull();
     expect(byTestId('shipping-no-known-harbor')).not.toBeNull();
+  });
+});
+
+describe('ShipDetailComponent (Load Cargo by dragging it onto the ship)', () => {
+  const base = environment.baseUrl;
+  const ale = aCargo({ id: 'ale', name: 'Ale', weight: 2 });
+  const rum = anAvailableCargo({ id: 'rum', name: 'Rum', weight: 5.5, stock: 3 });
+  const gold = anAvailableCargo({ id: 'gold', name: 'Gold', weight: 1, stock: 4 });
+  // Background: a ship with a new Shipping (Ale already aboard) and Rum among the Available Cargo
+  const preparedShip = (): Ship => aShip({ cargo: [ale], weight: 2 });
+
+  let fixture: ComponentFixture<ShipDetailComponent>;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    const harborService = jasmine.createSpyObj<HarborService>('HarborService', ['getKnownHarbors']);
+    harborService.getKnownHarbors.and.returnValue(of(someKnownHarbors()));
+    TestBed.configureTestingModule({
+      imports: [ShipDetailComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: HarborService, useValue: harborService },
+        { provide: Router, useValue: jasmine.createSpyObj<Router>('Router', ['navigate']) },
+        { provide: Location, useValue: jasmine.createSpyObj<Location>('Location', ['back']) },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: aShip().id }) } } },
+      ],
+    });
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  function render(ship: Ship, available: AvailableCargo[]): void {
+    fixture = TestBed.createComponent(ShipDetailComponent);
+    fixture.detectChanges();
+    httpMock.expectOne(`${base}/ships/${ship.id}`).flush(ship);
+    fixture.detectChanges();
+    httpMock.expectOne(`${base}/cargos`).flush(available);
+    fixture.detectChanges();
+  }
+
+  /** The Available Cargo are fetched again after a load attempt. */
+  function refetchAvailable(available: AvailableCargo[]): void {
+    httpMock.expectOne(`${base}/cargos`).flush(available);
+    fixture.detectChanges();
+  }
+
+  const byTestId = (testId: string, root: ParentNode = fixture.nativeElement): HTMLElement | null =>
+    root.querySelector(`[data-testid="${testId}"]`);
+
+  const names = (testId: string): string[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`)).map((el: any) =>
+      el.querySelector('[data-testid="cargo-name"]').textContent.trim()
+    );
+
+  const loadedCargo = (): string[] => names('loaded-cargo');
+  const availableCargo = (): string[] => names('available-cargo');
+  const weightText = (): string => (byTestId('current-weight')?.textContent ?? '').replace(/\s+/g, ' ');
+  const stockOf = (name: string): string => {
+    const card = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="available-cargo"]')).find(
+      (el: any) => el.querySelector('[data-testid="cargo-name"]').textContent.trim() === name
+    ) as HTMLElement;
+    return card.querySelector('[data-testid="cargo-stock"]')!.textContent!.trim();
+  };
+
+  /** What CDK emits when a crate of the Available Cargo list is released over [dropTarget]. */
+  function dropRum(overShip: boolean): void {
+    const availableList = { id: 'available-cargo-list' };
+    const shipList = { id: 'ship-drop-list' };
+    const event = {
+      previousContainer: availableList,
+      container: overShip ? shipList : availableList,
+      item: { data: rum },
+    } as unknown as CdkDragDrop<any>;
+    fixture.componentInstance.onCargoDropped(event);
+    fixture.detectChanges();
+  }
+
+  afterEach(() => httpMock.verify());
+
+  it('Dragging Cargo onto the ship loads it', () => {
+    render(preparedShip(), [rum, gold]);
+    expect(stockOf('Rum')).toContain('3');
+
+    // When the User drags Rum onto the ship
+    dropRum(true);
+    const post = httpMock.expectOne(`${base}/ships/${aShip().id}/cargos`);
+    expect(post.request.method).toBe('POST');
+    expect(post.request.body).toEqual({ cargoId: 'rum' });
+    post.flush({ ...preparedShip(), cargo: [ale, rum], weight: 7.5 });
+    fixture.detectChanges();
+    // the Harbor's Stock changed, so the Available Cargo are fetched again (Rum: Stock 2)
+    refetchAvailable([gold, { ...rum, stock: 2 }]);
+
+    // Then Rum is among the Loaded Cargo, the Current Weight grew by 5.5 and the Stock shown is one lower
+    expect(loadedCargo()).toContain('Rum');
+    expect(weightText()).toMatch(/7\.5\s*\/\s*15/);
+  });
+
+  it('Cargo can be loaded without dragging', () => {
+    render(preparedShip(), [rum, gold]);
+
+    // When the User loads Rum using only the keyboard: a focusable button on Rum's card
+    const card = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="available-cargo"]')).find((el: any) =>
+      el.textContent.includes('Rum')
+    ) as HTMLElement;
+    const button = byTestId('load-cargo-button', card) as HTMLButtonElement;
+    expect(button.tagName).toBe('BUTTON');
+    expect(button.tabIndex).toBeGreaterThanOrEqual(0);
+    button.click();
+    const post = httpMock.expectOne(`${base}/ships/${aShip().id}/cargos`);
+    expect(post.request.body).toEqual({ cargoId: 'rum' });
+    post.flush({ ...preparedShip(), cargo: [ale, rum], weight: 7.5 });
+    fixture.detectChanges();
+    refetchAvailable([gold]);
+
+    // Then Rum is among the Loaded Cargo
+    expect(loadedCargo()).toContain('Rum');
+  });
+
+  it('Cargo dropped beside the ship is not loaded', () => {
+    render(preparedShip(), [rum, gold]);
+    expect(weightText()).toMatch(/2\s*\/\s*15/);
+
+    // When the User drags Rum and lets go beside the ship
+    dropRum(false);
+
+    // Then Rum is not among the Loaded Cargo and the Current Weight is unchanged
+    httpMock.expectNone(`${base}/ships/${aShip().id}/cargos`);
+    expect(loadedCargo()).toEqual(['Ale']);
+    expect(weightText()).toMatch(/2\s*\/\s*15/);
+    expect(availableCargo()).toContain('Rum');
+  });
+
+  describe('A rejected load is explained at the ship', () => {
+    const rows = [
+      {
+        situation: 'loading Rum would take the ship over its Max Weight',
+        title: 'Ship too heavy',
+        detail: 'Loading Rum would exceed the Max Weight of 15.0',
+        reason: 'Rum would exceed the Max Weight of 15.0',
+        ship: () => aShip({ cargo: [ale], weight: 12 }),
+        availableAfter: [rum, gold],
+        weight: /12\s*\/\s*15/,
+      },
+      {
+        situation: 'Rum is already among the Loaded Cargo',
+        title: 'Cargo already loaded',
+        detail: 'Rum is already loaded on the ship',
+        reason: 'Rum is already loaded',
+        ship: () => aShip({ cargo: [ale], weight: 2 }),
+        availableAfter: [rum, gold],
+        weight: /2\s*\/\s*15/,
+      },
+      {
+        situation: 'the Stock of Rum ran out after the Available Cargo was shown',
+        title: 'Cargo out of Stock',
+        detail: 'Rum is out of Stock',
+        reason: 'Rum is out of Stock',
+        ship: () => aShip({ cargo: [ale], weight: 2 }),
+        availableAfter: [gold],
+        weight: /2\s*\/\s*15/,
+      },
+    ];
+
+    for (const row of rows) {
+      it(`when ${row.situation}`, () => {
+        render(row.ship(), [rum, gold]);
+        expect(weightText()).toMatch(row.weight);
+
+        // When the User drags Rum onto the ship
+        dropRum(true);
+        httpMock
+          .expectOne(`${base}/ships/${aShip().id}/cargos`)
+          .flush({ title: row.title, status: 409, detail: row.detail }, { status: 409, statusText: 'Conflict' });
+        fixture.detectChanges();
+        refetchAvailable(row.availableAfter);
+
+        // Then the User is told, at the ship, that <reason>, and the Loaded Cargo is unchanged
+        const alert = byTestId('load-rejection', byTestId('ship-drop-zone')!);
+        expect(alert).not.toBeNull();
+        expect(alert!.getAttribute('role')).toBe('alert');
+        expect(alert!.textContent!.trim()).toBe(row.reason);
+        expect(loadedCargo()).toEqual(['Ale']);
+        expect(weightText()).toMatch(row.weight);
+        expect(availableCargo().includes('Rum')).toBe(row.availableAfter.includes(rum));
+      });
+    }
   });
 });
