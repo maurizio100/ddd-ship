@@ -19,7 +19,7 @@
   h1 {
     margin: 0;
     font-family: 'IM Fell English', serif;
-    font-size: 40px;
+    font-size: 48px;
     color: var(--hs-ink);
   }
 }
@@ -28,6 +28,7 @@
   margin: 0;
   font-family: 'IM Fell English', serif;
   font-style: italic;
+  font-size: 18px;
   color: var(--hs-muted);
 }
 
@@ -163,10 +164,4 @@
   margin: 0;
   font-style: italic;
   color: var(--hs-muted);
-}
-
-// The legacy global `p, a` rule in styles.css sets an unloaded font; this screen uses the theme's body font.
-.page p,
-.page a {
-  font-family: inherit;
 }
