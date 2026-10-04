@@ -59,3 +59,13 @@
   background-color: var(--hs-sand);
   color: var(--hs-ink);
 }
+
+.app-bar__harbor {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid var(--hs-brass);
+  border-radius: 999px;
+  font-family: 'Alegreya Sans', sans-serif;
+  font-size: 14px;
+  color: var(--hs-sand);
+}

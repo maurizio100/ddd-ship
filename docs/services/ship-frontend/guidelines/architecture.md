@@ -21,6 +21,9 @@ features/<feature>/
   <Feature>Routing.ts           the feature's routes
 ```
 
+Shell-level concerns that belong to no feature (such as the Harbor Name in the app bar) live in
+`src/app/core/`; features never import from it, and it imports only feature models.
+
 Features import from each other only through models and the store (providers, selectors,
 actions), never through another feature's components or services.
 
