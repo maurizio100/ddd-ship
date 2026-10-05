@@ -16,8 +16,7 @@ flowchart LR
         S3[("hexagonship-minio<br/>:9000 / console :9001")]
     end
     subgraph kafka["docker-compose-kafka.yml only"]
-        ZK["zookeeper :2181"]
-        K[["kafka"]]
+        K[["kafka<br/>KRaft, cp-kafka 8.0"]]
         CON["connect<br/>debezium/connect 3.0"]
         UI["kafka-ui"]
     end
@@ -25,7 +24,6 @@ flowchart LR
     BE --> S3
     CON --> DB
     CON --> K
-    ZK --- K
     UI --> K
 ```
 
@@ -34,7 +32,7 @@ flowchart LR
 | `docker-compose.yml` | frontend, backend, Postgres, MinIO | App only, no event publication. |
 | `docker-compose-app.yml` | the same, alternative volumes / bitnami MinIO | App variant. |
 | `docker-compose-harbor.yml` | frontend, backend, Postgres, MinIO for one Harbor, parameterised by `harbors/<slug>.env` | One Compose project per Harbor; needs Kafka running (7.4). |
-| `docker-compose-kafka.yml` | the app plus Zookeeper, Kafka, Kafka Connect (Debezium), Kafka UI | Full system incl. outbox → Kafka. Connectors are registered by hand from `kafka-connect/connectors/`. |
+| `docker-compose-kafka.yml` | the app plus Kafka (KRaft, no ZooKeeper), Kafka Connect (Debezium), Kafka UI | Full system incl. outbox → Kafka. Connectors are registered by hand from `kafka-connect/connectors/`. |
 
 The frontend's nginx proxies `/web` to the backend. The fleet-events stream (`/web/fleet-events`,
 [ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-sent-events.md)) has its own
