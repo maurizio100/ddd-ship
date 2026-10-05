@@ -37,7 +37,9 @@ Release → `shipping-published` via outbox/Kafka → Arrival at the Destination
 → HarborTerminal announces departures. Planned (harbor-economy, not built): Cargo has a **Price**, a
 Harbor holds **Savings** and buys at the **Market**, unloads **Incoming Ships** by hand paying the
 **Delivery Price** (or refuses them, sending them back to their **Home Harbor**), and ships carry
-**Earnings** home. Full model: `docs/domain/`.
+**Earnings** home. Planned (crew, not built): each ship has a **Ship Class** setting its Crew Capacity,
+and at its Home Harbor a User **Hires** **Recruits** from the Harbor's own **Recruit Pool** for a
+**Hiring Fee**; the **Crew** sails with the ship. Full model: `docs/domain/`.
 
 ## Where things live
 
