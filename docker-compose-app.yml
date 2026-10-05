@@ -65,14 +65,14 @@ services:
       - "wal_level=logical"
   minio:
     container_name: hexagonship-minio
-    image: bitnami/minio:latest
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5
     ports:
       - "9000:9000"
       - "9001:9001"
     networks:
       - ship-network
     volumes:
-      - "~/minio/data:/data"
+      - "~/minio/data:/bitnami/minio/data"
     environment:
       - MINIO_ROOT_USER=hexagonminio
       - MINIO_ROOT_PASSWORD=hexagonminio

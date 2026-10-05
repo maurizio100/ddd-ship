@@ -71,7 +71,7 @@ services:
   # never resolves to the other Harbor's MinIO.
   minio:
     container_name: ${HARBOR_SLUG:?HARBOR_SLUG is required}-minio
-    image: bitnami/minio:latest
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5
     ports:
       - "${MINIO_API_PORT:?MINIO_API_PORT is required}:9000"
       - "${MINIO_CONSOLE_PORT:?MINIO_CONSOLE_PORT is required}:9001"
