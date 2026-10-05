@@ -9,6 +9,7 @@ including the "Catain" spelling. Identity is carried by UUID value objects (`Shi
 `ShippingId`, `CatainId`); persistence entities additionally have a numeric surrogate key. Per
 [ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md), the UUID `ShipId` is the
 ship's identity across all Harbors and travels in events; the surrogate key never leaves its Harbor.
+Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): a Crew Member's UUID identity works the same way.
 
 ## 8.2 Persistence
 
@@ -19,6 +20,7 @@ ship's identity across all Harbors and travels in events; the surrogate key neve
 - Each Harbor's **Stock** lives in its own database, in `stocks` (one row per catalog Cargo). `V7__stocks.sql` seeds the Starting Stock (3 of every Cargo); Flyway applies it once per database, i.e. when the Harbor opens for the first time. The Stock is changed only through `StockRepositoryPort`, inside the caller's transaction, and never drops below 0 (a conditional `UPDATE … WHERE stock_quantity > 0` backed by a `CHECK` constraint). It is not published.
 - Each Harbor also has an inbox of consumed event ids in `inbox_events` (`V5`, [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and its Known Harbors in `known_harbors` (`V6`, [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
 - **Money** (decided, not built, EPIC-003, [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): dollars to two decimals, an exact decimal in the domain, `NUMERIC(…, 2)` in PostgreSQL and a decimal string in event JSON, never a binary float. Each Harbor's **Savings** (Starting Savings 1000.00 $) change only through a port inside the caller's transaction and never drop below 0, like the Stock. **Prices** are seeded identically at every Harbor, like the catalog. A ship's Earnings and Home Harbor are stored with the ship and travel in `shipping-published`.
+- **Crew** (decided, not built, [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): each Harbor's **Recruit Pool** is runtime data filled at that Harbor, not a migration seed, and differs between Harbors by design — the one exception to identical seeds; the Cargo catalog, Catain roster and Prices keep that rule. A ship's Crew is stored with the ship, travels in `shipping-published`, and is replaced, not merged, when the ship arrives. The **Hiring Fee** follows the Money rules above.
 
 ## 8.3 Transactions and event publication
 
@@ -40,6 +42,10 @@ Decided, not built (EPIC-003, [ADR-0007](../adr/0007-unload-incoming-ships-manua
 the Market are REST-driven transactions that change the Stock and the Savings together; a refusal
 writes the return `shipping-published` outbox row in the same transaction. Crediting Earnings at the
 Home Harbor happens inside the Arrival's inbox transaction.
+
+Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): Hiring a Recruit is a REST-driven transaction that takes the Hiring Fee from
+the Savings and adds the Crew Member together (6.8). Storing an arriving ship's Crew happens inside the
+Arrival's inbox transaction.
 
 Pushes to the browser (the fleet-events stream, 8.7) happen only after commit: the domain announces a
 fleet change through the driven port `FleetEventsPort` inside its transaction, and the SSE adapter

@@ -138,6 +138,13 @@ places; everything else above stays, including `ship-arrived` in the same transa
   Savings and the ship's Earnings become zero, in the same inbox transaction, so a redelivered event
   credits nothing twice.
 
+### Decided, not built yet: the Crew sails with the ship
+
+Per [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md), `shipping-published` (6.3) also carries the ship's Crew in full, and the Destination
+transaction takes the ship into the fleet with that Crew aboard, replacing any Crew still stored for a
+returning ship. The Crew never joins this Harbor's Recruit Pool. A Refused Delivery (6.7) takes the
+Crew home the same way.
+
 ## 6.5 Harbor startup and discovery
 
 Per [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md). Built by STORY-003.
@@ -235,5 +242,29 @@ sequenceDiagram
 
 At its Home Harbor an unloaded ship's Earnings go into the Savings at once. Open: what happens when a
 ship's own Home Harbor refuses it (R-12).
+
+## 6.8 Hire a Recruit (decided, not built yet)
+
+Per [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md). REST-driven, in one DB transaction at the ship's Home Harbor. The Recruit Pool is this
+Harbor's own; how it is filled is left to the stories.
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant FE as ship-frontend
+    participant BE as ship-backend
+    participant DB as PostgreSQL
+    U->>FE: Hire a Recruit for a ship being prepared
+    FE->>BE: hire Recruit onto ship
+    rect rgb(240,240,240)
+    Note over BE,DB: one DB transaction
+    BE->>BE: check Home Harbor, Shipping being prepared, Crew below Crew Capacity
+    BE->>DB: take the Hiring Fee from the Savings (refused if they fall short, nothing written)
+    BE->>DB: Recruit leaves the Recruit Pool and joins the ship's Crew as a Crew Member
+    end
+    BE-->>FE: ship with its Crew
+```
+
+Nothing is published: the Crew leaves the Harbor only with the ship, in `shipping-published`.
 
 > TODO: error scenarios (Debezium down, consumer offline) once the quality scenarios in chapter 10 are set.
