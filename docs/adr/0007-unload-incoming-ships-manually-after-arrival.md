@@ -40,13 +40,16 @@ its Cargo aboard, through the outbox as an ordinary Shipping Published.
   be distinguished from a ship that is simply idle.
 - Shipping Published must carry the ship's Home Harbor so any Harbor can send a refused ship back.
 - A Refused Delivery is a voyage no User Released; it repeats the return-trip ordering of R-10, and
-  a ship refused by its own Home Harbor has nowhere to go (open, see below).
+  a ship refused by its own Home Harbor has nowhere to go (resolved, see below).
 - Incoming Ships wait for a User indefinitely; nothing unloads or refuses them on a timer.
 
 ### Neutral
 - The new harbor management page in ship-frontend lists Incoming Ships; it needs a push similar to
   ADR-0006, or refetches on the existing `ship-arrived` SSE event.
-- Open: what happens when a ship's Home Harbor refuses its Cargo.
+- Resolved 2026-10-07 (STORY-028): a ship refused by its own Home Harbor does not sail; it stays in
+  that fleet as an ordinary ship with its Cargo aboard and nothing is paid. That Cargo cannot be
+  unloaded into the Home Harbor's Stock while preparing, so it can only reach a Stock through another
+  Harbor that pays the Delivery Price; the ship must remember which of its Cargo was refused.
 
 ## Alternatives considered
 - **Keep Unloading on Arrival automatic and charge automatically**: Rejected because the Harbor

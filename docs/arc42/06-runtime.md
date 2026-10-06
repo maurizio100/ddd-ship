@@ -240,8 +240,9 @@ sequenceDiagram
     end
 ```
 
-At its Home Harbor an unloaded ship's Earnings go into the Savings at once. Open: what happens when a
-ship's own Home Harbor refuses it (R-12).
+At its Home Harbor an unloaded ship's Earnings go into the Savings at once. A ship its own Home
+Harbor refuses does not sail: it stays in the fleet as an ordinary ship with its Cargo aboard,
+nothing is paid, and that Cargo cannot be unloaded into the Stock while preparing (R-12, STORY-028).
 
 ## 6.8 Hire a Recruit (decided, not built yet)
 
