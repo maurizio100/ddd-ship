@@ -41,8 +41,10 @@ string in event JSON, never a binary float.
 
 ### Neutral
 - A ship at its Home Harbor that is paid a Delivery Price there has its Earnings credited at once.
-- Prices are fixed and seeded identically at every Harbor for now; per-Harbor Prices announced to
-  other Harbors would need their own decision.
+- Prices are per Harbor: each Harbor rolls a whole-dollar Price between 30.00 $ and 60.00 $ for every
+  Cargo once, when it first opens, and keeps it (changed 2026-10-07, STORY-024; originally identical
+  at every Harbor). A Delivery Price uses the paying Harbor's Prices, so Earnings are worth what that
+  Harbor paid. Prices are not announced to other Harbors; doing so would need its own decision.
 
 ## Alternatives considered
 - **A settlement event from the paying Harbor straight to the Home Harbor**: Rejected because it adds
