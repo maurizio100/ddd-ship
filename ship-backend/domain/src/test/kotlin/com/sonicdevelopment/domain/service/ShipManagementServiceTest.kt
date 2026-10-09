@@ -20,7 +20,7 @@ class ShipManagementServiceTest {
 
     private val ships = mockk<ShipRepositoryPort>()
     private val catains = mockk<CatainRepository>()
-    private val service = ShipManagementService(ships, catains)
+    private val service = ShipManagementService(ships, catains, HarborName("Port Royal"))
 
     private val whiskers = Catain(CatainId(UUID.randomUUID()), "Whiskers", CatainImageId("whiskers"))
 
@@ -38,6 +38,7 @@ class ShipManagementServiceTest {
             name = "Black Pearl",
             catainId = whiskers.catainId,
             catainName = whiskers.catainName,
+            homeHarbor = HarborName("Isla de Muerta"),
             arrivedFrom = HarborName("Tortuga"),
         )
         every { ships.getShipDetails(arrived.id) } returns arrived
@@ -47,5 +48,31 @@ class ShipManagementServiceTest {
         saved.last().shipName shouldBe "Wicked Wench"
         saved.last().arrivedFrom shouldBe HarborName("Tortuga")
         renamed!!.arrivedFrom shouldBe "Tortuga"
+    }
+
+    @Test
+    fun `a ship registered here has this Harbor as its Home Harbor, and a rename keeps the loaded one`() {
+        val saved = mutableListOf<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+        every { catains.findCatainById(whiskers.catainId) } returns whiskers
+
+        val created = service.createShip(ShipCreationDataDTO(name = "Interceptor", catainId = whiskers.catainId))
+
+        saved.single().homeHarbor shouldBe HarborName("Port Royal")
+        created.homeHarbor shouldBe "Port Royal"
+
+        val arrived = Ship(
+            name = "Black Pearl",
+            catainId = whiskers.catainId,
+            catainName = whiskers.catainName,
+            homeHarbor = HarborName("Tortuga"),
+            arrivedFrom = HarborName("Tortuga"),
+        )
+        every { ships.getShipDetails(arrived.id) } returns arrived
+
+        val renamed = service.updateShip(arrived.id, ShipUpdateDataDTO(name = "Wicked Wench"))
+
+        saved.last().homeHarbor shouldBe HarborName("Tortuga")
+        renamed!!.homeHarbor shouldBe "Tortuga"
     }
 }

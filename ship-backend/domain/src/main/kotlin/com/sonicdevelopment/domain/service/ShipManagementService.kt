@@ -2,6 +2,7 @@ package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.converter.ShipConverter
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.CatainRepository
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
@@ -15,14 +16,15 @@ import org.springframework.stereotype.Service
 @Service
 class ShipManagementService(
     private val shipRepositoryPort: ShipRepositoryPort,
-    private val catainRepository: CatainRepository
+    private val catainRepository: CatainRepository,
+    private val currentHarbor: HarborName,
 ): ShipManagementPort {
 
     override fun createShip(shipCreationData: ShipCreationDataDTO): ShipDTO {
         val catain = catainRepository.findCatainById(shipCreationData.catainId)
             ?: throw IllegalStateException("cannot find catain with id ${shipCreationData.catainId}")
 
-        val ship = Ship(name = shipCreationData.name, catainId = shipCreationData.catainId, catainName = catain.catainName)
+        val ship = Ship(name = shipCreationData.name, catainId = shipCreationData.catainId, catainName = catain.catainName, homeHarbor = currentHarbor)
         shipRepositoryPort.saveNewShip(fromShip(ship))
 
         return ShipConverter.toShipDTO(ship)

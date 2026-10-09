@@ -50,6 +50,7 @@ class ShippingEventListener(
             cargoIds = event.shippingEventData.cargo.map { CargoId(it.cargoId) },
             originHarbor = toHarborName(event.shippingEventData.originHarbor),
             destinationHarbor = toHarborName(event.shippingEventData.destinationHarbor),
+            homeHarbor = toHarborName(event.shipEventData.homeHarbor),
         )
 
     private fun toShipArrivedDTO(event: ShipArrivedInboundEvent) =

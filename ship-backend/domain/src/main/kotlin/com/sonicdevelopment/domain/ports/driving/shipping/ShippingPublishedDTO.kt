@@ -9,6 +9,7 @@ import com.sonicdevelopment.domain.model.values.ShippingId
 /**
  * A Shipping Published as another Harbor (or this one) Released it: the ship, its Catain, its Loaded
  * Cargo and where it sails from and to. Both Harbors are `null` for events published before STORY-005.
+ * [homeHarbor] is the ship's Home Harbor; `null` for events from Harbors that predate STORY-027.
  */
 data class ShippingPublishedDTO(
     val shipId: ShipId,
@@ -18,4 +19,5 @@ data class ShippingPublishedDTO(
     val cargoIds: List<CargoId>,
     val originHarbor: HarborName?,
     val destinationHarbor: HarborName?,
+    val homeHarbor: HarborName? = null,
 )

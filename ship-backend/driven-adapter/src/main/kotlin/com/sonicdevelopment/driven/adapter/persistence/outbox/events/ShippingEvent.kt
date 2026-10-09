@@ -14,7 +14,9 @@ data class ShippingEvent @JsonCreator constructor(
 
     data class ShipEventData @JsonCreator constructor(
         @JsonProperty("shipId") val shipId: UUID,
-        @JsonProperty("shipName") val shipName: String
+        @JsonProperty("shipName") val shipName: String,
+        /** The Harbor where the ship was registered; it travels with the ship from Harbor to Harbor. */
+        @JsonProperty("homeHarbor") val homeHarbor: String
     ) : Serializable
 
     data class CatainEventData @JsonCreator constructor(

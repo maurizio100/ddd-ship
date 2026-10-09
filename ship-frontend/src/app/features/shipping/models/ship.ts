@@ -8,6 +8,8 @@ export interface Ship {
   weight: number;
   maxweight: number;
   shippingState: ShippingState | null;
+  /** The Harbor where the ship was registered; never changes. */
+  homeHarbor: string;
   /** The Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here. */
   arrivedFrom: string | null;
 }

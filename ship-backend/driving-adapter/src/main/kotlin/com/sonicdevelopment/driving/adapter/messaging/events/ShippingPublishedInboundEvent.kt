@@ -11,7 +11,8 @@ data class ShippingPublishedInboundEvent(
     val catain: CatainEventData,
     val shippingEventData: ShippingEventData,
 ) {
-    data class ShipEventData(val shipId: UUID, val shipName: String)
+    /** [homeHarbor] is missing in events from Harbors that do not send it yet. */
+    data class ShipEventData(val shipId: UUID, val shipName: String, val homeHarbor: String? = null)
 
     data class CatainEventData(val catainId: UUID)
 

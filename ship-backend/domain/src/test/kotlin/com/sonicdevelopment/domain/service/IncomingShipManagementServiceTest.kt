@@ -139,6 +139,7 @@ class IncomingShipManagementServiceTest {
         name = "Salty Whisker",
         catainId = CatainId(UUID.randomUUID()),
         catainName = "Furry Jones",
+        homeHarbor = HarborName("Port Royal"),
         arrivedFrom = HarborName("Tortuga"),
         cargoAboard = cargoAboard,
         incoming = incoming,

@@ -44,8 +44,9 @@ flowchart LR
 |---|---|---|
 | Other Harbors | `harbor-opened`, `shipping-published` addressed to this Harbor, `ship-arrived` for ships it Released | the same three events, for the other Harbors |
 
-Decided, not built yet (EPIC-003): `shipping-published` gains how many of each Cargo is aboard, the
-ship's Home Harbor and its Earnings ([ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)). A
+`shipping-published` carries the ship's Home Harbor (`shipEventData.homeHarbor`). Decided, not built yet
+(EPIC-003): it gains how many of each Cargo is aboard and the ship's Earnings
+([ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)). A
 ship whose delivery is refused sails back to its Home Harbor as an ordinary `shipping-published`
 ([ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md)). No payment event exists:
 money moves between Harbors only with the ship.

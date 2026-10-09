@@ -29,6 +29,10 @@ class ShipPersistenceEntity(
     @Column(name = "ship_arrived_from")
     var arrivedFrom: String? = null,
 
+    /** The Harbor where the ship was registered; never changes. */
+    @Column(name = "ship_home_harbor")
+    var homeHarbor: String,
+
     /** Whether the ship is an Incoming Ship; its Cargo aboard is in `ships_cargos_aboard`. */
     @Column(name = "ship_incoming")
     var incoming: Boolean = false

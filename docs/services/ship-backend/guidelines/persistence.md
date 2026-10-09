@@ -11,6 +11,10 @@
   every Harbor (`V9__same_reference_ids_at_every_harbor.sql`), and unique (`uq_cargos_cargo_id`,
   `uq_catains_catain_id`): an arriving ship names its Catain and Loaded Cargo by id. Never seed them
   with `gen_random_uuid()` or any other random value.
+- A migration that needs this Harbor's name uses the Flyway placeholder `${harbor_name}` (set from
+  `harbor.name`), dollar-quoted so a quote in the name cannot break the statement. Flyway does not
+  replace a placeholder directly after a `$`, so write `substr($harbor$ ${harbor_name}$harbor$, 2)`.
+  Every test that builds `Flyway.configure()` by hand passes `harbor_name` in `placeholders(...)`.
 
 ## Tables and columns
 
@@ -77,6 +81,8 @@
   last took the ship into this fleet. It is written only by `saveNewShip`, from the ship's `arrivedFrom`,
   so it is `NULL` for a registered ship, kept by a rename, and overwritten by each Arrival that takes
   effect. It is never derived from `arrivals`, which may hold an Arrival that was skipped.
+- `ships.ship_home_harbor` (NOT NULL) holds the ship's Home Harbor. It is written only by `saveNewShip`,
+  from the ship's `homeHarbor`, and never derived or changed in SQL; V17 backfilled existing rows.
 - `removeFromFleet` runs in the caller's transaction (`Propagation.MANDATORY`), together with the inbox
   record and the Shipping going `DONE`.
 - Clearing an Incoming Ship is one conditional `UPDATE ships … WHERE ship_in_fleet AND ship_incoming`,

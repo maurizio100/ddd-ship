@@ -3,6 +3,8 @@ export interface Ship {
   name: string;
   catain: string;
   shippingState: ShippingState | null;
+  /** The Harbor where the ship was registered; never changes. */
+  homeHarbor: string;
   /** The Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here. */
   arrivedFrom: string | null;
   /** True for a ship that arrived with Cargo aboard and must be unloaded or refused first. */

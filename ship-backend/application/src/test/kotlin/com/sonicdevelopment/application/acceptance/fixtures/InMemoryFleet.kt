@@ -28,6 +28,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         val catainId: CatainId,
         val inFleet: Boolean,
         val arrivedFrom: HarborName?,
+        val homeHarbor: HarborName,
         val cargoAboard: List<Cargo>,
         val incoming: Boolean,
     )
@@ -55,7 +56,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         catains.findCatainById(ship.catainId) ?: throw IllegalStateException("Unknown Catain ${ship.catainId}")
         // like the adapter, a save replaces the Cargo aboard and the Incoming flag
         ships[ship.shipId] = ShipRecord(
-            ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom,
+            ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom, ship.homeHarbor,
             ship.cargoAboard.map { Cargo(it.id, it.name, it.weight) }, ship.incoming,
         )
     }
@@ -145,6 +146,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
             name = record.shipName,
             catainId = record.catainId,
             catainName = catain.catainName,
+            homeHarbor = record.homeHarbor,
             arrivedFrom = record.arrivedFrom,
             activeShipping = active?.let {
                 Shipping(it.shippingId, it.quote, it.state, it.destinationHarbor)

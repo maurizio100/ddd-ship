@@ -14,6 +14,7 @@ object ShipConverter {
             catain = ship.catainName,
             shippingState = ship.shippingState(),
             arrivedFrom = ship.arrivedFrom?.name,
+            homeHarbor = ship.homeHarbor.name,
             incoming = ship.isIncoming
         )
 
@@ -24,7 +25,8 @@ object ShipConverter {
             cargo = ship.loadedCargo.map { toCargoDTO(it) },
             actualWeight = ship.weight,
             maxWeight = ship.maxWeight,
-            arrivedFrom = ship.arrivedFrom?.name
+            arrivedFrom = ship.arrivedFrom?.name,
+            homeHarbor = ship.homeHarbor.name,
         )
 
     private fun toCargoDTO(cargo: Cargo) =

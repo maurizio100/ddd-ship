@@ -25,6 +25,7 @@ class SseFleetEventsAdapterTest {
         name = "Black Pearl",
         catainId = CatainId(UUID.randomUUID()),
         catainName = "Whiskers",
+        homeHarbor = HarborName("Port Royal"),
     )
     private val arrived = ShipArrivedFleetEvent(blackPearl.id.id, "Black Pearl", "Tortuga")
 

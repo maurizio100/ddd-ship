@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.cargo
 import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort.CargoLoadInformation
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
 import com.sonicdevelopment.driven.adapter.PostgresTestcontainer
@@ -132,7 +133,7 @@ class CargoPersistenceAdapterTest {
 
     private fun aShipBeingPrepared(): Ship {
         val catainId = jdbcTemplate.queryForObject("SELECT catain_id FROM catains ORDER BY id LIMIT 1", UUID::class.java)!!
-        val ship = Ship(name = "Black Pearl", catainId = CatainId(catainId), catainName = "Furry Jones")
+        val ship = Ship(name = "Black Pearl", catainId = CatainId(catainId), catainName = "Furry Jones", homeHarbor = HarborName("Port Royal"))
         ships.saveNewShip(InitialShipInformation.fromShip(ship))
         ship.createNewShipping()
         shippings.createShipping(ship)

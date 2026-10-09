@@ -18,12 +18,13 @@ interface ShipRepositoryPort {
         val shipName: String,
         val catainId: CatainId,
         val arrivedFrom: HarborName?,
+        val homeHarbor: HarborName,
         val cargoAboard: List<Cargo>,
         val incoming: Boolean,
     ) {
         companion object {
             fun fromShip(ship: Ship) = InitialShipInformation(
-                ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom, ship.cargoAboard, ship.isIncoming
+                ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom, ship.homeHarbor, ship.cargoAboard, ship.isIncoming
             )
         }
     }

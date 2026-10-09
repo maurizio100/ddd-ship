@@ -47,6 +47,10 @@
           </div>
           <h2 class="ship-name" data-testid="ship-name">{{ ship.name }}</h2>
           <p class="under" data-testid="ship-catain-name">under {{ ship.catain }}</p>
+          <p class="home-harbor" data-testid="ship-home-harbor">
+            <mat-icon fontIcon="home" aria-hidden="true"></mat-icon>
+            Home Harbor {{ ship.homeHarbor }}
+          </p>
           @if (ship.arrivedFrom) {
             <p class="arrived-from" data-testid="ship-arrived-from">
               <mat-icon fontIcon="anchor" aria-hidden="true"></mat-icon>

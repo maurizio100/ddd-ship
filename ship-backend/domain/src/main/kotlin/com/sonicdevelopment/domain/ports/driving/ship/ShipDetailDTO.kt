@@ -9,6 +9,8 @@ data class ShipDetailDTO(
     val cargo: List<CargoDTO>,
     val actualWeight: Float,
     val maxWeight: Float,
-    val arrivedFrom: String? = null
+    val arrivedFrom: String? = null,
+    /** The Harbor where the ship was registered; never changes. */
+    val homeHarbor: String,
 ) {
 }

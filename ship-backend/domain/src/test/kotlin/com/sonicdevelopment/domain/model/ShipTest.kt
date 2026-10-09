@@ -235,6 +235,7 @@ class ShipTest {
         name = "Salty Whisker",
         catainId = CatainId(UUID.randomUUID()),
         catainName = "Furry Jones",
+        homeHarbor = HarborName("Port Royal"),
         cargoAboard = cargoAboard,
         incoming = incoming,
     )
