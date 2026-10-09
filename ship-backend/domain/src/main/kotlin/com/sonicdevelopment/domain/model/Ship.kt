@@ -23,7 +23,12 @@ class Ship(
     private val cargoLoad: MutableList<Cargo> = mutableListOf(),
     cargoAboard: List<Cargo> = emptyList(),
     incoming: Boolean = false,
+    earnings: Money = Money.dollars(0),
 ) {
+
+    /** The Earnings the ship carries until it reaches its Home Harbor. */
+    var earnings: Money = earnings
+        private set
 
     /**
      * The Cargo aboard, one entry per Cargo instance; separate from the Loaded Cargo of an Active Shipping. It
