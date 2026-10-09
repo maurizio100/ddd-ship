@@ -1,5 +1,6 @@
 package com.sonicdevelopment.application.acceptance
 
+import com.sonicdevelopment.application.DbTest
 import com.sonicdevelopment.application.PostgresTestcontainer
 import com.sonicdevelopment.application.acceptance.fixtures.STARTING_STOCK
 import com.sonicdevelopment.application.acceptance.fixtures.aShipBeingPrepared
@@ -33,6 +34,7 @@ import java.util.*
  *
  * The Stock is observed the way the User sees it: through the Available Cargo (`GET /web/cargos`).
  */
+@DbTest
 class EachHarborKeepsItsOwnStockAcceptanceTest {
 
     @Nested

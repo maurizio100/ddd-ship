@@ -1,7 +1,8 @@
 # ship-frontend — testing
 
 **Run:** `cd ship-frontend && npm test -- --watch=false --browsers=ChromeHeadless`
-(plain `npm test` watches).
+(plain `npm test` watches). The specs run in CI (`.github/workflows/test.yml`) on every pull
+request and push to `main`.
 
 Karma + Jasmine through the Angular CLI. A spec sits next to the file it tests, as `<file>.spec.ts`.
 

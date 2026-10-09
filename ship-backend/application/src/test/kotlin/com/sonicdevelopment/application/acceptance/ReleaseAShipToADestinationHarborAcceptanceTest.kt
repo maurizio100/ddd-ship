@@ -1,5 +1,6 @@
 package com.sonicdevelopment.application.acceptance
 
+import com.sonicdevelopment.application.DbTest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonicdevelopment.application.PostgresTestcontainer
 import com.sonicdevelopment.application.acceptance.fixtures.aShipBeingPrepared
@@ -36,6 +37,7 @@ import java.util.*
         "spring.kafka.listener.auto-startup=false",
     ]
 )
+@DbTest
 class ReleaseAShipToADestinationHarborAcceptanceTest {
 
     @Autowired

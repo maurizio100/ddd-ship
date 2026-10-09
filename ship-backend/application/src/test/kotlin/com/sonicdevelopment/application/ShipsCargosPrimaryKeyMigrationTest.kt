@@ -13,6 +13,7 @@ import javax.sql.DataSource
  * patched by hand with `REPLICA IDENTITY FULL` on `ships_cargos`. Giving `ships_cargos` its primary key
  * must migrate both kinds of database and leave them like a fresh one.
  */
+@DbTest
 class ShipsCargosPrimaryKeyMigrationTest {
 
     private val postgres = PostgresTestcontainer().postgresContainer().also { it.start() }

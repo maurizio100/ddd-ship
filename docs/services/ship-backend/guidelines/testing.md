@@ -1,6 +1,7 @@
 # ship-backend — testing
 
-**Run:** `cd ship-backend && ./mvnw verify`
+**Run:** `cd ship-backend && ./mvnw verify` (no Docker needed), and
+`./mvnw verify -Pdb` for the whole suite including the tests that need Docker.
 
 Test dependencies (JUnit 5, Kotest assertions, MockK, springmockk, Testcontainers, `spring-boot-starter-test`)
 are managed in the parent `pom.xml` and declared with `test` scope in the module that uses them.
@@ -13,10 +14,21 @@ are managed in the parent `pom.xml` and declared with `test` scope in the module
 | Driving adapter | `driving-adapter/src/test/kotlin` | one controller against a mocked driving port: status, JSON shape, Problem Details | `@WebMvcTest` + `@MockkBean` (springmockk) |
 | Driven adapter | `driven-adapter/src/test/kotlin` | one port adapter against real Postgres (Flyway schema) | `@DataJpaTest` + Testcontainers PostgreSQL |
 | Acceptance | `application/src/test/kotlin/com/sonicdevelopment/application/acceptance` | each Gherkin scenario of a story, over HTTP against the running app | `@SpringBootTest(webEnvironment = RANDOM_PORT)` + Testcontainers PostgreSQL (+ MinIO when needed) |
-| Integration (outbox → Kafka) | the `integration-test` module | Release → outbox row → Debezium → topic | Testcontainers Postgres, Kafka, Debezium |
 
 Every behavioural story has acceptance tests, and every rule it adds or changes has a domain unit
 test. Adapter tests are written when the story touches that adapter.
+
+## The `db` profile
+
+Any test that needs Docker (a Testcontainer) must carry `@DbTest`, the meta-annotation for
+`@Tag("db")` that exists in the test sources of `driven-adapter` and `application`. The parent `pom.xml`
+makes surefire exclude the `db` group by default; `-Pdb` lifts the exclusion. A test that starts a
+container without the tag breaks the Docker-free default build.
+
+Tagged today: every `driven-adapter` repository adapter test, the `application` acceptance tests,
+`ShipBackendStartupTest`, `ShipsCargosPrimaryKeyMigrationTest`, `FleetEventsAfterCommitIntegrationTest`
+and `ReferenceDataIdsTest`. Tagging an outer class covers its `@Nested` classes. CI
+(`.github/workflows/test.yml`) runs `./mvnw verify -Pdb` on every pull request and push to `main`.
 
 ## Acceptance tests
 

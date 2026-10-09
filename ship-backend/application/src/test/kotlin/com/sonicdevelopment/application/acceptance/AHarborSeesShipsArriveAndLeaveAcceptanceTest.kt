@@ -1,5 +1,6 @@
 package com.sonicdevelopment.application.acceptance
 
+import com.sonicdevelopment.application.DbTest
 import com.sonicdevelopment.application.KafkaTestcontainer
 import com.sonicdevelopment.application.PostgresTestcontainer
 import com.sonicdevelopment.application.acceptance.fixtures.FleetEvent
@@ -40,6 +41,7 @@ import java.util.*
  * change. Arrivals and Ship Arrived are simulated by producing the records Debezium would relay from the
  * other Harbor's outbox.
  */
+@DbTest
 class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
 
     @Nested

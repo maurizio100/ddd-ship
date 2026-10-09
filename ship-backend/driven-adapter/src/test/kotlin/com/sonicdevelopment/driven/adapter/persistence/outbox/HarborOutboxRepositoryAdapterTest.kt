@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driven.adapter.persistence.outbox
 
+import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.driven.adapter.PostgresTestcontainer
 import io.kotest.matchers.collections.shouldHaveSize
@@ -17,6 +18,7 @@ import java.util.*
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(PostgresTestcontainer::class, HarborOutboxRepositoryAdapter::class)
+@DbTest
 class HarborOutboxRepositoryAdapterTest {
 
     @Autowired

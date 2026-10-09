@@ -1,5 +1,6 @@
 package com.sonicdevelopment.application.acceptance
 
+import com.sonicdevelopment.application.DbTest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonicdevelopment.application.KafkaTestcontainer
 import com.sonicdevelopment.application.PostgresTestcontainer
@@ -35,6 +36,7 @@ import java.util.*
  * relay from Tortuga's outbox. "Arrives" means the Harbor has consumed it (its event id is in the
  * inbox). The seeded Catain "Catain Black Whiskers" stands in for "Whiskers".
  */
+@DbTest
 class ShipArrivesAtItsDestinationHarborAcceptanceTest {
 
     @Nested

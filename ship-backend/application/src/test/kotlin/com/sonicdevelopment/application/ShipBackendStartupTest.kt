@@ -26,6 +26,7 @@ import java.util.*
     ]
 )
 @Import(PostgresTestcontainer::class)
+@DbTest
 class ShipBackendStartupTest {
 
     @Autowired
