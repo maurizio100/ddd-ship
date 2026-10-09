@@ -4,6 +4,7 @@ import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.cargo.AvailableCargoDTO
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoInformationPort
+import com.sonicdevelopment.domain.ports.driving.cargo.StockedCargoDTO
 import org.springframework.stereotype.Service
 
 @Service
@@ -22,6 +23,14 @@ class CargoInformationService(
             } else {
                 null
             }
+        }
+    }
+
+    /** The Stock overview: every catalog Cargo, in catalog order, with its Stock, Cargo at 0 included. */
+    override fun getStockOverview(): List<StockedCargoDTO> {
+        val stock = stockRepositoryPort.getStock()
+        return cargoQueryPort.findAllCargo().map { cargo ->
+            StockedCargoDTO(id = cargo.id, name = cargo.name, quantity = stock[cargo.id] ?: 0)
         }
     }
 }

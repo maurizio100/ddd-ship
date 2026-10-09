@@ -13,6 +13,7 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 ## Behaviour
 - Each Harbor keeps its own Stock: how many of each Cargo it has on hand. A Harbor starts with its Starting Stock (3 of every Cargo, the same at every Harbor), seeded once when it opens for the first time (`V7__stocks.sql`).
 - List the Available Cargo: the catalog Cargo (seeded by `V2__cargos.sql`) whose Stock at this Harbor is above 0, each with its Stock (`CargoInformationService`).
+- The Harbor's Stock overview lists the whole catalog with each Cargo's Stock, Cargo at 0 included (`GET /web/stock`, shown on the harbor management page). *Introduced by STORY-023.*
 - Load Cargo onto a ship, the same Cargo more than once included: rejected if the ship would exceed its Max Weight of 15.0, applied to the summed Weight of everything aboard (`ShipTooHeavyException`) — `Ship.addCargo` — or if the Harbor's Stock holds none of it (`CargoOutOfStockException`). A successful load takes one out of the Stock. A rejected load changes neither the ship nor the Stock and is answered with `409`. *Modified by STORY-022.*
 - Unload Cargo while preparing; if it was on board, the ship's Current Weight drops by the Cargo's Weight, never below 0 (`Ship.removeCargo`), and one is put back into the Stock. Unloading Cargo that isn't on board changes nothing.
 - The Current Weight against the Max Weight is shown while preparing a shipping ("Current Weight: x / 15").
@@ -39,6 +40,7 @@ _No entries yet._
 
 ### Value objects
 - **AvailableCargoDTO** — a catalog Cargo that can be loaded here, with its Stock (always above 0). Driving-port DTO of `CargoInformationPort`. *Introduced by STORY-004.*
+- **StockedCargoDTO** — a catalog Cargo with its Stock (0 allowed). Driving-port DTO of `CargoInformationPort.getStockOverview`. *Introduced by STORY-023.*
 - **CargoOutOfStockException** — the rule violation "the Harbor's Stock holds none of this Cargo". *Introduced by STORY-004.*
 
 ### Domain services

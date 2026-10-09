@@ -1,0 +1,16 @@
+<div class="page">
+  <header class="page-header">
+    <p class="kicker">What the hold can spare</p>
+    <h1>Stock</h1>
+  </header>
+
+  <ul class="crates" aria-label="Stock">
+    @for (cargo of stock(); track cargo.cargoId) {
+      <li class="crate" data-testid="harbor-stock-row">
+        <img class="crate__picture" [src]="'/cargo/' + (cargo.name | lowercase) + '.jpg'" alt="" />
+        <span class="crate__name" data-testid="harbor-stock-cargo-name">{{ cargo.name }}</span>
+        <span class="crate__stock"><span data-testid="harbor-stock-quantity">{{ cargo.quantity }}</span> in stock</span>
+      </li>
+    }
+  </ul>
+</div>
