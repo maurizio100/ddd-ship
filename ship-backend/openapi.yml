@@ -160,6 +160,14 @@ paths:
                 $ref: '#/components/schemas/ShipDetailResponse'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            The Cargo is aboard but was refused by this Harbor, the ship's Home Harbor (title "Refused Cargo"):
+            it can only be delivered to another Harbor. Nothing changes.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /web/ships/{shipId}/shippings/{shippingId}:
     parameters:
@@ -223,7 +231,8 @@ paths:
       summary: Release a shipping to a Destination Harbor
       description: >-
         Releases the ship's Shipping to the Destination Harbor, which must be one of this Harbor's Known
-        Harbors (`GET /web/harbors`). The Shipping Published event names this Harbor as Origin Harbor.
+        Harbors (`GET /web/harbors`). The Shipping Published event names this Harbor as Origin Harbor. Cargo
+        aboard the ship (refused by this Harbor, its Home Harbor) sails as Loaded Cargo and is no longer aboard.
       operationId: releaseShipping
       tags: [Shippings]
       requestBody:
@@ -412,11 +421,13 @@ paths:
 
   /web/incoming-ships/{shipId}/refusal:
     post:
-      summary: Refuse an Incoming Ship; it sails back to its Home Harbor
+      summary: Refuse an Incoming Ship; it sails back to its Home Harbor, or stays when this is its Home Harbor
       description: >-
-        In one transaction the ship is no longer an Incoming Ship, and it is Released to its Home Harbor on a
-        new Shipping that carries every Cargo aboard as its Loaded Cargo; its Shipping Published names this
-        Harbor as Origin Harbor. Nothing is paid and the Stock is unchanged, whether or not the Savings could
+        In one transaction the ship is no longer an Incoming Ship. Away from its Home Harbor it is Released to
+        its Home Harbor on a new Shipping that carries every Cargo aboard as its Loaded Cargo; its Shipping
+        Published names this Harbor as Origin Harbor. At its Home Harbor it stays in the fleet with its Cargo
+        aboard (`cargoAboard` of `/web/ships/{shipId}`), nothing is published, and that Cargo can only be
+        delivered to another Harbor. Nothing is paid and the Stock is unchanged, whether or not the Savings could
         cover the Delivery Price. The ship is shown at sea in `/web/ships` until its Home Harbor answers with
         Ship Arrived, then it leaves this Harbor's fleet. Read the new Incoming Ships from `/web/incoming-ships`.
       operationId: refuseIncomingShip
@@ -430,7 +441,7 @@ paths:
             format: uuid
       responses:
         '204':
-          description: The ship sails to its Home Harbor with its Cargo aboard; nothing was paid
+          description: The ship sails to its Home Harbor, or stays in this fleet when this is its Home Harbor, with its Cargo aboard; nothing was paid
         '404':
           description: Ship not found in this Harbor's fleet
           content:
@@ -440,8 +451,7 @@ paths:
         '409':
           description: >-
             The refusal is refused and nothing changes: the ship is not an Incoming Ship, or no longer one
-            (title "Not an Incoming Ship"), or this Harbor is the ship's Home Harbor (title "Ship at its Home
-            Harbor").
+            (title "Not an Incoming Ship").
           content:
             application/problem+json:
               schema:
@@ -612,6 +622,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CargoResponse'
+        cargoAboard:
+          type: array
+          items:
+            $ref: '#/components/schemas/CargoResponse'
+          description: >-
+            One entry per Cargo instance refused by this Harbor, the ship's Home Harbor; it cannot be unloaded
+            while preparing and becomes Loaded Cargo on Release
         weight:
           type: number
           format: float

@@ -41,8 +41,9 @@ class IncomingShipController(
     }
 
     /**
-     * Refuses the Incoming Ship: it sails back to its Home Harbor with its Cargo aboard; nothing is paid and the
-     * Stock is unchanged. The client reads the Incoming Ships back from their GET.
+     * Refuses the Incoming Ship: away from its Home Harbor it sails back there with its Cargo aboard; at its
+     * Home Harbor it stays in the fleet with its Cargo aboard. Nothing is paid and the Stock is unchanged. The
+     * client reads the Incoming Ships back from their GET.
      */
     @PostMapping("/{shipId}/refusal")
     @ResponseStatus(HttpStatus.NO_CONTENT)

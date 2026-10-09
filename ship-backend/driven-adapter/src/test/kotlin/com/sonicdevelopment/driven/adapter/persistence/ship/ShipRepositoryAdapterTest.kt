@@ -369,6 +369,7 @@ class ShipRepositoryAdapterTest {
         val blackPearl = anIncomingShip("Black Pearl", listOf(sugar()))
 
         ships.clearCargoAboard(saltyWhisker.id)
+        flushAndClear()
 
         aboardRowsFor(saltyWhisker.id) shouldBe 0
         aboardRowsFor(blackPearl.id) shouldBe 1

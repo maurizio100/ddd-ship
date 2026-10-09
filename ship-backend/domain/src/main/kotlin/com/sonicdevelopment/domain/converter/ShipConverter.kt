@@ -23,6 +23,7 @@ object ShipConverter {
             id = ship.id,
             name = ship.shipName,
             cargo = ship.loadedCargo.map { toCargoDTO(it) },
+            cargoAboard = ship.cargoAboard.map { toCargoDTO(it) },
             actualWeight = ship.weight,
             maxWeight = ship.maxWeight,
             arrivedFrom = ship.arrivedFrom?.name,

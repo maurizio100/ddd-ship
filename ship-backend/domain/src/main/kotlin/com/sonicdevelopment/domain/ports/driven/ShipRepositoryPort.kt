@@ -43,4 +43,14 @@ interface ShipRepositoryPort {
      * caller's transaction.
      */
     fun unloadIncomingShip(shipId: ShipId): Boolean
+
+    /**
+     * The conditional step of a Home Harbor's refusal of its own ship: clears the Incoming flag of an Incoming
+     * Ship in the fleet under the ship's row lock and keeps its Cargo aboard; returns `false`, and changes
+     * nothing, when the ship is not Incoming (anymore) or not in the fleet. Runs in the caller's transaction.
+     */
+    fun endIncoming(shipId: ShipId): Boolean
+
+    /** Deletes the ship's Cargo aboard; runs in the caller's transaction. */
+    fun clearCargoAboard(shipId: ShipId)
 }

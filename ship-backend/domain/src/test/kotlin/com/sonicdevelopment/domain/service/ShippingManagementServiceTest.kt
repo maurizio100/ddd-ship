@@ -72,7 +72,6 @@ class ShippingManagementServiceTest {
         service.releaseShipping(ship.id, HarborName("Port Royal"))
 
         verifyOrder {
-            shippingRepositoryPort.updateActiveShipping(ship)
             cargoPersistencePort.updateCargoLoad(match { it.cargoLoad == listOf(rum, rum) })
             shipRepositoryPort.clearCargoAboard(ship.id)
             shippingOutboxRepository.broadcastShipping(ship, HarborName("Tortuga"))

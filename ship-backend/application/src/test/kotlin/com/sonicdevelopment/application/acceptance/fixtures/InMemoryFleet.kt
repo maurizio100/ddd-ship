@@ -88,6 +88,19 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         return true
     }
 
+    /** Like the adapter's conditional `UPDATE`: clears only the Incoming flag and keeps the Cargo aboard. */
+    @Synchronized
+    override fun endIncoming(shipId: ShipId): Boolean {
+        val record = ships[shipId]?.takeIf { it.inFleet && it.incoming } ?: return false
+        ships[shipId] = record.copy(incoming = false)
+        return true
+    }
+
+    @Synchronized
+    override fun clearCargoAboard(shipId: ShipId) {
+        ships[shipId]?.let { ships[shipId] = it.copy(cargoAboard = emptyList()) }
+    }
+
     @Synchronized
     override fun createShipping(ship: Ship) {
         ships[ship.id] ?: throw IllegalStateException()

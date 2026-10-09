@@ -90,6 +90,16 @@ class ShipRepositoryAdapter(
         return true
     }
 
+    /** The conditional `UPDATE` clears only the Incoming flag; the Cargo aboard rows stay. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun endIncoming(shipId: ShipId): Boolean =
+        shipPersistenceEntityRepository.unloadIncoming(shipId.id) == 1
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun clearCargoAboard(shipId: ShipId) {
+        cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
+    }
+
     override fun getAllShips(): List<Ship> {
         return shipPersistenceEntityRepository.findAllByInFleetTrue().map { toShip(it) }
     }
