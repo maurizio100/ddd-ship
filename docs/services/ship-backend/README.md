@@ -4,7 +4,7 @@ The Hexagonship backend: all domain logic and persistence for managing ships and
 Cargo, and preparing and Releasing Shippings. It owns the PostgreSQL schema (through Flyway) and the
 Catain Images in MinIO, and on Release it writes the Shipping Published event to the transactional
 outbox. A ship Released to this Harbor arrives by itself: on consuming its Shipping Published the
-backend unloads its Cargo into the Stock, takes it into the fleet and writes Ship Arrived to the outbox.
+backend takes it into the fleet with its Cargo aboard (an Incoming Ship), and writes Ship Arrived to the outbox.
 When it consumes Ship Arrived for a ship it Released, it sets that Shipping to `DONE` and the ship
 leaves its fleet.
 It does not publish to Kafka itself (Debezium does that), and it renders no UI.
