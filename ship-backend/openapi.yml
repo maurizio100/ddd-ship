@@ -538,6 +538,7 @@ components:
 
     ShipOverviewResponse:
       type: object
+      required: [homeHarbor]
       properties:
         id:
           type: string
@@ -553,12 +554,17 @@ components:
           type: string
           nullable: true
           description: Harbor Name of the Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here
+        homeHarbor:
+          type: string
+          nullable: false
+          description: Harbor Name of the Harbor where the ship was registered; never changes
         incoming:
           type: boolean
           description: Whether the ship is an Incoming Ship; it cannot start a new Shipping until it is unloaded or refused
 
     ShipDetailResponse:
       type: object
+      required: [homeHarbor]
       properties:
         id:
           type: string
@@ -581,6 +587,10 @@ components:
           type: string
           nullable: true
           description: Harbor Name of the Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here
+        homeHarbor:
+          type: string
+          nullable: false
+          description: Harbor Name of the Harbor where the ship was registered; never changes
 
     CargoResponse:
       type: object

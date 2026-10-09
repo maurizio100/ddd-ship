@@ -14,6 +14,8 @@ class Ship(
     name: String? = null,
     val catainId: CatainId,
     val catainName: String,
+    /** The Harbor where the ship was registered; never changes, travels with the ship. */
+    val homeHarbor: HarborName,
     /** The Origin Harbor of the Arrival that last took this ship into this Harbor's fleet; `null` if it was registered here. */
     val arrivedFrom: HarborName? = null,
     var activeShipping: Shipping? = null,

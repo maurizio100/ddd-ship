@@ -29,7 +29,7 @@ class ShipRepositoryAdapter(
 ): ShipRepositoryPort {
     /**
      * Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row.
-     * The Origin Harbor it arrived from, the Incoming flag and the Cargo aboard are written from the ship:
+     * The Home Harbor, the Origin Harbor it arrived from, the Incoming flag and the Cargo aboard are written from the ship:
      * an Arrival overwrites them, and a rename keeps them because the loaded ship carries them. The ship's
      * Cargo aboard rows are replaced, in one transaction with the ship row (joining the caller's, if any).
      */
@@ -47,6 +47,7 @@ class ShipRepositoryAdapter(
             known.catain = catain
             known.inFleet = true
             known.arrivedFrom = ship.arrivedFrom?.name
+            known.homeHarbor = ship.homeHarbor.name
             known.incoming = ship.incoming
             shipPersistenceEntityRepository.save(known)
         }
@@ -60,6 +61,7 @@ class ShipRepositoryAdapter(
             shipName = ship.shipName,
             catain = catain,
             arrivedFrom = ship.arrivedFrom?.name,
+            homeHarbor = ship.homeHarbor.name,
             incoming = ship.incoming
         )
 
@@ -106,6 +108,7 @@ class ShipRepositoryAdapter(
 
         val catainId = CatainId(shipPersistenceEntity.catain.catainId)
         val arrivedFrom = shipPersistenceEntity.arrivedFrom?.let { HarborName(it) }
+        val homeHarbor = HarborName(shipPersistenceEntity.homeHarbor)
         val cargoAboard = cargoAboardRepository.findAllByShip_IdOrderById(shipPersistenceEntity.id!!).map { toCargo(it.cargo) }
 
         return shippingPersistenceEntity?.let {
@@ -116,6 +119,7 @@ class ShipRepositoryAdapter(
                 activeShipping = toShipping(it),
                 catainId = catainId,
                 catainName = shipPersistenceEntity.catain.catainName,
+                homeHarbor = homeHarbor,
                 arrivedFrom = arrivedFrom,
                 cargoAboard = cargoAboard,
                 incoming = shipPersistenceEntity.incoming,
@@ -125,6 +129,7 @@ class ShipRepositoryAdapter(
             name = shipPersistenceEntity.shipName,
             catainId = catainId,
             catainName = shipPersistenceEntity.catain.catainName,
+            homeHarbor = homeHarbor,
             arrivedFrom = arrivedFrom,
             cargoAboard = cargoAboard,
             incoming = shipPersistenceEntity.incoming,

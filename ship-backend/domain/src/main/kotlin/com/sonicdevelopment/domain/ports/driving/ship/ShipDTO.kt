@@ -10,5 +10,7 @@ data class ShipDTO(
     val shippingState: ShippingState?,
     val arrivedFrom: String? = null,
     val incoming: Boolean = false,
+    /** The Harbor where the ship was registered; never changes. */
+    val homeHarbor: String,
 ) {
 }

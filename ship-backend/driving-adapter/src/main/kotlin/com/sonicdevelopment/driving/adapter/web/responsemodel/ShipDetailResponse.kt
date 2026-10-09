@@ -8,5 +8,7 @@ data class ShipDetailResponse(
     val cargo: List<CargoResponse> = listOf(),
     val weight: Float = 0.0F,
     val maxweight: Float = 0.0F,
-    val arrivedFrom: String? = null
+    val arrivedFrom: String? = null,
+    /** The Harbor where the ship was registered; never changes. */
+    val homeHarbor: String,
 )
