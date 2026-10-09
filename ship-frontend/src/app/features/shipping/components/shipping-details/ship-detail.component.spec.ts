@@ -539,4 +539,41 @@ describe('ShipDetailComponent (loading screen details)', () => {
 
     expect(fixture.nativeElement.querySelector('.weight--warning')).not.toBeNull();
   });
+
+  describe('Cargo refused by the Home Harbor', () => {
+    const refusedRum = aCargo({ id: 'rum-1', name: 'Rum', weight: 5.5 });
+    const silk = aCargo({ id: 'silk', name: 'Silk', weight: 1 });
+    const refusedNames = (): string[] =>
+      Array.from(fixture.nativeElement.querySelectorAll('[data-testid="refused-cargo"]')).map((el: any) =>
+        el.textContent.trim()
+      );
+
+    it('shows the Cargo refused by the Home Harbor apart from the Loaded Cargo, without an Unload button', () => {
+      render(aShip({ cargo: [silk], cargoAboard: [refusedRum, refusedRum], weight: 12 }));
+
+      expect(refusedNames()).toEqual(['Rum', 'Rum']);
+      expect(byTestId('refused-cargo-note')!.textContent).toContain('it can only be delivered to another Harbor');
+      expect(fixture.nativeElement.querySelectorAll('[data-testid="loaded-cargo"]').length).toBe(1);
+      const refused = fixture.nativeElement.querySelectorAll('[data-testid="refused-cargo"]');
+      refused.forEach((chip: HTMLElement) => expect(chip.querySelector('button')).toBeNull());
+    });
+
+    it('keeps the refused Cargo shown after a loaded Cargo is unloaded', () => {
+      render(aShip({ cargo: [silk], cargoAboard: [refusedRum, refusedRum], weight: 12 }));
+
+      fixture.componentInstance.onShipLoadUpdated(aShip({ cargo: [], cargoAboard: [refusedRum, refusedRum], weight: 11 }));
+      httpMock.expectOne(`${base}/cargos`).flush([rum]);
+      fixture.detectChanges();
+
+      expect(refusedNames()).toEqual(['Rum', 'Rum']);
+      expect(fixture.nativeElement.querySelectorAll('[data-testid="loaded-cargo"]').length).toBe(0);
+    });
+
+    it('shows no Refused Cargo block when nothing was refused', () => {
+      render(aShip({ cargo: [silk], weight: 1 }));
+
+      expect(byTestId('refused-cargo-note')).toBeNull();
+      expect(refusedNames()).toEqual([]);
+    });
+  });
 });

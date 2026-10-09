@@ -1,6 +1,6 @@
 import {Component, inject, OnInit, signal} from "@angular/core";
 import {HttpErrorResponse} from "@angular/common/http";
-import {Location} from "@angular/common";
+import {Location, LowerCasePipe} from "@angular/common";
 import {CargosComponent} from "../cargos/cargos.component";
 import {Ship} from "../../models/ship";
 import {Subject} from "rxjs";
@@ -25,7 +25,8 @@ const RELEASE_REJECTED = 'The ship could not be Released';
     CargosComponent,
     CdkDropList,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    LowerCasePipe
   ]
 })
 export class ShipDetailComponent implements OnInit {
@@ -119,6 +120,7 @@ export class ShipDetailComponent implements OnInit {
   onShipLoadUpdated(ship: Ship) {
     this.ship.cargo.splice(0, this.ship.cargo.length);
     this.ship.cargo.push(...ship.cargo);
+    this.ship.cargoAboard = ship.cargoAboard ?? [];
     this.ship.weight = ship.weight;
     this.loadRejection.set(null);
     this.cargoLoadSubject.next(ship);
