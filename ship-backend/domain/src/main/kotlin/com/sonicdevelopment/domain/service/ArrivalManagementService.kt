@@ -13,7 +13,6 @@ import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation.Companion.fromShip
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
-import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipArrivedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
@@ -58,7 +57,6 @@ class ArrivalManagementService(
     private val shipRepositoryPort: ShipRepositoryPort,
     private val catainRepository: CatainRepository,
     private val cargoQueryPort: CargoQueryPort,
-    private val stockRepositoryPort: StockRepositoryPort,
     private val shippingOutboxRepository: ShippingOutboxRepository,
     private val shippingRepositoryPort: ShippingRepositoryPort,
     private val arrivalRepositoryPort: ArrivalRepositoryPort,
@@ -87,7 +85,6 @@ class ArrivalManagementService(
             inFleet.endShipping(earlierVoyage.id)
             shippingRepositoryPort.updateActiveShipping(inFleet)
         }
-        cargo.forEach { stockRepositoryPort.putIntoStock(it.id, 1) }
         val ship = Ship(
             id = shippingPublished.shipId,
             name = shippingPublished.shipName,

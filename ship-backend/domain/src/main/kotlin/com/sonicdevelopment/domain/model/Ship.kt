@@ -15,8 +15,22 @@ class Ship(
     /** The Origin Harbor of the Arrival that last took this ship into this Harbor's fleet; `null` if it was registered here. */
     val arrivedFrom: HarborName? = null,
     var activeShipping: Shipping? = null,
-    private val cargoLoad: MutableList<Cargo> = mutableListOf()
+    private val cargoLoad: MutableList<Cargo> = mutableListOf(),
+    cargoAboard: List<Cargo> = emptyList(),
+    incoming: Boolean = false,
 ) {
+
+    /**
+     * The Cargo aboard while the ship has no Shipping, one entry per Cargo instance; separate from the Loaded
+     * Cargo of an Active Shipping. An Incoming Ship keeps the Cargo it arrived with here until it is unloaded
+     * or refused (STORY-045). Cargo aboard without [isIncoming] is a ship refused by its own Home Harbor
+     * (STORY-028, not built).
+     */
+    val cargoAboard: List<Cargo> = cargoAboard.toList()
+
+    /** Whether the ship is an Incoming Ship: it arrived here with Cargo aboard that is not yet unloaded or refused. */
+    val isIncoming: Boolean = incoming
+
 
     var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
         set(newShipName) {
