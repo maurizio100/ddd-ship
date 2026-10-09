@@ -1,7 +1,9 @@
 package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.harbor.KnownHarborsDTO
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -14,7 +16,7 @@ class HarborInformationServiceTest {
     fun `returns the current Harbor Name and the Known Harbors`() {
         val knownHarbors = mockk<KnownHarborRepositoryPort>()
         every { knownHarbors.getKnownHarbors() } returns listOf(HarborName("Nassau"), HarborName("Port Royal"))
-        val service = HarborInformationService(HarborName("Tortuga"), knownHarbors)
+        val service = HarborInformationService(HarborName("Tortuga"), knownHarbors, mockk<SavingsRepositoryPort>())
 
         val result = service.getKnownHarbors()
 
@@ -22,5 +24,14 @@ class HarborInformationServiceTest {
             harborName = HarborName("Tortuga"),
             knownHarbors = listOf(HarborName("Nassau"), HarborName("Port Royal"))
         )
+    }
+
+    @Test
+    fun `the Savings are those of the Harbor`() {
+        val savings = mockk<SavingsRepositoryPort>()
+        every { savings.getSavings() } returns Money.of("640.50")
+        val service = HarborInformationService(HarborName("Tortuga"), mockk<KnownHarborRepositoryPort>(), savings)
+
+        service.getSavings() shouldBe Money.of("640.50")
     }
 }
