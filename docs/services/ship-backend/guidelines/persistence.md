@@ -84,6 +84,12 @@
   effect. It is never derived from `arrivals`, which may hold an Arrival that was skipped.
 - `ships.ship_home_harbor` (NOT NULL) holds the ship's Home Harbor. It is written only by `saveNewShip`,
   from the ship's `homeHarbor`, and never derived or changed in SQL; V17 backfilled existing rows.
+- `ships.ship_earnings NUMERIC(12,2)` (NOT NULL, default 0, `ck_ships_ship_earnings_not_negative`) holds
+  the ship's Earnings. `saveNewShip` writes it from the ship, so an Arrival restores the Earnings carried in
+  and a rename keeps them. An unloading increases it only through `addEarnings`, one atomic
+  `UPDATE ships SET ship_earnings = ship_earnings + :amount WHERE ship_id = :shipId AND ship_in_fleet` in the
+  caller's transaction (`Propagation.MANDATORY`), before the conditional clear; 0 rows fails. Never compute
+  the Earnings in memory and save them back with `saveNewShip` in an unloading.
 - `removeFromFleet` runs in the caller's transaction (`Propagation.MANDATORY`), together with the inbox
   record and the Shipping going `DONE`.
 - Clearing an Incoming Ship is one conditional `UPDATE ships … WHERE ship_in_fleet AND ship_incoming`,
@@ -165,6 +171,8 @@
   are never read, changed in memory and saved back: the re-checked `WHERE` is what keeps two concurrent
   payments from overspending them. A payment comes before the writes it pays for, so a refusal writes
   nothing.
+- Receiving is one atomic statement, `UPDATE savings SET savings_amount = savings_amount + :amount`
+  (`receive`), in the caller's transaction; anything but 1 updated row fails. Never read-modify-write.
 - It is not in the Debezium connector's `table.include.list` and is never published.
 
 ## Binary data
