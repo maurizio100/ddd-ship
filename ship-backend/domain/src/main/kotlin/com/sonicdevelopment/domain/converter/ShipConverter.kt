@@ -13,7 +13,8 @@ object ShipConverter {
             name = ship.shipName,
             catain = ship.catainName,
             shippingState = ship.shippingState(),
-            arrivedFrom = ship.arrivedFrom?.name
+            arrivedFrom = ship.arrivedFrom?.name,
+            incoming = ship.isIncoming
         )
 
     fun toShipDetailDTO(ship: Ship) =

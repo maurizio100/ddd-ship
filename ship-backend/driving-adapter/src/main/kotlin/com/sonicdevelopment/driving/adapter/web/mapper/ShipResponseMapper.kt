@@ -12,7 +12,8 @@ fun toShipResponse(ship: ShipDTO) =
         name = ship.name,
         catain = ship.catain,
         shippingState = ship.shippingState,
-        arrivedFrom = ship.arrivedFrom
+        arrivedFrom = ship.arrivedFrom,
+        incoming = ship.incoming
     )
 fun toShipDetailResponse(ship: ShipDetailDTO) =
     ShipDetailResponse(

@@ -40,7 +40,7 @@ class ShippingRepositoryAdapterTest {
 
     @BeforeEach
     fun truncateMutableTables() {
-        jdbcTemplate.execute("TRUNCATE TABLE ships_cargos, shippings, ships")
+        jdbcTemplate.execute("TRUNCATE TABLE ships_cargos_aboard, ships_cargos, shippings, ships")
     }
 
     @Test

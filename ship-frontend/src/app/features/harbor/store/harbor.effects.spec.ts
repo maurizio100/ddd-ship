@@ -9,7 +9,9 @@ import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
 import { MarketService } from '../services/market.service';
-import { aSavings, aStockedCargo } from '../../../../testing/fixtures';
+import { IncomingShipsService } from '../services/incoming-ships.service';
+import * as ShipActions from '../../ships/store/actions/ship.actions';
+import { aSavings, aStockedCargo, anIncomingShipListing } from '../../../../testing/fixtures';
 
 describe('HarborEffects', () => {
   let actions$: ReplaySubject<Action>;
@@ -17,12 +19,14 @@ describe('HarborEffects', () => {
   let stockService: jasmine.SpyObj<StockService>;
   let savingsService: jasmine.SpyObj<SavingsService>;
   let marketService: jasmine.SpyObj<MarketService>;
+  let incomingShipsService: jasmine.SpyObj<IncomingShipsService>;
 
   beforeEach(() => {
     actions$ = new ReplaySubject<Action>();
     stockService = jasmine.createSpyObj<StockService>('StockService', ['getStock']);
     savingsService = jasmine.createSpyObj<SavingsService>('SavingsService', ['getSavings']);
     marketService = jasmine.createSpyObj<MarketService>('MarketService', ['buyCargo']);
+    incomingShipsService = jasmine.createSpyObj<IncomingShipsService>('IncomingShipsService', ['getIncomingShips']);
     TestBed.configureTestingModule({
       providers: [
         HarborEffects,
@@ -30,6 +34,7 @@ describe('HarborEffects', () => {
         { provide: StockService, useValue: stockService },
         { provide: SavingsService, useValue: savingsService },
         { provide: MarketService, useValue: marketService },
+        { provide: IncomingShipsService, useValue: incomingShipsService },
       ],
     });
     effects = TestBed.inject(HarborEffects);
@@ -126,5 +131,55 @@ describe('HarborEffects', () => {
     actions$.next(HarborActions.buyCargoSuccess());
 
     expect(emitted).toEqual([HarborActions.loadStock(), HarborActions.loadSavings()]);
+  });
+
+  it('loadIncomingShips$ emits loadIncomingShipsSuccess with the service result', () => {
+    const incomingShips = [anIncomingShipListing()];
+    incomingShipsService.getIncomingShips.and.returnValue(of(incomingShips));
+    const emitted: Action[] = [];
+    effects.loadIncomingShips$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.loadIncomingShips());
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShipsSuccess({ incomingShips })]);
+  });
+
+  it('loadIncomingShips$ emits loadIncomingShipsFailure when the service fails', () => {
+    const error = new Error('boom');
+    incomingShipsService.getIncomingShips.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.loadIncomingShips$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.loadIncomingShips());
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShipsFailure({ error })]);
+  });
+
+  it('watchFleet$ starts and stops the ships store fleet-events stream with the arrivals watch', () => {
+    const emitted: Action[] = [];
+    effects.watchFleet$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.watchArrivals());
+    actions$.next(HarborActions.stopWatchingArrivals());
+
+    expect(emitted).toEqual([ShipActions.watchFleet(), ShipActions.stopWatchingFleet()]);
+  });
+
+  it('watchArrivals$ reloads the Incoming Ships when a ship arrives and when the stream (re)connects, until stopped', () => {
+    const arrived = ShipActions.shipArrived({ shipId: 'id', shipName: 'Salty Whisker', originHarbor: 'Tortuga' });
+    const emitted: Action[] = [];
+    effects.watchArrivals$.subscribe((action) => emitted.push(action));
+    actions$.next(HarborActions.watchArrivals());
+
+    actions$.next(ShipActions.loadShips());
+    actions$.next(arrived);
+    actions$.next(ShipActions.shipLeft({ shipId: 'id', shipName: 'Black Pearl', destinationHarbor: 'Nassau' }));
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShips(), HarborActions.loadIncomingShips()]);
+
+    actions$.next(HarborActions.stopWatchingArrivals());
+    actions$.next(arrived);
+
+    expect(emitted.length).toBe(2);
   });
 });

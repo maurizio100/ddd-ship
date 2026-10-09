@@ -106,8 +106,7 @@ sequenceDiagram
     B->>DBB: skip if Shipping id already in arrivals, else insert arrivals row
     B->>DBB: skip if Ship Id in fleet and not at sea
     B->>DBB: if Ship Id in fleet at sea - end that earlier voyage (DONE)
-    B->>DBB: Unloading on Arrival - add Cargo to Stock
-    B->>DBB: take ship (Ship Id, name, Catain) into fleet
+    B->>DBB: take ship (Ship Id, name, Catain) into fleet with its Cargo aboard (an Incoming Ship if any)
     B->>DBB: insert outbox row (ship-arrived)
     end
     K->>A: ship-arrived (consume, group of Harbor A)
@@ -125,15 +124,15 @@ sequenceDiagram
 Once each of these transactions commits, the Harbor pushes the change to its Users' open fleet pages
 (6.6).
 
-### Decided, not built yet: Incoming Ships and Earnings (EPIC-003)
+The Stock is unchanged by an Arrival; it changes only when a User unloads an Incoming Ship (6.7,
+[ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md), built by STORY-044). A ship that
+arrives with no Cargo joins as an ordinary ship.
 
-Per [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md) and
-[ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md), the Destination transaction changes in two
-places; everything else above stays, including `ship-arrived` in the same transaction:
+### Decided, not built yet: Earnings (EPIC-003)
 
-- *Unloading on Arrival – add Cargo to Stock* is replaced by *take the ship into the fleet as an
-  Incoming Ship, its Cargo (with quantities) still aboard*. The Stock changes only when a User unloads
-  it (6.7).
+Per [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md), the Destination transaction changes in one
+place; everything else above stays, including `ship-arrived` in the same transaction:
+
 - If this Harbor is the ship's Home Harbor, the Earnings carried in `shipping-published` go into the
   Savings and the ship's Earnings become zero, in the same inbox transaction, so a redelivered event
   credits nothing twice.
@@ -203,8 +202,8 @@ sequenceDiagram
 The registry of open streams is in memory per instance (R-11). A disconnected tab reconnects by itself
 after 3 s; events in between are not replayed.
 
-Decided, not built (EPIC-003): the harbor management page reacts to the same `ship-arrived` event by
-refetching its Incoming Ships.
+The harbor management page reacts to the same `ship-arrived` event, and to every (re)connect, by
+refetching its Incoming Ships (`GET /web/incoming-ships`, STORY-044).
 
 ## 6.7 Unload or refuse an Incoming Ship (decided, not built yet)
 

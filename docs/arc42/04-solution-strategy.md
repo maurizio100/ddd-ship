@@ -8,7 +8,7 @@
 | **DDD-style domain model** with value-object ids (`ShipId`, `CargoId`, …) and invariants on the model (`Ship.addCargo`, `Ship.createNewShipping`). | Goal 1; the [domain model](../domain/README.md) is the reference for the language. |
 | **Transactional Outbox + Debezium**: Release writes the shipping and an outbox row in one DB transaction; Debezium streams the outbox to Kafka. | Goal 2 (reliable publication) without two-phase commit or polling code. |
 | **Each backend instance is one Harbor**; ships move between Harbors only through events. | Goal 2 and the project's aim of trying out event-driven integration; every Harbor is the same artifact. |
-| **Idempotent inbox** for events the backend consumes from Kafka (driving adapter). | Goal 2: at-least-once delivery must not change a Harbor twice — today the Stock, once EPIC-003 is built an Incoming Ship and a credit of Earnings. |
+| **Idempotent inbox** for events the backend consumes from Kafka (driving adapter). | Goal 2: at-least-once delivery must not change a Harbor twice — today the fleet and its Incoming Ships, once EPIC-003 is built also a credit of Earnings. |
 | **Harbor discovery** via `harbor-opened` events on a compacted topic. | Goal 4: a new Harbor needs no change to the others. |
 | **Spring Boot + Kotlin, PostgreSQL + Flyway** | Constraint 2; Flyway versions the schema and seeds the reference data (cargo, Catains, quotes). |
 | **Angular SPA with NgRx** served by nginx, talking REST to `/web` | Existing frontend; NgRx is itself a concept being tried out (#205). |

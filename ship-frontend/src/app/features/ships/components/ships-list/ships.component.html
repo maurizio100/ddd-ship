@@ -54,6 +54,9 @@
             </p>
           }
           <div class="actions">
+            @if (ship.incoming) {
+              <p class="incoming" data-testid="ship-incoming">{{ ship.name }} must be unloaded or refused first</p>
+            }
             @if (canCreateNewShipping(ship)) {
               <button mat-flat-button type="button" data-testid="new-shipping" (click)="createShipping(ship)">New shipping</button>
             }

@@ -21,7 +21,6 @@ import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
-import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipArrivedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import io.kotest.assertions.throwables.shouldThrow
@@ -46,16 +45,15 @@ class ArrivalManagementServiceTest {
     private val ships = mockk<ShipRepositoryPort>(relaxed = true)
     private val catains = mockk<CatainRepository>()
     private val cargoQuery = mockk<CargoQueryPort>()
-    private val stock = mockk<StockRepositoryPort>(relaxed = true)
     private val outbox = mockk<ShippingOutboxRepository>(relaxed = true)
     private val shippings = mockk<ShippingRepositoryPort>(relaxed = true)
     private val arrivals = mockk<ArrivalRepositoryPort>()
     private val fleetEvents = mockk<FleetEventsPort>(relaxed = true)
 
-    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, stock, outbox, shippings, arrivals, fleetEvents)
+    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, outbox, shippings, arrivals, fleetEvents)
 
     /** The Origin side of the Arrival runs at "Tortuga", where the ship was Released. */
-    private val tortugaService = ArrivalManagementService(tortuga, inbox, ships, catains, cargoQuery, stock, outbox, shippings, arrivals, fleetEvents)
+    private val tortugaService = ArrivalManagementService(tortuga, inbox, ships, catains, cargoQuery, outbox, shippings, arrivals, fleetEvents)
 
     private val eventId = EventId(UUID.randomUUID())
     private val rum = aCargo(name = "Rum")
@@ -82,15 +80,15 @@ class ArrivalManagementServiceTest {
     }
 
     @Test
-    fun `an Arrival unloads every Loaded Cargo into the Stock, takes the ship into the fleet and announces Ship Arrived`() {
+    fun `an Arrival takes the ship into the fleet with its Cargo aboard and announces Ship Arrived`() {
         val saved = slot<InitialShipInformation>()
         every { ships.saveNewShip(capture(saved)) } returns Unit
         val announced = slot<Ship>()
 
-        service.receiveShippingPublished(eventId, blackPearl)
+        service.receiveShippingPublished(eventId, blackPearl.copy(cargoIds = listOf(rum.id, rum.id, silk.id)))
 
-        verify(exactly = 1) { stock.putIntoStock(rum.id, 1) }
-        verify(exactly = 1) { stock.putIntoStock(silk.id, 1) }
+        saved.captured.cargoAboard.map { it.id } shouldBe listOf(rum.id, rum.id, silk.id)
+        saved.captured.incoming shouldBe true
         saved.captured.shipId shouldBe blackPearl.shipId
         saved.captured.shipName shouldBe "Black Pearl"
         saved.captured.catainId shouldBe whiskers.catainId
@@ -102,8 +100,25 @@ class ArrivalManagementServiceTest {
         announced.captured.catainName shouldBe "Whiskers"
         announced.captured.activeShipping shouldBe null
         announced.captured.loadedCargo.shouldBeEmpty()
+        announced.captured.isIncoming shouldBe true
         verify(exactly = 1) { arrivals.recordArrival(blackPearl.shippingId, blackPearl.shipId) }
         verify(exactly = 0) { shippings.updateActiveShipping(any()) }
+        verifyOrder {
+            ships.saveNewShip(any())
+            outbox.announceShipArrived(any(), blackPearl.shippingId, tortuga, portRoyal)
+        }
+    }
+
+    @Test
+    fun `an empty ship arrives with no Cargo aboard and is not Incoming`() {
+        val saved = slot<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+
+        service.receiveShippingPublished(eventId, blackPearl.copy(cargoIds = emptyList()))
+
+        saved.captured.cargoAboard.shouldBeEmpty()
+        saved.captured.incoming shouldBe false
+        verify(exactly = 1) { outbox.announceShipArrived(any(), blackPearl.shippingId, tortuga, portRoyal) }
     }
 
     @Test
@@ -164,9 +179,9 @@ class ArrivalManagementServiceTest {
 
         verify(exactly = 1) { shippings.updateActiveShipping(any()) }
         earlierVoyage.shippingState shouldBe ShippingState.DONE
-        verify(exactly = 1) { stock.putIntoStock(rum.id, 1) }
-        verify(exactly = 1) { stock.putIntoStock(silk.id, 1) }
         saved.captured.shipId shouldBe blackPearl.shipId
+        saved.captured.cargoAboard.map { it.id } shouldBe listOf(rum.id, silk.id)
+        saved.captured.incoming shouldBe true
         verify(exactly = 1) { outbox.announceShipArrived(any(), blackPearl.shippingId, tortuga, portRoyal) }
         verify(exactly = 0) { ships.removeFromFleet(any()) }
     }
@@ -381,7 +396,6 @@ class ArrivalManagementServiceTest {
     }
 
     private fun assertNoArrival() {
-        verify(exactly = 0) { stock.putIntoStock(any(), any()) }
         verify(exactly = 0) { ships.saveNewShip(any()) }
         verify(exactly = 0) { outbox.announceShipArrived(any(), any(), any(), any()) }
         verify(exactly = 0) { fleetEvents.announceShipArrived(any(), any()) }

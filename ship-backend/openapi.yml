@@ -210,6 +210,15 @@ paths:
                 $ref: '#/components/schemas/ShippingResponse'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            The new Shipping is refused (title "New Shipping refused"): the ship is an Incoming Ship
+            (`detail` "<Ship Name> must be unloaded or refused first"), or it already has an Active Shipping
+            (`detail` "<Ship Name> already has an Active Shipping"). Nothing is written.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
     put:
       summary: Release a shipping to a Destination Harbor
       description: >-
@@ -344,6 +353,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Savings'
+
+  /web/incoming-ships:
+    get:
+      summary: List the Incoming Ships of this Harbor
+      description: >-
+        The ships in this Harbor's fleet that arrived with Cargo aboard and are not yet unloaded or refused,
+        each with its Cargo aboard and its Delivery Price, computed from this Harbor's Prices when the list
+        is read. A ship that arrived with no Cargo is not an Incoming Ship.
+      operationId: getIncomingShips
+      tags: [Harbors]
+      responses:
+        '200':
+          description: The Incoming Ships, possibly none
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IncomingShip'
 
   /web/market/purchases:
     post:
@@ -488,6 +516,9 @@ components:
           type: string
           nullable: true
           description: Harbor Name of the Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here
+        incoming:
+          type: boolean
+          description: Whether the ship is an Incoming Ship; it cannot start a new Shipping until it is unloaded or refused
 
     ShipDetailResponse:
       type: object
@@ -564,6 +595,33 @@ components:
           description: >-
             The Price of this Cargo at this Harbor in dollars, as a decimal string with two decimals, never a
             JSON number. `null` only before the Harbor's first opening has rolled one.
+
+    IncomingShip:
+      type: object
+      required: [shipId, name, arrivedFrom, cargo, deliveryPrice]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        arrivedFrom:
+          type: string
+          nullable: true
+          description: Harbor Name of the Origin Harbor the ship arrived from
+        cargo:
+          type: array
+          description: The Cargo aboard, one entry per Cargo instance (2 Rum are two entries)
+          items:
+            $ref: '#/components/schemas/CargoResponse'
+        deliveryPrice:
+          type: string
+          nullable: true
+          pattern: '^\d+\.\d{2}$'
+          example: '115.00'
+          description: >-
+            The Delivery Price in dollars: the sum of this Harbor's Prices of every Cargo aboard, as a decimal
+            string with two decimals, never a JSON number. `null` while a Cargo aboard has no Price here.
 
     Savings:
       type: object

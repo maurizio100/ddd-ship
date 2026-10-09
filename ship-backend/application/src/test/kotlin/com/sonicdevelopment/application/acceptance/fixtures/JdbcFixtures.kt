@@ -8,7 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 
 /** Truncates what the scenarios change; the reference tables (`cargos`, `catains`, `quotes`) stay. */
 fun JdbcTemplate.truncateMutableTables() {
-    execute("TRUNCATE TABLE ships_cargos, shippings, ships, shipping_outbox, inbox_events, known_harbors, arrivals")
+    execute("TRUNCATE TABLE ships_cargos_aboard, ships_cargos, shippings, ships, shipping_outbox, inbox_events, known_harbors, arrivals")
 }
 
 /** Puts the Stock back to the Starting Stock: [STARTING_STOCK] of every catalog Cargo. */

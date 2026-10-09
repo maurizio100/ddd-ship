@@ -18,6 +18,7 @@ import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driven.HarborOutboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
@@ -28,6 +29,7 @@ import com.sonicdevelopment.domain.ports.driving.market.MarketPort
 import com.sonicdevelopment.driven.adapter.persistence.outbox.HarborOutboxRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.outbox.ShippingOutboxRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.savings.SavingsRepositoryAdapter
+import com.sonicdevelopment.driven.adapter.persistence.ship.ShipRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.stock.StockRepositoryAdapter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -65,13 +67,34 @@ import java.util.UUID
 @DbTest
 class FailedChangeLeavesNoTraceTest {
 
-    /** The real outbox, except that [broadcastShipping] fails while [armed]. */
+    /**
+     * The real outbox, except that [broadcastShipping] fails while [armed] and [announceShipArrived] fails while
+     * [shipArrivedArmed].
+     */
     class FailingShippingOutbox(private val real: ShippingOutboxRepositoryAdapter) : ShippingOutboxRepository by real {
         var armed = false
+        var shipArrivedArmed = false
 
         override fun broadcastShipping(ship: Ship, originHarbor: HarborName) {
             check(!armed) { "The outbox write fails" }
             real.broadcastShipping(ship, originHarbor)
+        }
+
+        override fun announceShipArrived(
+            ship: Ship, shippingId: ShippingId, originHarbor: HarborName, destinationHarbor: HarborName
+        ) {
+            check(!shipArrivedArmed) { "The Ship Arrived write fails" }
+            real.announceShipArrived(ship, shippingId, originHarbor, destinationHarbor)
+        }
+    }
+
+    /** The real fleet, counting the ship saves that went through, so a test can prove a save really ran. */
+    class CountingShipRepository(private val real: ShipRepositoryAdapter) : ShipRepositoryPort by real {
+        var savesThrough = 0
+
+        override fun saveNewShip(ship: ShipRepositoryPort.InitialShipInformation) {
+            real.saveNewShip(ship)
+            savesThrough++
         }
     }
 
@@ -122,6 +145,10 @@ class FailedChangeLeavesNoTraceTest {
         @Bean
         @Primary
         fun countingSavings(real: SavingsRepositoryAdapter) = CountingSavings(real)
+
+        @Bean
+        @Primary
+        fun countingShipRepository(real: ShipRepositoryAdapter) = CountingShipRepository(real)
     }
 
     @Autowired
@@ -154,13 +181,18 @@ class FailedChangeLeavesNoTraceTest {
     @Autowired
     lateinit var countingSavings: CountingSavings
 
+    @Autowired
+    lateinit var countingShipRepository: CountingShipRepository
+
     @BeforeEach
     fun everythingWorksAgain() {
         jdbcTemplate.truncateMutableTables()
         jdbcTemplate.resetStockToStartingStock()
         jdbcTemplate.resetSavingsToStartingSavings()
         countingSavings.paysThrough = 0
+        countingShipRepository.savesThrough = 0
         failingOutbox.armed = false
+        failingOutbox.shipArrivedArmed = false
         failingStock.armed = false
         failingHarborOutbox.armed = false
         failingStock.succeedingPuts = 0
@@ -185,7 +217,7 @@ class FailedChangeLeavesNoTraceTest {
     }
 
     @Test
-    fun `An Arrival whose Stock update fails leaves no inbox row, Arrival, fleet, Stock or outbox change`() {
+    fun `An Arrival whose Ship Arrived write fails leaves no inbox row, Arrival, fleet, Cargo aboard or outbox change`() {
         val eventId = UUID.randomUUID()
         val arrival = ShippingPublishedDTO(
             shipId = ShipId(UUID.randomUUID()),
@@ -196,15 +228,14 @@ class FailedChangeLeavesNoTraceTest {
             originHarbor = HarborName("Tortuga"),
             destinationHarbor = HarborName("Port Royal"),
         )
-        failingStock.armed = true
-        failingStock.succeedingPuts = 1
+        failingOutbox.shipArrivedArmed = true
 
         shouldThrow<IllegalStateException> {
             arrivalManagementPort.receiveShippingPublished(EventId(eventId), arrival)
         }
 
-        // the first put really reached the database before the second one failed
-        failingStock.putsThrough shouldBe 1
+        // the ship and its Cargo aboard really reached the database before the Ship Arrived write failed
+        countingShipRepository.savesThrough shouldBe 1
         jdbcTemplate.queryForObject(
             "SELECT count(*) FROM inbox_events WHERE event_id = ?", Int::class.java, eventId
         ) shouldBe 0
@@ -212,6 +243,7 @@ class FailedChangeLeavesNoTraceTest {
             "SELECT count(*) FROM arrivals WHERE shipping_id = ?", Int::class.java, arrival.shippingId.id
         ) shouldBe 0
         count("ships") shouldBe 0
+        count("ships_cargos_aboard") shouldBe 0
         availableShips().shouldBeEmpty()
         jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
             .forEach { it shouldBe STARTING_STOCK }

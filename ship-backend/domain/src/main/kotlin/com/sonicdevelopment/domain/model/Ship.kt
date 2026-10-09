@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.enums.ShippingState
@@ -15,15 +16,35 @@ class Ship(
     /** The Origin Harbor of the Arrival that last took this ship into this Harbor's fleet; `null` if it was registered here. */
     val arrivedFrom: HarborName? = null,
     var activeShipping: Shipping? = null,
-    private val cargoLoad: MutableList<Cargo> = mutableListOf()
+    private val cargoLoad: MutableList<Cargo> = mutableListOf(),
+    cargoAboard: List<Cargo> = emptyList(),
+    incoming: Boolean = false,
 ) {
+
+    /**
+     * The Cargo aboard while the ship has no Shipping, one entry per Cargo instance; separate from the Loaded
+     * Cargo of an Active Shipping. An Incoming Ship keeps the Cargo it arrived with here until it is unloaded
+     * or refused (STORY-045). Cargo aboard without [isIncoming] is a ship refused by its own Home Harbor
+     * (STORY-028, not built).
+     */
+    val cargoAboard: List<Cargo> = cargoAboard.toList()
+
+    /** Whether the ship is an Incoming Ship: it arrived here with Cargo aboard that is not yet unloaded or refused. */
+    val isIncoming: Boolean = incoming
+
+    init {
+        require(!incoming || cargoAboard.isNotEmpty()) { "An Incoming Ship has Cargo aboard" }
+    }
 
     var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
         set(newShipName) {
             field = if(isValidName(newShipName)) newShipName else field
         }
 
+    /** Starts a new Shipping; refused for an Incoming Ship and for a ship whose Active Shipping is not `DONE`. */
     fun createNewShipping() {
+        if (isIncoming) throw NewShippingRefusedException("$shipName must be unloaded or refused first")
+
         if (activeShipping == null) {
             activeShipping = Shipping(ShippingId(UUID.randomUUID()))
             return
@@ -34,7 +55,7 @@ class Ship(
             return
         }
 
-        throw IllegalArgumentException()
+        throw NewShippingRefusedException("$shipName already has an Active Shipping")
     }
 
     fun release(shippingQuote: ShippingQuote, destinationHarbor: HarborName) {

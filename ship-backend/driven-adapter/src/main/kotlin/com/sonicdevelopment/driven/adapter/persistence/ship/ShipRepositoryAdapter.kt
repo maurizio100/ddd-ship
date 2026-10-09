@@ -8,6 +8,7 @@ import com.sonicdevelopment.domain.model.values.*
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
 import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoPersistenceEntity
+import com.sonicdevelopment.driven.adapter.persistence.cargo.CargoRepository
 import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntity
 import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntityRepository
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingPersistenceEntity
@@ -22,25 +23,35 @@ import org.springframework.transaction.annotation.Transactional
 class ShipRepositoryAdapter(
     private val shipPersistenceEntityRepository: ShipPersistenceEntityRepository,
     private val shippingRepository: ShippingRepository,
-    private val catainRepository: CatainPersistenceEntityRepository
+    private val catainRepository: CatainPersistenceEntityRepository,
+    private val cargoRepository: CargoRepository,
+    private val cargoAboardRepository: ShipCargoAboardPersistenceEntityRepository,
 ): ShipRepositoryPort {
     /**
      * Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row.
-     * The Origin Harbor it arrived from is written from the ship: an Arrival overwrites it, and a rename
-     * keeps it because the loaded ship carries it.
+     * The Origin Harbor it arrived from, the Incoming flag and the Cargo aboard are written from the ship:
+     * an Arrival overwrites them, and a rename keeps them because the loaded ship carries them. The ship's
+     * Cargo aboard rows are replaced, in one transaction with the ship row (joining the caller's, if any).
      */
+    @Transactional
     override fun saveNewShip(ship: InitialShipInformation) {
         val catain = catainRepository.findByCatainId(ship.catainId.id) ?: throw EntityNotFoundException()
-        val known = shipPersistenceEntityRepository.findByShipId(ship.shipId.id)
-        if (known == null) {
-            shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
-            return
+        val cargoAboard = ship.cargoAboard.map {
+            cargoRepository.findByCargoId(it.id.id) ?: throw EntityNotFoundException("Unknown Cargo ${it.id.id}")
         }
-        known.shipName = ship.shipName
-        known.catain = catain
-        known.inFleet = true
-        known.arrivedFrom = ship.arrivedFrom?.name
-        shipPersistenceEntityRepository.save(known)
+        val known = shipPersistenceEntityRepository.findByShipId(ship.shipId.id)
+        val saved = if (known == null) {
+            shipPersistenceEntityRepository.save(createShipEntity(ship, catain))
+        } else {
+            known.shipName = ship.shipName
+            known.catain = catain
+            known.inFleet = true
+            known.arrivedFrom = ship.arrivedFrom?.name
+            known.incoming = ship.incoming
+            shipPersistenceEntityRepository.save(known)
+        }
+        cargoAboardRepository.deleteAllByShip_Id(saved.id!!)
+        cargoAboardRepository.saveAll(cargoAboard.map { ShipCargoAboardPersistenceEntity(ship = saved, cargo = it) })
     }
 
     private fun createShipEntity(ship: InitialShipInformation, catain: CatainPersistenceEntity) =
@@ -48,7 +59,8 @@ class ShipRepositoryAdapter(
             shipId = ship.shipId.id,
             shipName = ship.shipName,
             catain = catain,
-            arrivedFrom = ship.arrivedFrom?.name
+            arrivedFrom = ship.arrivedFrom?.name,
+            incoming = ship.incoming
         )
 
     /** Only a ship in the fleet is deleted; a ship that left keeps its row and its Shippings as history. */
@@ -56,6 +68,7 @@ class ShipRepositoryAdapter(
     override fun delete(shipId: ShipId): Boolean {
         shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id) ?: return false
         shippingRepository.deleteByShip_shipId(shipId.id)
+        cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
         shipPersistenceEntityRepository.deleteByShipId(shipId.id)
         return true
     }
@@ -85,6 +98,7 @@ class ShipRepositoryAdapter(
 
         val catainId = CatainId(shipPersistenceEntity.catain.catainId)
         val arrivedFrom = shipPersistenceEntity.arrivedFrom?.let { HarborName(it) }
+        val cargoAboard = cargoAboardRepository.findAllByShip_IdOrderById(shipPersistenceEntity.id!!).map { toCargo(it.cargo) }
 
         return shippingPersistenceEntity?.let {
             Ship(
@@ -95,6 +109,8 @@ class ShipRepositoryAdapter(
                 catainId = catainId,
                 catainName = shipPersistenceEntity.catain.catainName,
                 arrivedFrom = arrivedFrom,
+                cargoAboard = cargoAboard,
+                incoming = shipPersistenceEntity.incoming,
             )
         } ?: Ship(
             id = ShipId(shipPersistenceEntity.shipId),
@@ -102,6 +118,8 @@ class ShipRepositoryAdapter(
             catainId = catainId,
             catainName = shipPersistenceEntity.catain.catainName,
             arrivedFrom = arrivedFrom,
+            cargoAboard = cargoAboard,
+            incoming = shipPersistenceEntity.incoming,
         )
     }
 

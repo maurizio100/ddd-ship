@@ -25,8 +25,11 @@
   always check the column type.
 - `ships_cargos` holds a ship's Loaded Cargo. Despite its name, its `ship_id` column references
   `shippings(id)`.
-- Every table has a primary key. A join table has a composite one on both foreign key columns
-  (`ships_cargos`: `pk_ships_cargos` on `(ship_id, cargo_id)`), so every table has a replica identity
+- Cargo aboard a ship that has no Shipping (an Incoming Ship) goes in `ships_cargos_aboard`
+  (`ship_id` references `ships(id)`), one row per Cargo instance, never in `ships_cargos`. `saveNewShip`
+  replaces a ship's rows there in the same transaction as the ship row, and `delete` removes them first.
+- Every table has a primary key. A table that can hold the same pair twice gets a surrogate `id`
+  (`ships_cargos` since V14, `ships_cargos_aboard` since V16), so every table has a replica identity
   whatever the Debezium publication covers. PostgreSQL rejects `DELETE` on a published table without one.
 - Constraints are named `pk_<table>` and `fk_<table>_on_<target>`.
 

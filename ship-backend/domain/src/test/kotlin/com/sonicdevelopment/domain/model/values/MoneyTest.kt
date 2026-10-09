@@ -49,4 +49,11 @@ class MoneyTest {
         (Money.of("33.33") * 3).toDecimalString() shouldBe "99.99"
         (Money.of("50.00") * 0).toDecimalString() shouldBe "0.00"
     }
+
+    @Test
+    fun `plus adds exactly to the cent`() {
+        (Money.of("40.00") + Money.of("40.00") + Money.of("35.00")).toDecimalString() shouldBe "115.00"
+        (Money.of("0.10") + Money.of("0.20")) shouldBe Money.of("0.30")
+        (Money.dollars(0) + Money.of("12.34")).toDecimalString() shouldBe "12.34"
+    }
 }

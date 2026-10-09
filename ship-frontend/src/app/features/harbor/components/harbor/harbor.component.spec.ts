@@ -5,7 +5,8 @@ import { HarborComponent } from './harbor.component';
 import { StockedCargo } from '../../models/stocked-cargo';
 import { Savings } from '../../models/savings';
 import * as HarborActions from '../../store/harbor.actions';
-import { aSavings, aStockedCargo } from '../../../../../testing/fixtures';
+import { IncomingShip } from '../../models/incoming-ship';
+import { aSavings, aStockedCargo, anIncomingShipListing } from '../../../../../testing/fixtures';
 
 describe('HarborComponent (The harbor management page shows the Harbor\'s Stock)', () => {
   let fixture: ComponentFixture<HarborComponent>;
@@ -15,12 +16,13 @@ describe('HarborComponent (The harbor management page shows the Harbor\'s Stock)
     stock: StockedCargo[],
     savings: Savings | null = null,
     purchaseRefusal: string | null = null,
+    incomingShips: IncomingShip[] = [],
   ): void {
     TestBed.configureTestingModule({
       imports: [HarborComponent],
       providers: [
         provideMockStore({
-          initialState: { harbor: { stock, savings, loading: false, error: null, purchaseRefusal } },
+          initialState: { harbor: { stock, savings, incomingShips, loading: false, error: null, purchaseRefusal } },
         }),
       ],
     });
@@ -127,6 +129,7 @@ describe('HarborComponent (The harbor management page shows the Harbor\'s Stock)
       harbor: {
         stock: [{ ...ale, quantity: 3 }],
         savings: aSavings({ amount: '50.00' }),
+        incomingShips: [],
         loading: false,
         error: null,
         purchaseRefusal: null,
@@ -167,5 +170,68 @@ describe('HarborComponent (The harbor management page shows the Harbor\'s Stock)
     expect(buy.disabled).toBeTrue();
     buy.click();
     expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ type: HarborActions.buyCargo.type }));
+  });
+});
+
+describe('HarborComponent (An arriving ship becomes an Incoming Ship)', () => {
+  let fixture: ComponentFixture<HarborComponent>;
+  let store: MockStore;
+
+  function render(incomingShips: IncomingShip[]): void {
+    TestBed.configureTestingModule({
+      imports: [HarborComponent],
+      providers: [
+        provideMockStore({
+          initialState: {
+            harbor: {
+              stock: [aStockedCargo()],
+              savings: aSavings(),
+              incomingShips,
+              loading: false,
+              error: null,
+              purchaseRefusal: null,
+            },
+          },
+        }),
+      ],
+    });
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    fixture = TestBed.createComponent(HarborComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  const textIn = (row: HTMLElement, testId: string): string | undefined =>
+    row.querySelector(`[data-testid="${testId}"]`)?.textContent?.trim();
+
+  it('Incoming Ships are listed on the harbor management page', () => {
+    render([anIncomingShipListing()]);
+
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.loadIncomingShips());
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.watchArrivals());
+    const rows = all('harbor-incoming-ship');
+    expect(rows.length).toBe(1);
+    expect(textIn(rows[0], 'harbor-incoming-ship-name')).toBe('Salty Whisker');
+    expect(textIn(rows[0], 'harbor-incoming-ship-cargo')).toBe('2 × Rum, 1 × Sugar');
+    expect(textIn(rows[0], 'harbor-incoming-ship-delivery-price')).toBe('115.00 $');
+
+    fixture.destroy();
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.stopWatchingArrivals());
+  });
+
+  it('shows a dash for a Delivery Price that cannot be computed yet', () => {
+    render([anIncomingShipListing({ deliveryPrice: null })]);
+
+    expect(textIn(all('harbor-incoming-ship')[0], 'harbor-incoming-ship-delivery-price')).toBe('—');
+  });
+
+  it('says so when there are no Incoming Ships', () => {
+    render([]);
+
+    expect(all('harbor-incoming-ship')).toEqual([]);
+    expect(all('harbor-incoming-ships-empty').map((line) => line.textContent!.trim())).toEqual(['No Incoming Ships']);
   });
 });

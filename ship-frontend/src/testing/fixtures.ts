@@ -5,6 +5,7 @@ import { ShippingSummary } from '../app/features/shipping/models/shipping-summar
 import { ArrivalNotice } from '../app/features/ships/models/fleet-event';
 import { PurchaseRequest } from '../app/features/harbor/models/purchase-request';
 import { Savings } from '../app/features/harbor/models/savings';
+import { IncomingShip } from '../app/features/harbor/models/incoming-ship';
 import { StockedCargo } from '../app/features/harbor/models/stocked-cargo';
 import { Catain } from '../app/features/catains/model/catain';
 import {
@@ -51,6 +52,32 @@ export function anAvailableShip(overrides: Partial<AvailableShip> = {}): Availab
     catain: 'Furry Jones',
     shippingState: AvailableShipShippingState.IDLE,
     arrivedFrom: null,
+    incoming: false,
+    ...overrides,
+  };
+}
+
+/** A ship that arrived with Cargo aboard: "Salty Whisker" from "Tortuga". */
+export function anIncomingShip(overrides: Partial<AvailableShip> = {}): AvailableShip {
+  return anAvailableShip({
+    id: '5f1d7c2e-0000-4000-8000-000000000002',
+    name: 'Salty Whisker',
+    arrivedFrom: 'Tortuga',
+    incoming: true,
+    ...overrides,
+  });
+}
+
+/** An Incoming Ship as listed on the harbor management page: 2 Rum and 1 Sugar aboard, Delivery Price 115.00. */
+export function anIncomingShipListing(overrides: Partial<IncomingShip> = {}): IncomingShip {
+  const rum = aCargo({ id: 'c0a8f3a2-0000-4000-8000-000000000009', name: 'Rum', weight: 5.5 });
+  const sugar = aCargo({ id: 'c0a8f3a2-0000-4000-8000-000000000010', name: 'Sugar', weight: 0.7 });
+  return {
+    shipId: '5f1d7c2e-0000-4000-8000-000000000002',
+    name: 'Salty Whisker',
+    arrivedFrom: 'Tortuga',
+    cargo: [rum, rum, sugar],
+    deliveryPrice: '115.00',
     ...overrides,
   };
 }

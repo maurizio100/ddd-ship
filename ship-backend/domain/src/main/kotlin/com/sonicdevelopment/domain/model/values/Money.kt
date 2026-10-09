@@ -22,6 +22,9 @@ class Money(amount: BigDecimal) {
     /** This amount [quantity] times, exact to the cent. */
     operator fun times(quantity: Int): Money = Money(amount.multiply(BigDecimal.valueOf(quantity.toLong())))
 
+    /** This amount and [other] together, exact to the cent. */
+    operator fun plus(other: Money): Money = Money(amount.add(other.amount))
+
     override fun equals(other: Any?): Boolean = other is Money && other.amount == amount
 
     override fun hashCode(): Int = amount.hashCode()

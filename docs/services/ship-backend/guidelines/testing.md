@@ -92,7 +92,7 @@ Tagged today: every `driven-adapter` repository adapter test, `ShipBackendStartu
   is synchronous, so nothing is awaited. A scenario set at another Harbor is a `@Nested` class with its own
   `harbor.name`, without `@DirtiesContext`.
 - **`-Pdb` application tests:** one Postgres Testcontainer per JVM (the singleton `PostgresTestcontainer`),
-  migrated by Flyway. Before each test, `truncateMutableTables()` (`ships_cargos`, `shippings`, `ships`,
+  migrated by Flyway. Before each test, `truncateMutableTables()` (`ships_cargos_aboard`, `ships_cargos`, `shippings`, `ships`,
   `shipping_outbox`, `inbox_events`, `known_harbors`, `arrivals`; the reference tables `cargos`, `catains` and
   `quotes` stay) and `resetStockToStartingStock()` (`stocks` is reset to the Starting Stock, not truncated,
   since an empty Stock would make every Cargo unavailable). Kafka is unreachable

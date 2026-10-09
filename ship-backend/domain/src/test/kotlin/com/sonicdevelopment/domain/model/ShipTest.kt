@@ -1,10 +1,12 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.enums.ShippingState
+import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
@@ -148,4 +150,58 @@ class ShipTest {
         ship.shippingState() shouldBe ShippingState.PREPARING
         ship.activeShipping!!.id shouldNotBe voyage.id
     }
+
+    @Test
+    fun `an Incoming Ship cannot get a new Shipping`() {
+        val ship = anIdleShip(cargoAboard = listOf(aCargo(name = "Rum")), incoming = true)
+
+        shouldThrow<NewShippingRefusedException> { ship.createNewShipping() }
+            .message shouldBe "Salty Whisker must be unloaded or refused first"
+        ship.activeShipping shouldBe null
+        ship.isIncoming shouldBe true
+    }
+
+    @Test
+    fun `an Incoming Ship must have Cargo aboard`() {
+        shouldThrow<IllegalArgumentException> { anIdleShip(cargoAboard = emptyList(), incoming = true) }
+    }
+
+    @Test
+    fun `a ship with Cargo aboard that is not Incoming can get a new Shipping`() {
+        // a ship refused by its own Home Harbor keeps its Cargo aboard as an ordinary ship (STORY-028)
+        val rum = aCargo(name = "Rum")
+        val ship = anIdleShip(cargoAboard = listOf(rum, rum), incoming = false)
+
+        ship.createNewShipping()
+
+        ship.shippingState() shouldBe ShippingState.PREPARING
+        ship.isIncoming shouldBe false
+        ship.cargoAboard.map { it.name } shouldBe listOf("Rum", "Rum")
+    }
+
+    @Test
+    fun `a ship with an Active Shipping cannot get another`() {
+        val ship = aShip(name = "Black Pearl")
+        val preparing = ship.activeShipping!!
+
+        shouldThrow<NewShippingRefusedException> { ship.createNewShipping() }
+            .message shouldBe "Black Pearl already has an Active Shipping"
+        ship.activeShipping shouldBe preparing
+    }
+
+    @Test
+    fun `a ship with no Cargo aboard and no flag is not Incoming`() {
+        val ship = anIdleShip()
+
+        ship.isIncoming shouldBe false
+        ship.cargoAboard shouldBe emptyList()
+    }
+
+    private fun anIdleShip(cargoAboard: List<Cargo> = emptyList(), incoming: Boolean = false) = Ship(
+        name = "Salty Whisker",
+        catainId = CatainId(UUID.randomUUID()),
+        catainName = "Furry Jones",
+        cargoAboard = cargoAboard,
+        incoming = incoming,
+    )
 }

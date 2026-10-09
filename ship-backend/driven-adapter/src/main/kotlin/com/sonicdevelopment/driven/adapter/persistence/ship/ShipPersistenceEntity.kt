@@ -27,6 +27,10 @@ class ShipPersistenceEntity(
 
     /** The Origin Harbor of the Arrival that last took the ship into this fleet; `null` for a ship registered here. */
     @Column(name = "ship_arrived_from")
-    var arrivedFrom: String? = null
+    var arrivedFrom: String? = null,
+
+    /** Whether the ship is an Incoming Ship; its Cargo aboard is in `ships_cargos_aboard`. */
+    @Column(name = "ship_incoming")
+    var incoming: Boolean = false
 ) {
 }

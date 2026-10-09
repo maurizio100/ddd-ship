@@ -8,6 +8,7 @@ data class ShipDTO(
     val name: String,
     val catain: String,
     val shippingState: ShippingState?,
-    val arrivedFrom: String? = null
+    val arrivedFrom: String? = null,
+    val incoming: Boolean = false,
 ) {
 }

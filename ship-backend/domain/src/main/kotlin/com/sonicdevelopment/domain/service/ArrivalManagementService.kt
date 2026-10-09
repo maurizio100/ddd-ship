@@ -13,7 +13,6 @@ import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation.Companion.fromShip
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
-import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipArrivedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
@@ -37,10 +36,11 @@ import org.springframework.stereotype.Service
  * no effect. A ship in the fleet that is not at sea does not arrive again: an Arrival handled before the
  * Arrivals were recorded, re-published.
  *
- * Otherwise, in one transaction with the inbox record: one of each Loaded Cargo goes into the Stock,
- * the ship joins the fleet with its Ship Id, Ship Name and Catain and no Shipping, remembering the Origin
- * Harbor it arrived from (replacing the one of an earlier Arrival), and Ship Arrived is written to the
- * outbox for the Origin Harbor.
+ * Otherwise, in one transaction with the inbox record: the ship joins the fleet with its Ship Id, Ship Name
+ * and Catain and no Shipping, remembering the Origin Harbor it arrived from (replacing the one of an earlier
+ * Arrival), and Ship Arrived is written to the outbox for the Origin Harbor. A ship that carries Cargo joins
+ * as an Incoming Ship with that Cargo aboard, one entry per Cargo instance; a ship that carries none joins as
+ * an ordinary ship. The Stock is unchanged: Cargo goes into it only when a User unloads the ship (STORY-045).
  *
  * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
  * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
@@ -58,7 +58,6 @@ class ArrivalManagementService(
     private val shipRepositoryPort: ShipRepositoryPort,
     private val catainRepository: CatainRepository,
     private val cargoQueryPort: CargoQueryPort,
-    private val stockRepositoryPort: StockRepositoryPort,
     private val shippingOutboxRepository: ShippingOutboxRepository,
     private val shippingRepositoryPort: ShippingRepositoryPort,
     private val arrivalRepositoryPort: ArrivalRepositoryPort,
@@ -87,13 +86,14 @@ class ArrivalManagementService(
             inFleet.endShipping(earlierVoyage.id)
             shippingRepositoryPort.updateActiveShipping(inFleet)
         }
-        cargo.forEach { stockRepositoryPort.putIntoStock(it.id, 1) }
         val ship = Ship(
             id = shippingPublished.shipId,
             name = shippingPublished.shipName,
             catainId = catain.catainId,
             catainName = catain.catainName,
             arrivedFrom = originHarbor,
+            cargoAboard = cargo,
+            incoming = cargo.isNotEmpty(),
         )
         shipRepositoryPort.saveNewShip(fromShip(ship))
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)

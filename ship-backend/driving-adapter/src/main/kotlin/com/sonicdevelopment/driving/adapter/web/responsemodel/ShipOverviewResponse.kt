@@ -8,5 +8,7 @@ data class ShipOverviewResponse(
     val name: String,
     val catain: String,
     val shippingState: ShippingState?,
-    val arrivedFrom: String? = null
+    val arrivedFrom: String? = null,
+    /** Whether the ship is an Incoming Ship, which cannot start a new Shipping until it is unloaded or refused. */
+    val incoming: Boolean = false
 )

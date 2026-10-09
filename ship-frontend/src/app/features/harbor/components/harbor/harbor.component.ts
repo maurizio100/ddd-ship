@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { LowerCasePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { Store } from '@ngrx/store';
 import * as HarborActions from '../../store/harbor.actions';
-import { selectPurchaseRefusal, selectSavings, selectStock } from '../../store/harbor.selectors';
+import { selectIncomingShips, selectPurchaseRefusal, selectSavings, selectStock } from '../../store/harbor.selectors';
 import { StockedCargo } from '../../models/stocked-cargo';
+import { IncomingShip } from '../../models/incoming-ship';
 
 @Component({
   selector: 'app-harbor',
@@ -12,12 +13,13 @@ import { StockedCargo } from '../../models/stocked-cargo';
   styleUrl: './harbor.component.scss',
   imports: [LowerCasePipe, MatButtonModule],
 })
-export class HarborComponent implements OnInit {
+export class HarborComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
 
   stock = this.store.selectSignal(selectStock);
   savings = this.store.selectSignal(selectSavings);
   purchaseRefusal = this.store.selectSignal(selectPurchaseRefusal);
+  incomingShips = this.store.selectSignal(selectIncomingShips);
 
   /** The quantity the User entered per Cargo; a Cargo without an entry buys 1. */
   private readonly quantities = signal<Record<string, number>>({});
@@ -25,6 +27,19 @@ export class HarborComponent implements OnInit {
   ngOnInit(): void {
     this.store.dispatch(HarborActions.loadStock());
     this.store.dispatch(HarborActions.loadSavings());
+    this.store.dispatch(HarborActions.loadIncomingShips());
+    this.store.dispatch(HarborActions.watchArrivals());
+  }
+
+  ngOnDestroy(): void {
+    this.store.dispatch(HarborActions.stopWatchingArrivals());
+  }
+
+  /** The Cargo aboard grouped by name, in the order it is first aboard: "2 × Rum, 1 × Sugar". */
+  cargoSummary(ship: IncomingShip): string {
+    const counts = new Map<string, number>();
+    ship.cargo.forEach((cargo) => counts.set(cargo.name, (counts.get(cargo.name) ?? 0) + 1));
+    return Array.from(counts, ([name, count]) => `${count} × ${name}`).join(', ');
   }
 
   quantityOf(cargo: StockedCargo): number {
