@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
+import com.sonicdevelopment.domain.exception.ShipAtItsHomeHarborException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
@@ -229,6 +230,57 @@ class ShipTest {
         ship.unload()
 
         shouldThrow<ShipNotIncomingException> { ship.unload() }
+    }
+
+    @Test
+    fun `refusing an Incoming Ship moves every Cargo aboard into the Loaded Cargo of a new Shipping`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val sugar = aCargo(name = "Sugar", weight = 0.7F)
+        val ship = anIdleShip(cargoAboard = listOf(rum, rum, sugar), incoming = true)
+
+        ship.refuse(HarborName("Tortuga"))
+
+        ship.activeShipping shouldNotBe null
+        ship.shippingState() shouldBe ShippingState.PREPARING
+        ship.loadedCargo shouldBe listOf(rum, rum, sugar)
+        ship.cargoAboard shouldBe emptyList()
+        ship.isIncoming shouldBe false
+    }
+
+    @Test
+    fun `a refused ship can be Released to its Home Harbor`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val ship = anIdleShip(cargoAboard = listOf(rum, rum), incoming = true)
+        ship.refuse(HarborName("Tortuga"))
+
+        ship.release(ShippingQuote("Fair winds"), ship.homeHarbor)
+
+        ship.shippingState() shouldBe ShippingState.SHIPPING
+        ship.activeShipping!!.destinationHarbor shouldBe HarborName("Port Royal")
+        ship.weight shouldBe 11.0F
+    }
+
+    @Test
+    fun `a ship that is not Incoming cannot be refused and changes nothing`() {
+        val ship = anIdleShip()
+
+        shouldThrow<ShipNotIncomingException> { ship.refuse(HarborName("Tortuga")) }
+            .message shouldBe "Salty Whisker is not an Incoming Ship"
+        ship.activeShipping shouldBe null
+        ship.loadedCargo shouldBe emptyList()
+    }
+
+    @Test
+    fun `an Incoming Ship at its Home Harbor cannot be refused and changes nothing`() {
+        val rum = aCargo(name = "Rum")
+        val ship = anIdleShip(cargoAboard = listOf(rum), incoming = true)
+
+        shouldThrow<ShipAtItsHomeHarborException> { ship.refuse(HarborName("Port Royal")) }
+            .message shouldBe "Salty Whisker is at its Home Harbor"
+        ship.activeShipping shouldBe null
+        ship.loadedCargo shouldBe emptyList()
+        ship.cargoAboard shouldBe listOf(rum)
+        ship.isIncoming shouldBe true
     }
 
     private fun anIdleShip(cargoAboard: List<Cargo> = emptyList(), incoming: Boolean = false) = Ship(
