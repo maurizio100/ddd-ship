@@ -1,63 +1,49 @@
 package com.sonicdevelopment.application.acceptance
 
-import com.sonicdevelopment.application.DbTest
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.sonicdevelopment.application.PostgresTestcontainer
+import com.sonicdevelopment.application.acceptance.fixtures.FakeDrivenPorts
+import com.sonicdevelopment.application.acceptance.fixtures.FakeHarborTest
+import com.sonicdevelopment.application.acceptance.fixtures.OutboxMessage
 import com.sonicdevelopment.application.acceptance.fixtures.aShipBeingPrepared
 import com.sonicdevelopment.application.acceptance.fixtures.givenKnownHarbors
 import com.sonicdevelopment.application.acceptance.fixtures.release
-import com.sonicdevelopment.application.acceptance.fixtures.resetStockToStartingStock
-import com.sonicdevelopment.application.acceptance.fixtures.truncateMutableTables
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.TestPropertySource
 import java.util.*
 
 /**
  * Feature: Release a ship to a Destination Harbor.
  *
- * The Harbor is "Tortuga". Its Known Harbors are inserted directly, as if learned from Harbor Opened
+ * The Harbor is "Tortuga", on in-memory fakes. Its Known Harbors are given directly, as if learned from Harbor Opened
  * (STORY-003); the Destination Harbor choices are what the User sees at `GET /web/harbors`.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(PostgresTestcontainer::class)
-@TestPropertySource(
-    properties = [
-        "harbor.name=Tortuga",
-        "spring.kafka.bootstrap-servers=localhost:1",
-        "spring.kafka.listener.auto-startup=false",
-    ]
-)
-@DbTest
+@FakeHarborTest
+@TestPropertySource(properties = ["harbor.name=Tortuga"])
 class ReleaseAShipToADestinationHarborAcceptanceTest {
 
     @Autowired
     lateinit var restTemplate: TestRestTemplate
 
     @Autowired
-    lateinit var jdbcTemplate: JdbcTemplate
+    lateinit var fakes: FakeDrivenPorts
 
     @BeforeEach
     fun resetHarbor() {
-        jdbcTemplate.truncateMutableTables()
-        jdbcTemplate.resetStockToStartingStock()
+        fakes.reset()
     }
 
     @Test
     fun `The Destination Harbor choices are the Known Harbors`() {
         // Given "Tortuga" knows the Harbors "Port Royal" and "Nassau"
-        jdbcTemplate.givenKnownHarbors("Port Royal", "Nassau")
+        fakes.givenKnownHarbors("Port Royal", "Nassau")
         // And a ship at "Tortuga" is being prepared
-        restTemplate.aShipBeingPrepared(jdbcTemplate)
+        restTemplate.aShipBeingPrepared()
 
         // Then the Destination Harbor choices for the ship are "Port Royal" and "Nassau"
         destinationHarborChoices() shouldBe listOf("Nassau", "Port Royal")
@@ -66,9 +52,9 @@ class ReleaseAShipToADestinationHarborAcceptanceTest {
     @Test
     fun `A ship is Released to a Known Harbor`() {
         // Given "Tortuga" knows the Harbor "Port Royal"
-        jdbcTemplate.givenKnownHarbors("Port Royal")
+        fakes.givenKnownHarbors("Port Royal")
         // And a ship at "Tortuga" is being prepared
-        val shipId = restTemplate.aShipBeingPrepared(jdbcTemplate)
+        val shipId = restTemplate.aShipBeingPrepared()
 
         // When the User Releases the ship to "Port Royal"
         val release = restTemplate.release(shipId, "Port Royal")
@@ -80,18 +66,18 @@ class ReleaseAShipToADestinationHarborAcceptanceTest {
         // And the Shipping Published names "Tortuga" as Origin Harbor and "Port Royal" as Destination Harbor
         val payloads = shippingPublishedPayloads()
         payloads.size shouldBe 1
-        val payload = ObjectMapper().readTree(payloads.single())
-        payload["shippingEventData"]["originHarbor"].asText() shouldBe "Tortuga"
-        payload["shippingEventData"]["destinationHarbor"].asText() shouldBe "Port Royal"
-        payload["shipEventData"]["shipId"].asText() shouldBe shipId.toString()
+        val published = payloads.single()
+        published.originHarbor shouldBe "Tortuga"
+        published.destinationHarbor shouldBe "Port Royal"
+        published.shipId shouldBe shipId
     }
 
     @Test
     fun `A ship cannot be Released to an unknown Harbor`() {
         // Given "Tortuga" does not know the Harbor "Atlantis"
-        jdbcTemplate.givenKnownHarbors("Port Royal")
+        fakes.givenKnownHarbors("Port Royal")
         // And a ship at "Tortuga" is being prepared
-        val shipId = restTemplate.aShipBeingPrepared(jdbcTemplate)
+        val shipId = restTemplate.aShipBeingPrepared()
 
         // When the User Releases the ship to "Atlantis"
         val release = restTemplate.release(shipId, "Atlantis")
@@ -109,7 +95,7 @@ class ReleaseAShipToADestinationHarborAcceptanceTest {
     fun `A ship cannot be Released without a Known Harbor`() {
         // Given "Tortuga" knows no other Harbor
         // And a ship at "Tortuga" is being prepared
-        val shipId = restTemplate.aShipBeingPrepared(jdbcTemplate)
+        val shipId = restTemplate.aShipBeingPrepared()
 
         // Then the ship cannot be Released
         destinationHarborChoices().shouldBeEmpty()
@@ -122,9 +108,9 @@ class ReleaseAShipToADestinationHarborAcceptanceTest {
     @Test
     fun `A ship at sea cannot be Released again`() {
         // Given "Tortuga" knows the Harbors "Port Royal" and "Nassau"
-        jdbcTemplate.givenKnownHarbors("Port Royal", "Nassau")
+        fakes.givenKnownHarbors("Port Royal", "Nassau")
         // And a ship at "Tortuga" has been Released to "Port Royal"
-        val shipId = restTemplate.aShipBeingPrepared(jdbcTemplate, "Black Pearl")
+        val shipId = restTemplate.aShipBeingPrepared("Black Pearl")
         restTemplate.release(shipId, "Port Royal").statusCode shouldBe HttpStatus.OK
 
         // When the User Releases the ship to "Nassau"
@@ -138,7 +124,7 @@ class ReleaseAShipToADestinationHarborAcceptanceTest {
         shippingStateOf(shipId) shouldBe "SHIPPING"
         val payloads = shippingPublishedPayloads()
         payloads.size shouldBe 1
-        ObjectMapper().readTree(payloads.single())["shippingEventData"]["destinationHarbor"].asText() shouldBe "Port Royal"
+        payloads.single().destinationHarbor shouldBe "Port Royal"
     }
 
     private fun destinationHarborChoices(): List<String> {
@@ -153,8 +139,5 @@ class ReleaseAShipToADestinationHarborAcceptanceTest {
         return ships.body!!.map { it as Map<*, *> }.single { it["id"] == shipId.toString() }["shippingState"] as String?
     }
 
-    private fun shippingPublishedPayloads(): List<String> =
-        jdbcTemplate.queryForList(
-            "SELECT payload FROM shipping_outbox WHERE event_type = 'shipping-published'", String::class.java
-        )
+    private fun shippingPublishedPayloads(): List<OutboxMessage.ShippingPublished> = fakes.outbox.shippingPublished()
 }

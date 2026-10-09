@@ -1,7 +1,8 @@
 # ship-backend — testing
 
 **Run:** `cd ship-backend && ./mvnw verify` (no Docker needed), and
-`./mvnw verify -Pdb` for the whole suite including the tests that need Docker.
+`./mvnw verify -Pdb` for the whole suite including the tests that need Docker. Local runs need JDK 21
+(`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`); the shell default may be older.
 
 Test dependencies (JUnit 5, Kotest assertions, MockK, springmockk, Testcontainers, `spring-boot-starter-test`)
 are managed in the parent `pom.xml` and declared with `test` scope in the module that uses them.
@@ -25,10 +26,19 @@ Any test that needs Docker (a Testcontainer) must carry `@DbTest`, the meta-anno
 makes surefire exclude the `db` group by default; `-Pdb` lifts the exclusion. A test that starts a
 container without the tag breaks the Docker-free default build.
 
-Tagged today: every `driven-adapter` repository adapter test, the `application` acceptance tests,
+Tagged today: every `driven-adapter` repository adapter test, the Kafka-based `application` acceptance tests,
 `ShipBackendStartupTest`, `ShipsCargosPrimaryKeyMigrationTest`, `FleetEventsAfterCommitIntegrationTest`
 and `ReferenceDataIdsTest`. Tagging an outer class covers its `@Nested` classes. CI
 (`.github/workflows/test.yml`) runs `./mvnw verify -Pdb` on every pull request and push to `main`.
+
+## Fakes
+
+- Acceptance tests that need no Kafka use `@FakeHarborTest` and the in-memory fakes in
+  `application/.../acceptance/fixtures`, and carry no `@DbTest`.
+- Fakes hold plain records and rebuild fresh domain objects on every read, never live ones.
+- They mirror the adapter's `ON CONFLICT` semantics (first write wins; `putIntoStock` adds).
+- They do not roll back, so a rollback guarantee belongs in a `-Pdb` test.
+- Reset them in `@BeforeEach` (`FakeDrivenPorts.reset()`).
 
 ## Acceptance tests
 
