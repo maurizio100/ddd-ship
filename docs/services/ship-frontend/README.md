@@ -1,7 +1,7 @@
 # ship-frontend
 
 The Hexagonship web UI: the list of Available Ships, creating a ship with its Catain, loading and
-unloading Cargo, Releasing a ship, the Shipping Summary, and the harbor management page with the Stock, the
+unloading Cargo (and showing the Cargo a Home Harbor refused aboard the ship), Releasing a ship, the Shipping Summary, and the harbor management page with the Stock, the
 Savings, the Market and the Incoming Ships, which it unloads or refuses. It holds the UI state in NgRx stores and
 gets all its data from ship-backend over REST. It has no domain rules of its own: the backend
 decides whether a load or a Release is allowed. The harbor terminal is not part of it.

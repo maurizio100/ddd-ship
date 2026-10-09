@@ -214,10 +214,10 @@ Per [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md) and
 are REST-driven, each in one DB transaction at the Destination Harbor. Unloading is built by STORY-045
 (`POST /web/incoming-ships/{id}/unloading`) without the Earnings step: it pays, stocks, and then clears
 the ship with a conditional update, so of two concurrent unloadings of the same ship the second fails and
-rolls its payment back. Refusing at a Harbor other than the Home Harbor is built
+rolls its payment back. Refusing is built
 (`POST /web/incoming-ships/{id}/refusal`): it clears the ship first with the same conditional update, so
-of an unloading and a refusal of the same ship only one takes effect, and then Releases it to its Home
-Harbor like any Release. The Earnings are decided, not built.
+of an unloading and a refusal of the same ship only one takes effect. Away from the Home Harbor it then
+Releases the ship to its Home Harbor like any Release; at the Home Harbor it only ends the Incoming state. The Earnings are decided, not built.
 
 ```mermaid
 sequenceDiagram
@@ -237,7 +237,7 @@ sequenceDiagram
         BE->>DB: clear the Incoming flag and the Cargo aboard (only if still Incoming)
         BE->>DB: add the Delivery Price to the ship's Earnings (not built)
         end
-    else refuse
+    else refuse away from the Home Harbor
         FE->>BE: refuse the Incoming Ship
         rect rgb(240,240,240)
         Note over BE,DB: one DB transaction
@@ -247,13 +247,20 @@ sequenceDiagram
         BE->>DB: insert outbox row (shipping-published to the Home Harbor)
         end
         DB->>K: Debezium, then Arrival at the Home Harbor as in 6.4
+    else refuse at the Home Harbor
+        FE->>BE: refuse the Incoming Ship
+        rect rgb(240,240,240)
+        Note over BE,DB: one DB transaction
+        BE->>DB: clear only the Incoming flag (only if still Incoming); the Cargo aboard stays
+        end
     end
 ```
 
 A refused ship stays in this Harbor's fleet, at sea, and leaves it when the Home Harbor's
 `ship-arrived` comes back, as in 6.5. At its Home Harbor an unloaded ship's Earnings go into the
-Savings at once (not built). A ship its own Home Harbor refuses (STORY-028, not built) does not sail: it stays in the fleet as an ordinary ship with its Cargo aboard,
-nothing is paid, and that Cargo cannot be unloaded into the Stock while preparing (R-12, STORY-028).
+Savings at once (not built). A ship its own Home Harbor refuses does not sail: it stays in the fleet as an ordinary ship with its Cargo aboard,
+nothing is paid, and that Cargo cannot be unloaded into the Stock while preparing (R-12). On its next Release the
+Cargo aboard becomes the Loaded Cargo of the Shipping, in the same transaction.
 
 ## 6.8 Hire a Recruit (decided, not built yet)
 
