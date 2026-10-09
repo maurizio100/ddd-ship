@@ -257,7 +257,7 @@ class ShipRepositoryAdapterTest {
         val catainRowId = jdbcTemplate.queryForObject("SELECT id FROM catains ORDER BY id LIMIT 1", Long::class.java)
         val shipId = UUID.randomUUID()
         jdbcTemplate.update(
-            "INSERT INTO ships (id, ship_id, ship_name, catain_id) VALUES (nextval('ships_seq'), ?, 'Old Timer', ?)",
+            "INSERT INTO ships (id, ship_id, ship_name, catain_id, ship_home_harbor) VALUES (nextval('ships_seq'), ?, 'Old Timer', ?, 'Port Royal')",
             shipId, catainRowId,
         )
 

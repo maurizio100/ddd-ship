@@ -1,7 +1,10 @@
 package com.sonicdevelopment.application
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.FlywayException
 import org.junit.jupiter.api.Test
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
@@ -42,6 +45,21 @@ class ShipsHomeHarborMigrationTest {
             "SELECT is_nullable FROM information_schema.columns WHERE table_name = 'ships' AND column_name = 'ship_home_harbor'",
             String::class.java
         ) shouldBe "NO"
+    }
+
+    @Test
+    fun `without a Harbor Name the migration fails rather than give registered ships an empty Home Harbor`() {
+        val dataSource = aHarborDatabaseBeforeTheHomeHarbor()
+        JdbcTemplate(dataSource).update(
+            "INSERT INTO ships (id, ship_id, ship_name, catain_id) VALUES (1, ?, 'Black Pearl', 1)", UUID.randomUUID()
+        )
+
+        val failure = shouldThrow<FlywayException> {
+            Flyway.configure().dataSource(dataSource).locations("classpath:db/migration")
+                .placeholders(mapOf("harbor_name" to "")).load().migrate()
+        }
+
+        failure.message shouldContain "ship_home_harbor"
     }
 
     private fun JdbcTemplate.homeHarborOf(shipId: UUID): String? =
