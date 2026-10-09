@@ -227,4 +227,11 @@ describe('HarborComponent (An arriving ship becomes an Incoming Ship)', () => {
 
     expect(textIn(all('harbor-incoming-ship')[0], 'harbor-incoming-ship-delivery-price')).toBe('—');
   });
+
+  it('says so when there are no Incoming Ships', () => {
+    render([]);
+
+    expect(all('harbor-incoming-ship')).toEqual([]);
+    expect(all('harbor-incoming-ships-empty').map((line) => line.textContent!.trim())).toEqual(['No Incoming Ships']);
+  });
 });

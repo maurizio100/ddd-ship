@@ -2,14 +2,17 @@ import { TestBed } from '@angular/core/testing';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { Action } from '@ngrx/store';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable, of, ReplaySubject, throwError } from 'rxjs';
+import { Observable, of, ReplaySubject, Subject, throwError } from 'rxjs';
 
 import { HarborEffects } from './harbor.effects';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
 import { MarketService } from '../services/market.service';
-import { aSavings, aStockedCargo } from '../../../../testing/fixtures';
+import { IncomingShipsService } from '../services/incoming-ships.service';
+import { FleetEventsService } from '../../ships/services/fleet-events.service';
+import { FleetEvent } from '../../ships/models/fleet-event';
+import { aSavings, aStockedCargo, anIncomingShipListing } from '../../../../testing/fixtures';
 
 describe('HarborEffects', () => {
   let actions$: ReplaySubject<Action>;
@@ -17,12 +20,18 @@ describe('HarborEffects', () => {
   let stockService: jasmine.SpyObj<StockService>;
   let savingsService: jasmine.SpyObj<SavingsService>;
   let marketService: jasmine.SpyObj<MarketService>;
+  let incomingShipsService: jasmine.SpyObj<IncomingShipsService>;
+  let pushed: Subject<FleetEvent>;
 
   beforeEach(() => {
     actions$ = new ReplaySubject<Action>();
     stockService = jasmine.createSpyObj<StockService>('StockService', ['getStock']);
     savingsService = jasmine.createSpyObj<SavingsService>('SavingsService', ['getSavings']);
     marketService = jasmine.createSpyObj<MarketService>('MarketService', ['buyCargo']);
+    incomingShipsService = jasmine.createSpyObj<IncomingShipsService>('IncomingShipsService', ['getIncomingShips']);
+    pushed = new Subject<FleetEvent>();
+    const fleetEventsService = jasmine.createSpyObj<FleetEventsService>('FleetEventsService', ['events']);
+    fleetEventsService.events.and.returnValue(pushed);
     TestBed.configureTestingModule({
       providers: [
         HarborEffects,
@@ -30,6 +39,8 @@ describe('HarborEffects', () => {
         { provide: StockService, useValue: stockService },
         { provide: SavingsService, useValue: savingsService },
         { provide: MarketService, useValue: marketService },
+        { provide: IncomingShipsService, useValue: incomingShipsService },
+        { provide: FleetEventsService, useValue: fleetEventsService },
       ],
     });
     effects = TestBed.inject(HarborEffects);
@@ -126,5 +137,44 @@ describe('HarborEffects', () => {
     actions$.next(HarborActions.buyCargoSuccess());
 
     expect(emitted).toEqual([HarborActions.loadStock(), HarborActions.loadSavings()]);
+  });
+
+  it('loadIncomingShips$ emits loadIncomingShipsSuccess with the service result', () => {
+    const incomingShips = [anIncomingShipListing()];
+    incomingShipsService.getIncomingShips.and.returnValue(of(incomingShips));
+    const emitted: Action[] = [];
+    effects.loadIncomingShips$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.loadIncomingShips());
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShipsSuccess({ incomingShips })]);
+  });
+
+  it('loadIncomingShips$ emits loadIncomingShipsFailure when the service fails', () => {
+    const error = new Error('boom');
+    incomingShipsService.getIncomingShips.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.loadIncomingShips$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.loadIncomingShips());
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShipsFailure({ error })]);
+  });
+
+  it('watchArrivals$ reloads the Incoming Ships when a ship arrives and when the stream (re)connects, until stopped', () => {
+    const emitted: Action[] = [];
+    effects.watchArrivals$.subscribe((action) => emitted.push(action));
+    actions$.next(HarborActions.watchArrivals());
+
+    pushed.next({ type: 'connected' });
+    pushed.next({ type: 'ship-arrived', ship: { shipId: 'id', shipName: 'Salty Whisker', originHarbor: 'Tortuga' } });
+    pushed.next({ type: 'ship-left', ship: { shipId: 'id', shipName: 'Black Pearl', destinationHarbor: 'Nassau' } });
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShips(), HarborActions.loadIncomingShips()]);
+
+    actions$.next(HarborActions.stopWatchingArrivals());
+    pushed.next({ type: 'ship-arrived', ship: { shipId: 'id', shipName: 'Salty Whisker', originHarbor: 'Tortuga' } });
+
+    expect(emitted.length).toBe(2);
   });
 });

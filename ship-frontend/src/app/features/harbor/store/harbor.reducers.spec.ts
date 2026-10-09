@@ -1,6 +1,6 @@
 import { harborReducers, initialState } from './harbor.reducers';
 import * as HarborActions from './harbor.actions';
-import { aSavings, aStockedCargo } from '../../../../testing/fixtures';
+import { aSavings, aStockedCargo, anIncomingShipListing } from '../../../../testing/fixtures';
 
 describe('harborReducers', () => {
   it('starts without Savings', () => {
@@ -88,5 +88,29 @@ describe('harborReducers', () => {
     );
 
     expect(state.purchaseRefusal).toBeNull();
+  });
+
+  it('starts without Incoming Ships', () => {
+    expect(initialState.incomingShips).toEqual([]);
+  });
+
+  it('loadIncomingShipsSuccess stores the Incoming Ships', () => {
+    const incomingShips = [anIncomingShipListing()];
+
+    const state = harborReducers(initialState, HarborActions.loadIncomingShipsSuccess({ incomingShips }));
+
+    expect(state.incomingShips).toEqual(incomingShips);
+  });
+
+  it('loadIncomingShipsFailure stores the error and keeps the Incoming Ships', () => {
+    const incomingShips = [anIncomingShipListing()];
+
+    const state = harborReducers(
+      { ...initialState, incomingShips },
+      HarborActions.loadIncomingShipsFailure({ error: 'boom' }),
+    );
+
+    expect(state.incomingShips).toEqual(incomingShips);
+    expect(state.error).toBe('boom');
   });
 });
