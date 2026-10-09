@@ -305,4 +305,20 @@ describe('HarborComponent (Unload an Incoming Ship and pay the Delivery Price)',
     expect(all('harbor-incoming-ship').length).toBe(1);
     expect(all('harbor-incoming-ship-cargo')[0].textContent!.trim()).toBe('2 × Rum, 1 × Sugar');
   });
+
+  it('cannot unload an Incoming Ship whose Delivery Price cannot be computed yet', () => {
+    render([anIncomingShipListing({ deliveryPrice: null })]);
+
+    const unload = all('harbor-unload')[0] as HTMLButtonElement;
+    expect(unload.disabled).toBeTrue();
+    expect(unload.getAttribute('aria-label')).toBe('Unload Salty Whisker');
+    unload.click();
+    expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ type: HarborActions.unloadIncomingShip.type }));
+  });
+
+  it('shows no unload refusal when there is none', () => {
+    render([anIncomingShipListing()]);
+
+    expect(all('harbor-unload-refusal')).toEqual([]);
+  });
 });

@@ -19,18 +19,18 @@ describe('harborReducers', () => {
 
     const state = harborReducers({ ...initialState, loading: true }, HarborActions.loadStockSuccess({ stock }));
 
-    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: null, purchaseRefusal: null });
+    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null });
   });
 
   it('loadStockFailure stores the error, keeps the stock and stops loading', () => {
     const stock = [aStockedCargo()];
 
     const state = harborReducers(
-      { stock, savings: null, incomingShips: [], loading: true, error: null, purchaseRefusal: null },
+      { stock, savings: null, incomingShips: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null },
       HarborActions.loadStockFailure({ error: 'boom' }),
     );
 
-    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null });
+    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null });
   });
 
   it('loadSavings sets loading and clears a previous error', () => {
@@ -45,18 +45,18 @@ describe('harborReducers', () => {
 
     const state = harborReducers({ ...initialState, loading: true }, HarborActions.loadSavingsSuccess({ savings }));
 
-    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: null, purchaseRefusal: null });
+    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null });
   });
 
   it('loadSavingsFailure stores the error, keeps the Savings and stops loading', () => {
     const savings = aSavings();
 
     const state = harborReducers(
-      { stock: [], savings, incomingShips: [], loading: true, error: null, purchaseRefusal: null },
+      { stock: [], savings, incomingShips: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null },
       HarborActions.loadSavingsFailure({ error: 'boom' }),
     );
 
-    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null });
+    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null });
   });
 
   it('starts without a purchase refusal', () => {
@@ -112,5 +112,39 @@ describe('harborReducers', () => {
 
     expect(state.incomingShips).toEqual(incomingShips);
     expect(state.error).toBe('boom');
+  });
+
+  it('starts without an unload refusal', () => {
+    expect(initialState.unloadRefusal).toBeNull();
+  });
+
+  it('unloadIncomingShipFailure stores the refusal', () => {
+    const state = harborReducers(
+      initialState,
+      HarborActions.unloadIncomingShipFailure({
+        error: 'boom',
+        refusal: 'The Savings do not cover the Delivery Price of 115.00 $',
+      }),
+    );
+
+    expect(state.unloadRefusal).toBe('The Savings do not cover the Delivery Price of 115.00 $');
+  });
+
+  it('unloadIncomingShip clears a previous refusal', () => {
+    const state = harborReducers(
+      { ...initialState, unloadRefusal: 'The Savings do not cover the Delivery Price of 115.00 $' },
+      HarborActions.unloadIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }),
+    );
+
+    expect(state.unloadRefusal).toBeNull();
+  });
+
+  it('unloadIncomingShipSuccess clears a previous refusal', () => {
+    const state = harborReducers(
+      { ...initialState, unloadRefusal: 'The Savings do not cover the Delivery Price of 115.00 $' },
+      HarborActions.unloadIncomingShipSuccess(),
+    );
+
+    expect(state.unloadRefusal).toBeNull();
   });
 });
