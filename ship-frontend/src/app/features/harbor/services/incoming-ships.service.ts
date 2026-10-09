@@ -18,4 +18,8 @@ export class IncomingShipsService {
   unload(shipId: string): Observable<void> {
     return this.http.post<void>(`${this.incomingShipsUrl}/${shipId}/unloading`, null);
   }
+
+  refuse(shipId: string): Observable<void> {
+    throw new Error('STORY-047: not built');
+  }
 }

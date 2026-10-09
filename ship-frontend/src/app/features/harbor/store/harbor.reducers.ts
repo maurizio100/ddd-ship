@@ -11,6 +11,8 @@ export const initialState: HarborState = {
   purchaseRefusal: null,
   unloadRefusal: null,
   unloadingShipIds: [],
+  refuseFailure: null,
+  refusingShipIds: [],
 };
 
 export const harborReducers = createReducer(

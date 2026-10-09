@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, concatMap, map, of, switchMap, takeUntil } from 'rxjs';
+import { Action } from '@ngrx/store';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
@@ -137,4 +138,8 @@ export class HarborEffects {
       map(() => HarborActions.loadIncomingShips()),
     ),
   );
+
+  refuseIncomingShip$ = createEffect(() => of<Action>());
+
+  refreshAfterRefusal$ = createEffect(() => of<Action>());
 }
