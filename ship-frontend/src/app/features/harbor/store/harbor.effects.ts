@@ -1,14 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, NEVER, Observable, of, switchMap } from 'rxjs';
-import { Action } from '@ngrx/store';
+import { catchError, map, of, switchMap } from 'rxjs';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
+import { SavingsService } from '../services/savings.service';
 
 @Injectable()
 export class HarborEffects {
   private actions$ = inject(Actions);
   private stockService = inject(StockService);
+  private savingsService = inject(SavingsService);
 
   loadStock$ = createEffect(() =>
     this.actions$.pipe(
@@ -22,5 +23,15 @@ export class HarborEffects {
     ),
   );
 
-  loadSavings$ = createEffect((): Observable<Action> => NEVER);
+  loadSavings$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.loadSavings),
+      switchMap(() =>
+        this.savingsService.getSavings().pipe(
+          map((savings) => HarborActions.loadSavingsSuccess({ savings })),
+          catchError((error) => of(HarborActions.loadSavingsFailure({ error }))),
+        ),
+      ),
+    ),
+  );
 }

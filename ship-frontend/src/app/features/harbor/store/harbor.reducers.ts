@@ -14,4 +14,7 @@ export const harborReducers = createReducer(
   on(HarborActions.loadStock, (state) => ({ ...state, loading: true, error: null })),
   on(HarborActions.loadStockSuccess, (state, { stock }) => ({ ...state, stock, loading: false, error: null })),
   on(HarborActions.loadStockFailure, (state, { error }) => ({ ...state, loading: false, error })),
+  on(HarborActions.loadSavings, (state) => ({ ...state, loading: true, error: null })),
+  on(HarborActions.loadSavingsSuccess, (state, { savings }) => ({ ...state, savings, loading: false, error: null })),
+  on(HarborActions.loadSavingsFailure, (state, { error }) => ({ ...state, loading: false, error })),
 );

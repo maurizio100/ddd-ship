@@ -2,6 +2,12 @@
   <header class="page-header">
     <p class="kicker">What the hold can spare</p>
     <h1>Stock</h1>
+    @if (savings(); as savings) {
+      <p class="savings">
+        <span class="savings__label">Savings</span>
+        <span class="savings__amount" data-testid="harbor-savings">{{ savings.amount }} $</span>
+      </p>
+    }
   </header>
 
   <ul class="crates" aria-label="Stock">
@@ -9,6 +15,7 @@
       <li class="crate" data-testid="harbor-stock-row">
         <img class="crate__picture" [src]="'/cargo/' + (cargo.name | lowercase) + '.jpg'" alt="" />
         <span class="crate__name" data-testid="harbor-stock-cargo-name">{{ cargo.name }}</span>
+        <span class="crate__price" data-testid="harbor-stock-price">{{ cargo.price === null ? '—' : cargo.price + ' $' }}</span>
         <span class="crate__stock"><span data-testid="harbor-stock-quantity">{{ cargo.quantity }}</span> in stock</span>
       </li>
     }

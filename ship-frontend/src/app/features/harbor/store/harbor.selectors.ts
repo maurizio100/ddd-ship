@@ -17,4 +17,4 @@ export const selectStockLoading = createSelector(selectHarborState, (state) => s
 
 export const selectStockError = createSelector(selectHarborState, (state) => state.error);
 
-export const selectSavings = createSelector(selectHarborState, (): Savings | null => null);
+export const selectSavings = createSelector(selectHarborState, (state) => state.savings);
