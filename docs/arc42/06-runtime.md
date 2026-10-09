@@ -81,7 +81,9 @@ Destination Harbor records each handled Arrival by the Origin's Shipping id (`ar
 re-published Release under a new event id has no effect, even after the ship has sailed on and left its
 fleet. On the Origin side only the ship's Active Shipping with the reported Shipping id, still at sea,
 ends, so a re-published or late `ship-arrived` never ends a later voyage. The ship leaves the fleet but
-keeps its row, and a later Arrival of the same Ship Id takes it back in.
+keeps its row, and a later Arrival of the same Ship Id takes it back in. The arriving ship keeps the Home
+Harbor carried in `shipping-published`; an event without one (from a Harbor that does not send it yet)
+gives it the Origin Harbor as Home Harbor.
 
 A return trip does not rely on order. If the returning ship's Release reaches the former Origin Harbor
 before the `ship-arrived` of its earlier voyage (possible on a round trip through three or more Harbors,
@@ -106,7 +108,7 @@ sequenceDiagram
     B->>DBB: skip if Shipping id already in arrivals, else insert arrivals row
     B->>DBB: skip if Ship Id in fleet and not at sea
     B->>DBB: if Ship Id in fleet at sea - end that earlier voyage (DONE)
-    B->>DBB: take ship (Ship Id, name, Catain) into fleet with its Cargo aboard (an Incoming Ship if any)
+    B->>DBB: take ship (Ship Id, name, Catain, Home Harbor) into fleet with its Cargo aboard (an Incoming Ship if any)
     B->>DBB: insert outbox row (ship-arrived)
     end
     K->>A: ship-arrived (consume, group of Harbor A)

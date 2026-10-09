@@ -12,7 +12,7 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - Object storage (MinIO) — holds the Catain Images.
 
 ## Behaviour
-- Create a ship with a Ship Name and a Catain; the Catain must exist on the roster (`ShipManagementService.createShip`).
+- Create a ship with a Ship Name and a Catain; the Catain must exist on the roster (`ShipManagementService.createShip`). Its Home Harbor is this Harbor, and the ship keeps it at every Harbor it reaches; the fleet shows it on every ship card.
 - A Ship Name must be non-blank and shorter than 255 characters; an invalid rename keeps the old name (`Ship.shipName`).
 - Rename and remove a ship (`ShipManagementService.updateShip/deleteShip`).
 - List all ships and the Catain roster; fetch a Catain's portrait (`ShipInformationService`, `CatainImageService`).

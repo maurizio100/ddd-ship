@@ -96,7 +96,7 @@ Per [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idemp
 `driving-adapter` holds the **Kafka listeners** (spring-kafka) that map inbound events to the driving
 ports, and `driven-adapter` holds the **inbox adapter** that records consumed event ids and the store
 for the Known Harbors. Stock is persisted next to the Cargo catalog; Prices and Savings are persisted the same way, behind
-driven ports of the Trade concepts. Decided, not built (EPIC-003): a ship's Earnings and Home Harbor. Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): a ship's Ship Class and Crew are persisted with the
+driven ports of the Trade concepts. A ship's Home Harbor is persisted with the ship. Decided, not built (EPIC-003): a ship's Earnings. Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): a ship's Ship Class and Crew are persisted with the
 ship, and each Harbor's Recruit Pool next to it.
 
 The backend has no package-level split by bounded context yet; Fleet, CargoLoading and Shipping all
