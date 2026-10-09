@@ -3,6 +3,7 @@ import { KnownHarbors } from '../app/features/shipping/models/known-harbors';
 import { Ship, ShippingState } from '../app/features/shipping/models/ship';
 import { ShippingSummary } from '../app/features/shipping/models/shipping-summary';
 import { ArrivalNotice } from '../app/features/ships/models/fleet-event';
+import { StockedCargo } from '../app/features/harbor/models/stocked-cargo';
 import { Catain } from '../app/features/catains/model/catain';
 import {
   Ship as AvailableShip,
@@ -90,6 +91,16 @@ export function aCatain(overrides: Partial<Catain> = {}): Catain {
   return {
     id: 'c1a7a1n0-0000-4000-8000-000000000001',
     name: 'Whiskers',
+    ...overrides,
+  };
+}
+
+/** A Cargo of the catalog with the quantity the Harbor has on hand. */
+export function aStockedCargo(overrides: Partial<StockedCargo> = {}): StockedCargo {
+  return {
+    cargoId: 'c0a8f3a2-0000-4000-8000-000000000009',
+    name: 'Rum',
+    quantity: 3,
     ...overrides,
   };
 }
