@@ -20,5 +20,5 @@ class HarborInformationService(
             knownHarbors = knownHarborRepositoryPort.getKnownHarbors()
         )
 
-    override fun getSavings(): Money = TODO("STORY-024")
+    override fun getSavings(): Money = savingsRepositoryPort.getSavings()
 }

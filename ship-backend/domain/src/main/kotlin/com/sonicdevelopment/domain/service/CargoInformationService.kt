@@ -28,11 +28,15 @@ class CargoInformationService(
         }
     }
 
-    /** The Stock overview: every catalog Cargo, in catalog order, with its Stock, Cargo at 0 included. */
+    /**
+     * The Stock overview: every catalog Cargo, in catalog order, with its Stock, Cargo at 0 included, and
+     * its Price (`null` before the Harbor's first opening has rolled one).
+     */
     override fun getStockOverview(): List<StockedCargoDTO> {
         val stock = stockRepositoryPort.getStock()
+        val prices = priceRepositoryPort.getPrices()
         return cargoQueryPort.findAllCargo().map { cargo ->
-            StockedCargoDTO(id = cargo.id, name = cargo.name, quantity = stock[cargo.id] ?: 0, price = null)
+            StockedCargoDTO(id = cargo.id, name = cargo.name, quantity = stock[cargo.id] ?: 0, price = prices[cargo.id])
         }
     }
 }

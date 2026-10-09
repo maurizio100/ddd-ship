@@ -22,8 +22,16 @@ class HarborManagementService(
     private val priceRoll: PriceRoll
 ) : HarborManagementPort {
 
+    /**
+     * Rolls a Price for every catalog Cargo that has none yet, then publishes Harbor Opened, in one
+     * transaction. A Price once rolled is kept, so opening again changes no Price.
+     */
     @Transactional
     override fun openHarbor() {
+        val prices = priceRepositoryPort.getPrices()
+        cargoQueryPort.findAllCargo()
+            .filterNot { it.id in prices }
+            .forEach { priceRepositoryPort.rememberPrice(it.id, priceRoll.roll()) }
         harborOutboxRepositoryPort.publishHarborOpened(currentHarbor)
     }
 

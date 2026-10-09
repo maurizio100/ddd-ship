@@ -9,7 +9,7 @@ import kotlin.random.Random
  */
 class PriceRoll(private val random: Random) {
 
-    fun roll(): Money = TODO("STORY-024")
+    fun roll(): Money = Money.dollars(random.nextInt(LOWEST_PRICE, HIGHEST_PRICE + 1))
 
     companion object {
         const val LOWEST_PRICE = 30
