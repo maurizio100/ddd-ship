@@ -41,4 +41,12 @@ class MoneyTest {
     fun `trailing zeros beyond two decimals are not a third decimal`() {
         Money(BigDecimal("12.500")).toDecimalString() shouldBe "12.50"
     }
+
+    @Test
+    fun `times multiplies exactly and keeps two decimals`() {
+        (Money.of("50.00") * 2) shouldBe Money.of("100.00")
+        (Money.of("50.00") * 2).toDecimalString() shouldBe "100.00"
+        (Money.of("33.33") * 3).toDecimalString() shouldBe "99.99"
+        (Money.of("50.00") * 0).toDecimalString() shouldBe "0.00"
+    }
 }
