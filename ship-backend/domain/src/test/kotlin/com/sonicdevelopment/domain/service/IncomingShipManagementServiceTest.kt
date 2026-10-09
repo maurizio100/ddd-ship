@@ -68,6 +68,8 @@ class IncomingShipManagementServiceTest {
         every { priceRepositoryPort.getPrices() } returns mapOf(rum.id to Money.of("40.00"), sugar.id to Money.of("35.00"))
         every { savingsRepositoryPort.pay(any()) } returns true
         every { shipRepositoryPort.unloadIncomingShip(saltyWhiskerId) } returns true
+        every { shipRepositoryPort.addEarnings(saltyWhiskerId, any()) } returns Unit
+        every { savingsRepositoryPort.receive(any()) } returns Unit
         every { cargoPersistencePort.updateCargoLoad(any()) } answers { firstArg() }
         every { quoteRepositoryPort.getQuoteForSailorsCode(any()) } returns ShippingQuote("Fair winds")
     }
@@ -89,6 +91,35 @@ class IncomingShipManagementServiceTest {
     }
 
     @Test
+    fun `unloading away from home adds the Delivery Price to the ship's Earnings before clearing it`() {
+        service.unloadIncomingShip(saltyWhiskerId)
+
+        verifyOrder {
+            savingsRepositoryPort.pay(Money.of("115.00"))
+            stockRepositoryPort.putIntoStock(sugar.id, 1)
+            shipRepositoryPort.addEarnings(saltyWhiskerId, Money.of("115.00"))
+            shipRepositoryPort.unloadIncomingShip(saltyWhiskerId)
+        }
+        verify(exactly = 1) { shipRepositoryPort.addEarnings(any(), any()) }
+        verify(exactly = 0) { savingsRepositoryPort.receive(any()) }
+    }
+
+    @Test
+    fun `unloading at the Home Harbor pays and then receives the Delivery Price into the Savings`() {
+        val paid = serviceAtPortRoyal.unloadIncomingShip(saltyWhiskerId)
+
+        paid shouldBe Money.of("115.00")
+        verifyOrder {
+            savingsRepositoryPort.pay(Money.of("115.00"))
+            stockRepositoryPort.putIntoStock(sugar.id, 1)
+            savingsRepositoryPort.receive(Money.of("115.00"))
+            shipRepositoryPort.unloadIncomingShip(saltyWhiskerId)
+        }
+        verify(exactly = 1) { savingsRepositoryPort.receive(any()) }
+        verify(exactly = 0) { shipRepositoryPort.addEarnings(any(), any()) }
+    }
+
+    @Test
     fun `an unloading the Savings cannot cover is refused with the Delivery Price and changes nothing else`() {
         every { savingsRepositoryPort.pay(Money.of("115.00")) } returns false
 
@@ -97,6 +128,8 @@ class IncomingShipManagementServiceTest {
         refusal.cost shouldBe Money.of("115.00")
         refusal.message shouldBe "The Savings do not cover the Delivery Price of 115.00 $"
         verify(exactly = 0) { stockRepositoryPort.putIntoStock(any(), any()) }
+        verify(exactly = 0) { shipRepositoryPort.addEarnings(any(), any()) }
+        verify(exactly = 0) { savingsRepositoryPort.receive(any()) }
         verify(exactly = 0) { shipRepositoryPort.unloadIncomingShip(any()) }
     }
 

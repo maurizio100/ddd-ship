@@ -5,6 +5,7 @@ import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
@@ -156,9 +157,34 @@ class ShippingEventListenerTest {
         }
     }
 
-    /** [homeHarbor] is a JSON value written into `shipEventData`, or left out when `null`. */
-    private fun aShippingPublishedPayload(homeHarbor: String? = null) = """
-        {"shipEventData":{"shipId":"$shipId","shipName":"Black Pearl"${homeHarbor?.let { ",\"homeHarbor\":$it" } ?: ""}},
+    @Test
+    fun `a shipping-published with earnings maps to Money`() {
+        val eventId = UUID.randomUUID()
+
+        listener.onShippingEvent(aRecord(id = eventId, payload = aShippingPublishedPayload(earnings = "\"80.00\"")))
+
+        verify(exactly = 1) {
+            arrivalManagementPort.receiveShippingPublished(EventId(eventId), match { it.earnings == Money.of("80.00") })
+        }
+    }
+
+    @Test
+    fun `a shipping-published without earnings maps to no Earnings`() {
+        val withoutEarnings = UUID.randomUUID()
+        val withBlankEarnings = UUID.randomUUID()
+
+        listener.onShippingEvent(aRecord(id = withoutEarnings, payload = aShippingPublishedPayload()))
+        listener.onShippingEvent(aRecord(id = withBlankEarnings, payload = aShippingPublishedPayload(earnings = "\" \"")))
+
+        verify(exactly = 1) {
+            arrivalManagementPort.receiveShippingPublished(EventId(withoutEarnings), match { it.earnings == Money.dollars(0) })
+            arrivalManagementPort.receiveShippingPublished(EventId(withBlankEarnings), match { it.earnings == Money.dollars(0) })
+        }
+    }
+
+    /** [homeHarbor] and [earnings] are JSON values written into `shipEventData`, or left out when `null`. */
+    private fun aShippingPublishedPayload(homeHarbor: String? = null, earnings: String? = null) = """
+        {"shipEventData":{"shipId":"$shipId","shipName":"Black Pearl"${homeHarbor?.let { ",\"homeHarbor\":$it" } ?: ""}${earnings?.let { ",\"earnings\":$it" } ?: ""}},
          "shippingEventData":{"shippingId":"$shippingId","weight":7.5,"shippingQuote":"Fair winds",
            "cargo":[{"cargoId":"$rumId","cargoName":"Rum"},{"cargoId":"$silkId","cargoName":"Silk"}],
            "originHarbor":"Tortuga","destinationHarbor":"Port Royal"},

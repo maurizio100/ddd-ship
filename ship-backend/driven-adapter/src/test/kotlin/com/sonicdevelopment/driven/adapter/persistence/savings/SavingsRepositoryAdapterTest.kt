@@ -84,9 +84,24 @@ class SavingsRepositoryAdapterTest {
     }
 
     @Test
+    fun `receive adds the amount to the Savings`() {
+        setSavings("920.00")
+
+        savings.receive(Money.of("80.05"))
+
+        storedSavings() shouldBe "1000.05"
+    }
+
+    @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun `refuses to pay outside a transaction`() {
         shouldThrow<IllegalTransactionStateException> { savings.pay(Money.of("1.00")) }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun `refuses to receive outside a transaction`() {
+        shouldThrow<IllegalTransactionStateException> { savings.receive(Money.of("1.00")) }
     }
 
     @Test

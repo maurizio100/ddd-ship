@@ -2,6 +2,7 @@ package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
 import com.sonicdevelopment.domain.model.enums.ShippingState
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDTO
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
@@ -67,6 +68,20 @@ class ShipControllerTest {
             status { isOk() }
             jsonPath("$[0].incoming") { value(true) }
             jsonPath("$[1].incoming") { value(false) }
+        }
+    }
+
+    @Test
+    fun `GET web ships returns each ship's earnings as a decimal string`() {
+        every { shipInformationPort.getAllShips() } returns listOf(
+            ShipDTO(blackPearl, "Black Pearl", "Whiskers", ShippingState.IDLE, homeHarbor = "Port Royal", earnings = Money.of("80.5")),
+            ShipDTO(interceptor, "Interceptor", "Whiskers", ShippingState.IDLE, homeHarbor = "Tortuga"),
+        )
+
+        mockMvc.get("/web/ships").andExpect {
+            status { isOk() }
+            jsonPath("$[0].earnings") { value("80.50") }
+            jsonPath("$[1].earnings") { value("0.00") }
         }
     }
 

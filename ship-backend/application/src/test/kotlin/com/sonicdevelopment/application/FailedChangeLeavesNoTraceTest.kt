@@ -98,13 +98,16 @@ class FailedChangeLeavesNoTraceTest {
      * The real fleet, counting the ship saves that went through, so a test can prove a save really ran. While
      * [concurrentUnloadWins], a concurrent unloading of the same ship clears it, and commits, just before this
      * transaction's own conditional clear runs. A [concurrentChange] runs once, in its own committed
-     * transaction, at the same point.
+     * transaction, at the same point. Both happen once, before this transaction's first write to the
+     * ship's row ([addEarnings] or the conditional clear): run on the same thread, the concurrent transaction
+     * would otherwise wait forever for the row lock this one holds.
      */
     class CountingShipRepository(
         private val real: ShipRepositoryAdapter,
         transactionManager: PlatformTransactionManager,
     ) : ShipRepositoryPort by real {
         var savesThrough = 0
+        var earningsAddedThrough = 0
         var concurrentUnloadWins = false
         var concurrentChange: (() -> Unit)? = null
         private val concurrentTransaction = TransactionTemplate(transactionManager).apply {
@@ -116,17 +119,28 @@ class FailedChangeLeavesNoTraceTest {
             savesThrough++
         }
 
+        override fun addEarnings(shipId: ShipId, amount: Money) {
+            concurrentWriterCommits(shipId)
+            real.addEarnings(shipId, amount)
+            earningsAddedThrough++
+        }
+
         override fun unloadIncomingShip(shipId: ShipId): Boolean {
+            concurrentWriterCommits(shipId)
+            return real.unloadIncomingShip(shipId)
+        }
+
+        private fun concurrentWriterCommits(shipId: ShipId) {
             concurrentChange?.let { change ->
                 concurrentChange = null
                 concurrentTransaction.executeWithoutResult { change() }
             }
             if (concurrentUnloadWins) {
+                concurrentUnloadWins = false
                 check(concurrentTransaction.execute { real.unloadIncomingShip(shipId) } == true) {
                     "The concurrent unloading did not clear the ship"
                 }
             }
-            return real.unloadIncomingShip(shipId)
         }
     }
 
@@ -153,11 +167,20 @@ class FailedChangeLeavesNoTraceTest {
         }
     }
 
-    /** The real Savings, counting the payments that went through, so a test can prove a payment really ran. */
+    /**
+     * The real Savings, counting the payments and receipts that went through, so a test can prove a payment or
+     * a receipt really ran.
+     */
     class CountingSavings(private val real: SavingsRepositoryAdapter) : SavingsRepositoryPort by real {
         var paysThrough = 0
+        var receivesThrough = 0
 
         override fun pay(amount: Money): Boolean = real.pay(amount).also { if (it) paysThrough++ }
+
+        override fun receive(amount: Money) {
+            real.receive(amount)
+            receivesThrough++
+        }
     }
 
     @TestConfiguration
@@ -226,6 +249,8 @@ class FailedChangeLeavesNoTraceTest {
         jdbcTemplate.resetStockToStartingStock()
         jdbcTemplate.resetSavingsToStartingSavings()
         countingSavings.paysThrough = 0
+        countingSavings.receivesThrough = 0
+        countingShipRepository.earningsAddedThrough = 0
         countingShipRepository.savesThrough = 0
         countingShipRepository.concurrentUnloadWins = false
         countingShipRepository.concurrentChange = null
@@ -365,6 +390,37 @@ class FailedChangeLeavesNoTraceTest {
     }
 
     @Test
+    fun `An unloading whose clearing fails leaves the ship's Earnings unchanged`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
+        countingShipRepository.concurrentUnloadWins = true
+
+        shouldThrow<ShipNotIncomingException> { incomingShipManagementPort.unloadIncomingShip(saltyWhisker) }
+
+        // this unloading, away from the ship's Home Harbor Tortuga, really added its Earnings before its clear found
+        // the ship already cleared by a concurrent unloading
+        countingShipRepository.earningsAddedThrough shouldBe 1
+        countingSavings.receivesThrough shouldBe 0
+        shipEarnings(saltyWhisker) shouldBe "0.00"
+        savingsAmount() shouldBe STARTING_SAVINGS
+    }
+
+    @Test
+    fun `A Home Harbor unloading whose clearing fails leaves the Savings unchanged`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar(homeHarbor = HarborName("Port Royal"))
+        countingShipRepository.concurrentUnloadWins = true
+
+        shouldThrow<ShipNotIncomingException> { incomingShipManagementPort.unloadIncomingShip(saltyWhisker) }
+
+        // this unloading at the ship's Home Harbor really paid and received the Delivery Price before its clear found
+        // the ship already cleared by a concurrent unloading
+        countingSavings.paysThrough shouldBe 1
+        countingSavings.receivesThrough shouldBe 1
+        countingShipRepository.earningsAddedThrough shouldBe 0
+        savingsAmount() shouldBe STARTING_SAVINGS
+        shipEarnings(saltyWhisker) shouldBe "0.00"
+    }
+
+    @Test
     fun `A refusal whose outbox write fails leaves the ship Incoming with its Cargo aboard and no new Shipping`() {
         val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
         val shippingsBefore = count("shippings")
@@ -452,7 +508,7 @@ class FailedChangeLeavesNoTraceTest {
         "SELECT count(*) FROM shipping_outbox WHERE event_type = 'shipping-published'", Int::class.java
     )
 
-    private fun anIncomingShipWithTwoRumAndOneSugar(): ShipId {
+    private fun anIncomingShipWithTwoRumAndOneSugar(homeHarbor: HarborName? = null): ShipId {
         val rum = CargoId(SeedData.cargoIdOf("Rum"))
         val arrival = ShippingPublishedDTO(
             shipId = ShipId(UUID.randomUUID()),
@@ -462,6 +518,7 @@ class FailedChangeLeavesNoTraceTest {
             cargoIds = listOf(rum, rum, CargoId(SeedData.cargoIdOf("Sugar"))),
             originHarbor = HarborName("Tortuga"),
             destinationHarbor = HarborName("Port Royal"),
+            homeHarbor = homeHarbor,
         )
         arrivalManagementPort.receiveShippingPublished(EventId(UUID.randomUUID()), arrival)
         shipIncoming(arrival.shipId) shouldBe true
@@ -471,6 +528,10 @@ class FailedChangeLeavesNoTraceTest {
 
     private fun savingsAmount(): String =
         jdbcTemplate.queryForObject("SELECT savings_amount FROM savings", java.math.BigDecimal::class.java)!!.toPlainString()
+
+    private fun shipEarnings(shipId: ShipId): String = jdbcTemplate.queryForObject(
+        "SELECT ship_earnings FROM ships WHERE ship_id = ?", java.math.BigDecimal::class.java, shipId.id
+    )!!.toPlainString()
 
     private fun shipIncoming(shipId: ShipId): Boolean =
         jdbcTemplate.queryForObject("SELECT ship_incoming FROM ships WHERE ship_id = ?", Boolean::class.java, shipId.id)!!
