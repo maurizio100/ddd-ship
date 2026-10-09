@@ -9,7 +9,7 @@ When it consumes Ship Arrived for a ship it Released, it sets that Shipping to `
 leaves its fleet.
 It does not publish to Kafka itself (Debezium does that), and it renders no UI.
 
-- **Bounded context(s):** Fleet, CargoLoading, Shipping
+- **Bounded context(s):** Fleet, CargoLoading, Shipping, Trade
 - **Building block:** ship-backend ([05-building-blocks.md](../../arc42/05-building-blocks.md), Level 1 and Level 2)
 - **Code lives in:** `ship-backend/` (Maven modules `domain`, `driving-adapter`, `driven-adapter`, `application`)
 - **Tech:** Kotlin 2.2, Java 21, Spring Boot 3.5, Spring Data JPA, PostgreSQL 13 + Flyway, MinIO, spring-kafka
