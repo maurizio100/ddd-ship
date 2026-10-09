@@ -85,16 +85,24 @@ Events) with the events `ship-arrived` and `ship-left`. It is not a resource; it
 
 ## 8.8 Test Strategy
 
-> Status: **Proposed — decision pending with the project owner.** Today there are **no automated
-> tests** in the repository (no backend test sources, no frontend `*.spec.ts`). The levels below are
-> a suggestion fitted to the stack; adopt, change or reject them before the first `implement-story` run.
+Each component is tested in isolation ([ADR-0010](../adr/0010-test-each-component-in-isolation.md)).
+A component's default test command needs no Docker, no network and no other component:
+`cd ship-backend && ./mvnw verify`, `cd ship-frontend && npm test -- --watch=false --browsers=ChromeHeadless`.
 
-| Level | Scope | Proposed tooling |
-|---|---|---|
-| Domain unit | `domain` model and services against fake ports — the invariants (Max Weight, duplicate cargo, Shipping lifecycle, Ship Name rules) | JUnit 5 + Kotest assertions / MockK |
-| Adapter | each driven adapter against a real Postgres / MinIO; each controller against a mocked port | Spring Boot slice tests (`@DataJpaTest`, `@WebMvcTest`) + Testcontainers |
-| Integration | Release → outbox row → Debezium → Kafka topic | Testcontainers (Postgres, Kafka, Debezium) |
-| Frontend | components, NgRx reducers/effects/selectors | Angular test runner (Jasmine/Karma or Jest — TODO) |
-| Acceptance | one test per Gherkin scenario of a story, against the backend REST API | TODO: Cucumber-JVM vs. plain JUnit named after the scenarios |
+| Level | Scope | Tooling | Runs in |
+|---|---|---|---|
+| Domain unit | `domain` model and services against mocked driven ports: the invariants (Max Weight, duplicate Cargo, Shipping lifecycle, Ship Name rules) | JUnit 5, Kotest assertions, MockK | default build |
+| Driving adapter | one controller or Kafka listener against a mocked driving port | `@WebMvcTest` + springmockk, plain JUnit for listeners | default build |
+| Acceptance | one test per Gherkin scenario of a story, over HTTP against the real Spring wiring, with in-memory fakes in place of the driven ports | `@SpringBootTest(RANDOM_PORT)`, plain JUnit named after the scenarios (no Cucumber) | default build |
+| Postgres | each persistence adapter, the Flyway migrations, and a few transaction tests proving that a failed change leaves neither its state change nor its outbox row behind | `@DataJpaTest` / `@SpringBootTest` + Testcontainers PostgreSQL | Maven profile `-Pdb`, run by CI on every pull request |
+| Frontend | components, NgRx reducers, effects and selectors, with a mock store and no HTTP | Karma + Jasmine | default build |
 
-> TODO (owner): coverage expectation; whether a `integration-test` module (already declared in the parent `pom.xml` dependency management) becomes the home of the integration level; which test environment (Compose vs. Testcontainers only).
+- **Coverage expectation:** every behavioural story has acceptance tests, every rule it adds or
+  changes has a domain unit test, and an adapter it touches gets an adapter test.
+- **Not automated:** Kafka (consumer groups, reading from the beginning), the outbox → Debezium →
+  topic path, and anything that crosses components. The owner checks these by hand on the Compose
+  stack (R-7).
+- **Test environments:** the default build runs anywhere a JDK, Node and Chrome are installed; `-Pdb`
+  and CI need Docker. There is no shared test environment.
+- How each component writes its tests (fixtures, isolation, naming) is in
+  `docs/services/<component>/guidelines/testing.md`.

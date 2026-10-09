@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driven.adapter.persistence.stock
 
+import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.driven.adapter.PostgresTestcontainer
 import io.kotest.assertions.throwables.shouldThrow
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(PostgresTestcontainer::class, StockRepositoryAdapter::class)
+@DbTest
 class StockRepositoryAdapterTest {
 
     @Autowired

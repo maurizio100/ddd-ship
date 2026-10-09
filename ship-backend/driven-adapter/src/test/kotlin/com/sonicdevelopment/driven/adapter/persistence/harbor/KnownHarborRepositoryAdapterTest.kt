@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driven.adapter.persistence.harbor
 
+import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.driven.adapter.PostgresTestcontainer
 import io.kotest.assertions.throwables.shouldThrow
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(PostgresTestcontainer::class, KnownHarborRepositoryAdapter::class)
+@DbTest
 class KnownHarborRepositoryAdapterTest {
 
     @Autowired

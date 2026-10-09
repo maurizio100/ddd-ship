@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driven.adapter.persistence.cargo
 
+import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort.CargoLoadInformation
@@ -29,6 +30,7 @@ import java.util.*
     ShipRepositoryAdapter::class,
     ShippingRepositoryAdapter::class
 )
+@DbTest
 class CargoPersistenceAdapterTest {
 
     @Autowired

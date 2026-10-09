@@ -1,14 +1,17 @@
 package com.sonicdevelopment.application.acceptance.fixtures
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.sonicdevelopment.application.KafkaTestcontainer
-import org.apache.kafka.clients.producer.ProducerRecord
+import com.sonicdevelopment.driving.adapter.messaging.ShippingEventListener
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.common.header.internals.RecordHeader
+import org.apache.kafka.common.header.internals.RecordHeaders
+import org.apache.kafka.common.record.TimestampType
 import java.util.*
 
 /**
  * The record Debezium's outbox EventRouter emits when [originHarbor] Releases the ship [shipName] to
  * [destinationHarbor]: keyed by the Shipping id, `id` and `eventType` headers, and the payload in the
- * `ShippingEvent` JSON shape as a JSON string literal.
+ * `ShippingEvent` JSON shape as a JSON string literal. It is handed to the listener, not sent to a broker.
  */
 fun aShippingPublishedRecord(
     shipId: UUID = UUID.randomUUID(),
@@ -19,7 +22,7 @@ fun aShippingPublishedRecord(
     originHarbor: String = "Tortuga",
     destinationHarbor: String = "Port Royal",
     eventId: UUID = UUID.randomUUID(),
-): ProducerRecord<String, String> {
+): ConsumerRecord<String, String> {
     val payload = ObjectMapper().writeValueAsString(
         mapOf(
             "shipEventData" to mapOf("shipId" to shipId, "shipName" to shipName),
@@ -34,15 +37,7 @@ fun aShippingPublishedRecord(
             "catain" to mapOf("catainId" to catainId, "catainName" to "Catain"),
         )
     )
-    return ProducerRecord<String, String>(
-        KafkaTestcontainer.SHIPPING_TOPIC,
-        null,
-        shippingId.toString(),
-        ObjectMapper().writeValueAsString(payload),
-    ).apply {
-        headers().add("id", eventId.toString().toByteArray(Charsets.UTF_8))
-        headers().add("eventType", "shipping-published".toByteArray(Charsets.UTF_8))
-    }
+    return aShippingTopicRecord(shippingId, eventId, "shipping-published", payload)
 }
 
 /**
@@ -57,7 +52,7 @@ fun aShipArrivedRecord(
     originHarbor: String = "Tortuga",
     destinationHarbor: String = "Port Royal",
     eventId: UUID = UUID.randomUUID(),
-): ProducerRecord<String, String> {
+): ConsumerRecord<String, String> {
     val payload = ObjectMapper().writeValueAsString(
         mapOf(
             "shipId" to shipId,
@@ -67,13 +62,20 @@ fun aShipArrivedRecord(
             "destinationHarbor" to destinationHarbor,
         )
     )
-    return ProducerRecord<String, String>(
-        KafkaTestcontainer.SHIPPING_TOPIC,
-        null,
-        shippingId.toString(),
-        ObjectMapper().writeValueAsString(payload),
-    ).apply {
-        headers().add("id", eventId.toString().toByteArray(Charsets.UTF_8))
-        headers().add("eventType", "ship-arrived".toByteArray(Charsets.UTF_8))
-    }
+    return aShippingTopicRecord(shippingId, eventId, "ship-arrived", payload)
+}
+
+private fun aShippingTopicRecord(
+    shippingId: UUID,
+    eventId: UUID,
+    eventType: String,
+    payload: String,
+): ConsumerRecord<String, String> {
+    val headers = RecordHeaders()
+    headers.add(RecordHeader("id", eventId.toString().toByteArray(Charsets.UTF_8)))
+    headers.add(RecordHeader("eventType", eventType.toByteArray(Charsets.UTF_8)))
+    return ConsumerRecord(
+        ShippingEventListener.SHIPPING_TOPIC, 0, 0L, 0L, TimestampType.CREATE_TIME,
+        0, 0, shippingId.toString(), ObjectMapper().writeValueAsString(payload), headers, Optional.empty()
+    )
 }

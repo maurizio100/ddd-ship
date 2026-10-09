@@ -1,35 +1,28 @@
 package com.sonicdevelopment.application.acceptance
 
-import com.sonicdevelopment.application.KafkaTestcontainer
-import com.sonicdevelopment.application.PostgresTestcontainer
+import com.sonicdevelopment.application.acceptance.fixtures.FakeDrivenPorts
+import com.sonicdevelopment.application.acceptance.fixtures.FakeHarborTest
 import com.sonicdevelopment.application.acceptance.fixtures.FleetEvent
 import com.sonicdevelopment.application.acceptance.fixtures.FleetEventStream
+import com.sonicdevelopment.application.acceptance.fixtures.SeedData
 import com.sonicdevelopment.application.acceptance.fixtures.aShipArrivedRecord
 import com.sonicdevelopment.application.acceptance.fixtures.aShipBeingPrepared
 import com.sonicdevelopment.application.acceptance.fixtures.aShippingPublishedRecord
 import com.sonicdevelopment.application.acceptance.fixtures.givenKnownHarbors
 import com.sonicdevelopment.application.acceptance.fixtures.release
-import com.sonicdevelopment.application.acceptance.fixtures.resetStockToStartingStock
-import com.sonicdevelopment.application.acceptance.fixtures.truncateMutableTables
+import com.sonicdevelopment.driving.adapter.messaging.ShippingEventListener
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
-import java.time.Duration
 import java.util.*
 
 /**
@@ -37,8 +30,8 @@ import java.util.*
  *
  * "The User is looking at the fleet" means the User's browser has the fleet-events stream
  * (`GET /web/fleet-events`) open, as the Available Ships page does; what it is pushed is what the User sees
- * change. Arrivals and Ship Arrived are simulated by producing the records Debezium would relay from the
- * other Harbor's outbox.
+ * change. Arrivals and Ship Arrived are simulated by handing the listener the records Debezium would relay from
+ * the other Harbor's outbox; the delivery is synchronous.
  */
 class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
 
@@ -52,15 +45,15 @@ class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
             val blackPearlId = UUID.randomUUID()
 
             // When "Black Pearl" arrives at "Port Royal" from "Tortuga"
-            kafkaTemplate.send(
+            shippingEventListener.onShippingEvent(
                 aShippingPublishedRecord(
                     shipId = blackPearlId,
                     shipName = "Black Pearl",
-                    catainId = seededCatainId(),
+                    catainId = SeedData.aCatainId,
                     originHarbor = "Tortuga",
                     destinationHarbor = "Port Royal",
                 )
-            ).get()
+            )
 
             // Then the User is told that "Black Pearl" arrived from "Tortuga"
             val pushed = fleet.nextAbout("ship-arrived", blackPearlId)
@@ -78,26 +71,26 @@ class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
             // When "Flying Dutchman" arrives at "Nassau"
             val flyingDutchman = aShippingPublishedRecord(
                 shipName = "Flying Dutchman",
-                catainId = seededCatainId(),
+                catainId = SeedData.aCatainId,
                 originHarbor = "Tortuga",
                 destinationHarbor = "Nassau",
             )
-            kafkaTemplate.send(flyingDutchman).get()
-            awaitConsumed(UUID.fromString(String(flyingDutchman.headers().lastHeader("id").value())))
+            shippingEventListener.onShippingEvent(flyingDutchman)
 
             // Then the fleet of "Port Royal" is unchanged
             availableShips().shouldBeEmpty()
 
-            // And the User is told nothing: a later Arrival on the same partition is the first thing the User is told
+            // And the User is told nothing: the deliveries are synchronous, so the first Arrival pushed after both
+            // is Black Pearl's
             val blackPearlId = UUID.randomUUID()
-            kafkaTemplate.send(
+            shippingEventListener.onShippingEvent(
                 aShippingPublishedRecord(
                     shipId = blackPearlId,
                     shipName = "Black Pearl",
-                    catainId = seededCatainId(),
+                    catainId = SeedData.aCatainId,
                     destinationHarbor = "Port Royal",
                 )
-            ).get()
+            )
             val told = fleet.allUntil { it.name == "ship-arrived" && it.data["shipId"] == blackPearlId.toString() }
             told.none { it.data["shipName"] == "Flying Dutchman" } shouldBe true
             told.filter { it.name == "ship-arrived" }.map { it.data["shipName"] } shouldBe listOf("Black Pearl")
@@ -112,13 +105,13 @@ class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
         fun `A ship that arrived elsewhere leaves the fleet without a reload`() {
             // Given the User at "Tortuga" is looking at the fleet
             // And "Black Pearl" is at sea from "Tortuga" to "Port Royal"
-            jdbcTemplate.givenKnownHarbors("Port Royal")
-            val blackPearlId = restTemplate.aShipBeingPrepared(jdbcTemplate, "Black Pearl")
+            fakes.givenKnownHarbors("Port Royal")
+            val blackPearlId = restTemplate.aShipBeingPrepared("Black Pearl")
             val release = restTemplate.release(blackPearlId, "Port Royal")
             release.statusCode shouldBe HttpStatus.OK
 
             // When "Tortuga" learns that "Black Pearl" arrived at "Port Royal"
-            kafkaTemplate.send(
+            shippingEventListener.onShippingEvent(
                 aShipArrivedRecord(
                     shipId = blackPearlId,
                     shipName = "Black Pearl",
@@ -126,7 +119,7 @@ class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
                     originHarbor = "Tortuga",
                     destinationHarbor = "Port Royal",
                 )
-            ).get()
+            )
 
             // Then "Black Pearl" is no longer among the Available Ships of "Tortuga"
             val pushed = fleet.nextAbout("ship-left", blackPearlId)
@@ -136,20 +129,18 @@ class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
         }
     }
 
-    /** One running Harbor with a User looking at its fleet. */
-    @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-    @Import(PostgresTestcontainer::class, KafkaTestcontainer::class)
-    @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+    /** One Harbor on in-memory fakes with a User looking at its fleet. */
+    @FakeHarborTest
     abstract class AHarbor {
 
         @Autowired
         lateinit var restTemplate: TestRestTemplate
 
         @Autowired
-        lateinit var jdbcTemplate: JdbcTemplate
+        lateinit var fakes: FakeDrivenPorts
 
         @Autowired
-        lateinit var kafkaTemplate: KafkaTemplate<String, String>
+        lateinit var shippingEventListener: ShippingEventListener
 
         @LocalServerPort
         var port: Int = 0
@@ -158,25 +149,13 @@ class AHarborSeesShipsArriveAndLeaveAcceptanceTest {
 
         @BeforeEach
         fun aUserIsLookingAtTheFleet() {
-            jdbcTemplate.truncateMutableTables()
-            jdbcTemplate.resetStockToStartingStock()
+            fakes.reset()
             fleet = FleetEventStream.open("http://localhost:$port")
         }
 
         @AfterEach
         fun theUserLooksAway() {
             fleet.close()
-        }
-
-        fun seededCatainId(): UUID =
-            jdbcTemplate.queryForObject("SELECT catain_id FROM catains ORDER BY id LIMIT 1", UUID::class.java)!!
-
-        fun awaitConsumed(eventId: UUID) {
-            await().atMost(Duration.ofSeconds(30)).untilAsserted {
-                jdbcTemplate.queryForObject(
-                    "SELECT count(*) FROM inbox_events WHERE event_id = ?", Int::class.java, eventId
-                ) shouldBe 1
-            }
         }
 
         fun availableShips(): List<Map<*, *>> {

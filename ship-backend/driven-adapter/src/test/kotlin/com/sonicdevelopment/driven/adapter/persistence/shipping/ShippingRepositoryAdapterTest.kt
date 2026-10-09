@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driven.adapter.persistence.shipping
 
+import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
@@ -22,6 +23,7 @@ import java.util.*
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(PostgresTestcontainer::class, ShippingRepositoryAdapter::class, ShipRepositoryAdapter::class)
+@DbTest
 class ShippingRepositoryAdapterTest {
 
     @Autowired

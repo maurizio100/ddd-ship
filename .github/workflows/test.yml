@@ -1,0 +1,44 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 21
+        cache: maven
+
+    - name: Run backend tests, including the ones that need Docker
+      run: cd ship-backend && ./mvnw verify -Pdb
+
+  frontend:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: ship-frontend/package-lock.json
+
+    - name: Run frontend tests
+      run: cd ship-frontend && npm ci && npm test -- --watch=false --browsers=ChromeHeadless

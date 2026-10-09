@@ -13,3 +13,4 @@ Index of the architecture decision records in [`../adr/`](../adr/index.md). Main
 - [ADR-0007: Unload Incoming Ships manually after Arrival](../adr/0007-unload-incoming-ships-manually-after-arrival.md) — Accepted — integration · ship-backend, ship-frontend
 - [ADR-0008: Carry Earnings home with the ship](../adr/0008-carry-earnings-home-with-the-ship.md) — Accepted — integration · ship-backend
 - [ADR-0009: Carry the Crew with the ship and fill Recruit Pools per Harbor](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md) — Accepted — integration · ship-backend
+- [ADR-0010: Test each component in isolation](../adr/0010-test-each-component-in-isolation.md) — Accepted — crosscutting · ship-backend, ship-frontend
