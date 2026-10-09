@@ -336,3 +336,104 @@ describe('HarborComponent (Unload an Incoming Ship and pay the Delivery Price)',
     expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ type: HarborActions.unloadIncomingShip.type }));
   });
 });
+
+describe('HarborComponent (Refuse an Incoming Ship at another Harbor)', () => {
+  let fixture: ComponentFixture<HarborComponent>;
+  let store: MockStore;
+
+  function render(
+    incomingShips: IncomingShip[],
+    savings = '1000.00',
+    refuseFailure: string | null = null,
+    refusingShipIds: string[] = [],
+    unloadingShipIds: string[] = [],
+  ): void {
+    TestBed.configureTestingModule({
+      imports: [HarborComponent],
+      providers: [
+        provideMockStore({
+          initialState: {
+            harbor: {
+              stock: [aStockedCargo()],
+              savings: aSavings({ amount: savings }),
+              incomingShips,
+              loading: false,
+              error: null,
+              purchaseRefusal: null,
+              unloadRefusal: null,
+              unloadingShipIds,
+              refuseFailure,
+              refusingShipIds,
+            },
+          },
+        }),
+      ],
+    });
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    fixture = TestBed.createComponent(HarborComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  it('A refused ship sails back to its Home Harbor with its Cargo', () => {
+    const saltyWhisker = anIncomingShipListing();
+    render([saltyWhisker]);
+
+    // When the User refuses "Salty Whisker"
+    const refuse = all('harbor-refuse')[0] as HTMLButtonElement;
+    expect(refuse.getAttribute('aria-label')).toBe('Refuse Salty Whisker');
+    refuse.click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.refuseIncomingShip({ shipId: saltyWhisker.shipId }));
+  });
+
+  it('A Harbor may refuse whether or not it could pay', () => {
+    // Given a Delivery Price that cannot be computed yet, and one above the Savings
+    const unknownPrice = anIncomingShipListing({ deliveryPrice: null });
+    const tooDear = anIncomingShipListing({
+      shipId: 'b1a2c3d4-0000-4000-8000-000000000002',
+      name: 'Pepper Paw',
+      deliveryPrice: '115.00',
+    });
+    render([unknownPrice, tooDear], '10.00');
+
+    const buttons = all('harbor-refuse') as HTMLButtonElement[];
+    expect(buttons.length).toBe(2);
+    expect(buttons[0].disabled).toBeFalse();
+    expect(buttons[1].disabled).toBeFalse();
+  });
+
+  it('disables both buttons of a ship whose refusal is in flight, and only for that ship', () => {
+    const salty = anIncomingShipListing();
+    const other = anIncomingShipListing({ shipId: 'b1a2c3d4-0000-4000-8000-000000000002', name: 'Pepper Paw' });
+    render([salty, other], '1000.00', null, [salty.shipId]);
+
+    const refuse = all('harbor-refuse') as HTMLButtonElement[];
+    const unload = all('harbor-unload') as HTMLButtonElement[];
+    expect(refuse[0].disabled).toBeTrue();
+    expect(unload[0].disabled).toBeTrue();
+    expect(refuse[1].disabled).toBeFalse();
+    refuse[0].click();
+    expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ type: HarborActions.refuseIncomingShip.type }));
+  });
+
+  it('disables both buttons of a ship whose unloading is in flight', () => {
+    const salty = anIncomingShipListing();
+    render([salty], '1000.00', null, [], [salty.shipId]);
+
+    expect((all('harbor-refuse')[0] as HTMLButtonElement).disabled).toBeTrue();
+    expect((all('harbor-unload')[0] as HTMLButtonElement).disabled).toBeTrue();
+  });
+
+  it('shows why a refusal failed', () => {
+    render([anIncomingShipListing()], '1000.00', 'Salty Whisker is not an Incoming Ship anymore');
+
+    const failure = all('harbor-refuse-failure');
+    expect(failure.length).toBe(1);
+    expect(failure[0].textContent!.trim()).toBe('Salty Whisker is not an Incoming Ship anymore');
+    expect(failure[0].getAttribute('role')).toBe('alert');
+  });
+});
