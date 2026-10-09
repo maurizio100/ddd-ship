@@ -76,6 +76,8 @@ class Ship(
         return true
     }
 
+    fun unload(): List<Cargo> = TODO("STORY-045")
+
     fun createSailorsCode(): SailorsCode {
         return SailorsCode(currentWeight)
     }

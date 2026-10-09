@@ -80,6 +80,8 @@ class ShipRepositoryAdapter(
         shipPersistenceEntityRepository.save(ship)
     }
 
+    override fun unloadIncomingShip(shipId: ShipId): Boolean = TODO("STORY-045")
+
     override fun getAllShips(): List<Ship> {
         return shipPersistenceEntityRepository.findAllByInFleetTrue().map { toShip(it) }
     }

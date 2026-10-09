@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { IncomingShip } from '../models/incoming-ship';
 
@@ -12,5 +12,9 @@ export class IncomingShipsService {
 
   getIncomingShips(): Observable<IncomingShip[]> {
     return this.http.get<IncomingShip[]>(this.incomingShipsUrl);
+  }
+
+  unload(shipId: string): Observable<void> {
+    return EMPTY;
   }
 }

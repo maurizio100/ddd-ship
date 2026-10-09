@@ -79,6 +79,8 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[shipId]?.let { ships[shipId] = it.copy(inFleet = false) }
     }
 
+    override fun unloadIncomingShip(shipId: ShipId): Boolean = TODO("STORY-045")
+
     @Synchronized
     override fun createShipping(ship: Ship) {
         ships[ship.id] ?: throw IllegalStateException()
