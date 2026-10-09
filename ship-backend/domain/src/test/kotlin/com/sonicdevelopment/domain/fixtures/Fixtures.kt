@@ -29,5 +29,5 @@ fun aShip(
     catainId = CatainId(UUID.randomUUID()),
     catainName = "Furry Jones",
     activeShipping = activeShipping,
-    cargoLoad = loadedCargo.associateBy { it.id }.toMutableMap(),
+    cargoLoad = loadedCargo.toMutableList(),
 )

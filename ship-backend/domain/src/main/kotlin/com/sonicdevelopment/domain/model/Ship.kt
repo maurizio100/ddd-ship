@@ -1,7 +1,6 @@
 package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
-import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.*
@@ -16,7 +15,7 @@ class Ship(
     /** The Origin Harbor of the Arrival that last took this ship into this Harbor's fleet; `null` if it was registered here. */
     val arrivedFrom: HarborName? = null,
     var activeShipping: Shipping? = null,
-    private val cargoLoad: MutableMap<CargoId, Cargo> = mutableMapOf()
+    private val cargoLoad: MutableList<Cargo> = mutableListOf()
 ) {
 
     var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
@@ -71,23 +70,23 @@ class Ship(
     }
 
     val loadedCargo: List<Cargo>
-        get() = cargoLoad.values.toMutableList()
+        get() = cargoLoad.toList()
 
     private var currentWeight: Float = calculateWeight()
     fun addCargo(cargo: Cargo) {
-        if (cargoLoad.contains(cargo.id)) throw ItemAlreadyLoadedException("${cargo.name} is already loaded on the ship")
         if (isShipLoadToHeavy(cargo)) throw ShipTooHeavyException("Loading ${cargo.name} would exceed the Max Weight of $MAX_WEIGHT")
 
-        cargoLoad[cargo.id] = cargo
+        cargoLoad.add(cargo)
         currentWeight += cargo.weight
     }
 
     private fun isShipLoadToHeavy(cargo: Cargo) =
         (currentWeight + cargo.weight)  > MAX_WEIGHT
 
-    /** Unloads [cargo]; returns whether it was on board. The Current Weight changes only if it was. */
+    /** Unloads one instance of [cargo]; returns whether it was on board. The Current Weight changes only if it was. */
     fun removeCargo(cargo: Cargo): Boolean {
-        if (cargoLoad.remove(cargo.id) == null) return false
+        val loaded = cargoLoad.firstOrNull { it.id == cargo.id } ?: return false
+        cargoLoad.remove(loaded)
 
         if (currentWeight < cargo.weight) {
             currentWeight = 0.0F
@@ -103,5 +102,5 @@ class Ship(
     val maxWeight: Float
         get() = MAX_WEIGHT
 
-    private fun calculateWeight() = cargoLoad.values.sumOf{ it.weight.toDouble() }.toFloat()
+    private fun calculateWeight() = cargoLoad.sumOf{ it.weight.toDouble() }.toFloat()
 }

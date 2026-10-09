@@ -50,6 +50,6 @@ class ShippingEventConverterTest {
         catainId = CatainId(UUID.randomUUID()),
         catainName = "Furry Jones",
         activeShipping = shipping,
-        cargoLoad = mutableMapOf(),
+        cargoLoad = mutableListOf(),
     )
 }

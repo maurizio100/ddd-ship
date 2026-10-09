@@ -126,8 +126,8 @@ paths:
         '409':
           description: >-
             The load is rejected and neither the ship nor the Stock changes: the ship would exceed its
-            Max Weight (title "Ship too heavy"), the Cargo is already loaded (title "Cargo already loaded"),
-            or the Harbor's Stock holds none of it (title "Cargo out of Stock"). `detail` names the Cargo.
+            Max Weight (title "Ship too heavy"), or the Harbor's Stock holds none of it (title "Cargo out
+            of Stock"). `detail` names the Cargo.
           content:
             application/problem+json:
               schema:
