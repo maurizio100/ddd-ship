@@ -33,12 +33,18 @@ import java.util.UUID
  * The contract of the fleet-events push (ADR-0006) that no Gherkin scenario states: an Arrival handled inside
  * a transaction tells the User nothing if it rolls back, and tells the User only once it has committed.
  * The Arrival is handled through the domain port inside a transaction the test controls, because over HTTP
- * and Kafka the transaction boundary cannot be held open.
+ * and through the listeners the transaction boundary cannot be held open.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(PostgresTestcontainer::class, KafkaTestcontainer::class)
+@Import(PostgresTestcontainer::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@TestPropertySource(properties = ["harbor.name=Port Royal"])
+@TestPropertySource(
+    properties = [
+        "harbor.name=Port Royal",
+        "spring.kafka.bootstrap-servers=localhost:1",
+        "spring.kafka.listener.auto-startup=false",
+    ]
+)
 @DbTest
 class FleetEventsAfterCommitIntegrationTest {
 

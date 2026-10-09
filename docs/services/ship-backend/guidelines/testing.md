@@ -26,14 +26,14 @@ Any test that needs Docker (a Testcontainer) must carry `@DbTest`, the meta-anno
 makes surefire exclude the `db` group by default; `-Pdb` lifts the exclusion. A test that starts a
 container without the tag breaks the Docker-free default build.
 
-Tagged today: every `driven-adapter` repository adapter test, the Kafka-based `application` acceptance tests,
+Tagged today: every `driven-adapter` repository adapter test,
 `ShipBackendStartupTest`, `ShipsCargosPrimaryKeyMigrationTest`, `FleetEventsAfterCommitIntegrationTest`
 and `ReferenceDataIdsTest`. Tagging an outer class covers its `@Nested` classes. CI
 (`.github/workflows/test.yml`) runs `./mvnw verify -Pdb` on every pull request and push to `main`.
 
 ## Fakes
 
-- Acceptance tests that need no Kafka use `@FakeHarborTest` and the in-memory fakes in
+- Acceptance tests use `@FakeHarborTest` and the in-memory fakes in
   `application/.../acceptance/fixtures`, and carry no `@DbTest`.
 - Fakes hold plain records and rebuild fresh domain objects on every read, never live ones.
 - They mirror the adapter's `ON CONFLICT` semantics (first write wins; `putIntoStock` adds).
@@ -67,16 +67,11 @@ and `ReferenceDataIdsTest`. Tagging an outer class covers its `@Nested` classes.
   `spring.flyway.locations: filesystem:../application/src/main/resources/db/migration` and use
   `@AutoConfigureTestDatabase(replace = NONE)`, since H2 is on the compile classpath.
 - Application tests run with an unreachable Kafka (`spring.kafka.bootstrap-servers=localhost:1`) and
-  a `harbor.name`, unless they test messaging.
-- Messaging acceptance tests import the singleton `KafkaTestcontainer` (`apache/kafka`, one per JVM,
-  topics created up front) when a scenario is about consumer-group or read-from-the-beginning
-  behaviour a mocked listener cannot show. Another Harbor's event is simulated by producing the
-  record Debezium would relay (`id` and `eventType` headers, payload as a JSON string literal), and
-  "processed" is awaited with Awaitility on the event id in `inbox_events`. Each Harbor is its own
-  `@Nested` class with its own `harbor.name` and `@DirtiesContext(AFTER_CLASS)`, so two Harbor
-  listeners never run at the same time. To observe a Harbor that opens later, set
-  `spring.kafka.listener.auto-startup=false` and start its container through
-  `KafkaListenerEndpointRegistry`.
+  a `harbor.name`.
+- Another Harbor's event is delivered by calling the `ShippingEventListener` / `HarborEventListener` bean with the
+  record Debezium would relay (`id` and `eventType` headers, payload as a JSON string literal), built by the
+  `fixtures` record builders. Delivery is synchronous, so nothing is awaited. A scenario set at another Harbor is a
+  `@Nested` class with its own `harbor.name`, without `@DirtiesContext`.
 - Before each acceptance or driven-adapter test, truncate the mutable tables (`ships_cargos`,
   `shippings`, `ships`, `shipping_outbox`, `inbox_events`, `known_harbors`). Reference tables (`cargos`, `catains`, `quotes`) are left
   intact. `stocks` is not truncated but reset to the Starting Stock (`resetStockToStartingStock()`),

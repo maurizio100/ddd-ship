@@ -7,6 +7,7 @@ import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driven.ArrivalRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /** First write wins, like the inbox's `ON CONFLICT DO NOTHING`. */
@@ -14,6 +15,8 @@ class InMemoryInbox : InboxRepositoryPort {
     private val consumed = ConcurrentHashMap.newKeySet<EventId>()
 
     override fun recordConsumedEvent(eventId: EventId): Boolean = consumed.add(eventId)
+
+    fun hasConsumed(eventId: UUID): Boolean = consumed.contains(EventId(eventId))
 
     fun reset() = consumed.clear()
 }
