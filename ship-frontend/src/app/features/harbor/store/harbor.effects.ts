@@ -1,16 +1,20 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, Observable, of, switchMap } from 'rxjs';
-import { Action } from '@ngrx/store';
+import { HttpErrorResponse } from '@angular/common/http';
+import { catchError, concatMap, map, of, switchMap } from 'rxjs';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
+import { MarketService } from '../services/market.service';
+
+const PURCHASE_FAILED = 'The Market could not complete the purchase';
 
 @Injectable()
 export class HarborEffects {
   private actions$ = inject(Actions);
   private stockService = inject(StockService);
   private savingsService = inject(SavingsService);
+  private marketService = inject(MarketService);
 
   loadStock$ = createEffect(() =>
     this.actions$.pipe(
@@ -36,7 +40,26 @@ export class HarborEffects {
     ),
   );
 
-  buyCargo$ = createEffect(() => new Observable<Action>());
+  /** concatMap: a purchase moves money, so a later one never cancels it. */
+  buyCargo$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.buyCargo),
+      concatMap(({ cargoId, quantity }) =>
+        this.marketService.buyCargo({ cargoId, quantity }).pipe(
+          map(() => HarborActions.buyCargoSuccess()),
+          catchError((error: HttpErrorResponse) =>
+            of(HarborActions.buyCargoFailure({ error, refusal: error.error?.detail ?? PURCHASE_FAILED })),
+          ),
+        ),
+      ),
+    ),
+  );
 
-  refreshAfterPurchase$ = createEffect(() => new Observable<Action>());
+  /** The backend owns the money: after a purchase the Stock and the Savings are read back, never computed here. */
+  refreshAfterPurchase$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.buyCargoSuccess),
+      switchMap(() => [HarborActions.loadStock(), HarborActions.loadSavings()]),
+    ),
+  );
 }

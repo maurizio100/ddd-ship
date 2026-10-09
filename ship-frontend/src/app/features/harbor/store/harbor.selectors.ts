@@ -21,4 +21,4 @@ export const selectStockError = createSelector(selectHarborState, (state) => sta
 
 export const selectSavings = createSelector(selectHarborState, (state) => state.savings);
 
-export const selectPurchaseRefusal = createSelector(selectHarborState, (): string | null => null);
+export const selectPurchaseRefusal = createSelector(selectHarborState, (state) => state.purchaseRefusal);

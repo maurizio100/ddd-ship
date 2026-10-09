@@ -47,6 +47,15 @@
   }
 }
 
+.purchase-refusal {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-weight: 600;
+}
+
 .crates {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
@@ -91,5 +100,42 @@
     border-radius: 9999px;
     background: var(--hs-sand);
     font-size: 13px;
+  }
+
+  &__buy {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-top: 6px;
+
+    button {
+      min-height: 44px;
+      border-radius: 9999px;
+    }
+  }
+
+  &__quantity {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      padding: 0 10px;
+      border: 2px solid var(--hs-field-border);
+      border-radius: 12px;
+      background: var(--hs-raised);
+      color: var(--hs-ink);
+      font: inherit;
+      box-sizing: border-box;
+    }
+  }
+
+  &__quantity-label {
+    font-size: 13px;
+    color: var(--hs-muted);
   }
 }
