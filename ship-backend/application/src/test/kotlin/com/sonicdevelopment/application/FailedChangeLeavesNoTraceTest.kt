@@ -1,9 +1,11 @@
 package com.sonicdevelopment.application
 
+import com.sonicdevelopment.application.acceptance.fixtures.STARTING_SAVINGS
 import com.sonicdevelopment.application.acceptance.fixtures.STARTING_STOCK
 import com.sonicdevelopment.application.acceptance.fixtures.SeedData
 import com.sonicdevelopment.application.acceptance.fixtures.aShipBeingPrepared
 import com.sonicdevelopment.application.acceptance.fixtures.givenKnownHarbors
+import com.sonicdevelopment.application.acceptance.fixtures.resetSavingsToStartingSavings
 import com.sonicdevelopment.application.acceptance.fixtures.resetStockToStartingStock
 import com.sonicdevelopment.application.acceptance.fixtures.truncateMutableTables
 import com.sonicdevelopment.domain.model.Ship
@@ -11,17 +13,21 @@ import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driven.HarborOutboxRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
+import com.sonicdevelopment.domain.ports.driving.market.MarketPort
 import com.sonicdevelopment.driven.adapter.persistence.outbox.HarborOutboxRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.outbox.ShippingOutboxRepositoryAdapter
+import com.sonicdevelopment.driven.adapter.persistence.savings.SavingsRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.stock.StockRepositoryAdapter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -92,6 +98,13 @@ class FailedChangeLeavesNoTraceTest {
         }
     }
 
+    /** The real Savings, counting the payments that went through, so a test can prove a payment really ran. */
+    class CountingSavings(private val real: SavingsRepositoryAdapter) : SavingsRepositoryPort by real {
+        var paysThrough = 0
+
+        override fun pay(amount: Money): Boolean = real.pay(amount).also { if (it) paysThrough++ }
+    }
+
     @TestConfiguration
     class FailingDrivenPorts {
         @Bean
@@ -105,6 +118,10 @@ class FailedChangeLeavesNoTraceTest {
         @Bean
         @Primary
         fun failingStock(real: StockRepositoryAdapter) = FailingStock(real)
+
+        @Bean
+        @Primary
+        fun countingSavings(real: SavingsRepositoryAdapter) = CountingSavings(real)
     }
 
     @Autowired
@@ -131,10 +148,18 @@ class FailedChangeLeavesNoTraceTest {
     @Autowired
     lateinit var harborManagementPort: HarborManagementPort
 
+    @Autowired
+    lateinit var marketPort: MarketPort
+
+    @Autowired
+    lateinit var countingSavings: CountingSavings
+
     @BeforeEach
     fun everythingWorksAgain() {
         jdbcTemplate.truncateMutableTables()
         jdbcTemplate.resetStockToStartingStock()
+        jdbcTemplate.resetSavingsToStartingSavings()
+        countingSavings.paysThrough = 0
         failingOutbox.armed = false
         failingStock.armed = false
         failingHarborOutbox.armed = false
@@ -213,6 +238,24 @@ class FailedChangeLeavesNoTraceTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun `A purchase whose Stock write fails leaves the Savings and the Stock unchanged`() {
+        failingStock.armed = true
+        failingStock.succeedingPuts = 0
+
+        // any rolled Price of Ale, times 2, is covered by the Starting Savings
+        shouldThrow<IllegalStateException> {
+            marketPort.buyCargo(CargoId(SeedData.cargoIdOf("Ale")), 2)
+        }
+
+        // the payment really reached the database before the Stock write failed
+        countingSavings.paysThrough shouldBe 1
+        jdbcTemplate.queryForObject("SELECT savings_amount FROM savings", java.math.BigDecimal::class.java)!!
+            .toPlainString() shouldBe STARTING_SAVINGS
+        jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
+            .forEach { it shouldBe STARTING_STOCK }
     }
 
     private fun shippingRowOf(shipId: UUID): Map<String, Any?> = jdbcTemplate.queryForMap(

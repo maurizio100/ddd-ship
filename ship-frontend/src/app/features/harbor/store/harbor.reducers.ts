@@ -7,6 +7,7 @@ export const initialState: HarborState = {
   savings: null,
   loading: false,
   error: null,
+  purchaseRefusal: null,
 };
 
 export const harborReducers = createReducer(
@@ -17,4 +18,7 @@ export const harborReducers = createReducer(
   on(HarborActions.loadSavings, (state) => ({ ...state, loading: true, error: null })),
   on(HarborActions.loadSavingsSuccess, (state, { savings }) => ({ ...state, savings, loading: false, error: null })),
   on(HarborActions.loadSavingsFailure, (state, { error }) => ({ ...state, loading: false, error })),
+  on(HarborActions.buyCargo, (state) => ({ ...state, purchaseRefusal: null })),
+  on(HarborActions.buyCargoSuccess, (state) => ({ ...state, purchaseRefusal: null })),
+  on(HarborActions.buyCargoFailure, (state, { refusal }) => ({ ...state, purchaseRefusal: refusal })),
 );

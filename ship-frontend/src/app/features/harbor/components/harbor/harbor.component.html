@@ -8,6 +8,9 @@
         <span class="savings__amount" data-testid="harbor-savings">{{ savings.amount }} $</span>
       </p>
     }
+    @if (purchaseRefusal(); as refusal) {
+      <p class="purchase-refusal" data-testid="harbor-purchase-refusal" role="alert">{{ refusal }}</p>
+    }
   </header>
 
   <ul class="crates" aria-label="Stock">
@@ -17,6 +20,30 @@
         <span class="crate__name" data-testid="harbor-stock-cargo-name">{{ cargo.name }}</span>
         <span class="crate__price" data-testid="harbor-stock-price">{{ cargo.price === null ? '—' : cargo.price + ' $' }}</span>
         <span class="crate__stock"><span data-testid="harbor-stock-quantity">{{ cargo.quantity }}</span> in stock</span>
+        <div class="crate__buy">
+          <label class="crate__quantity">
+            <span class="crate__quantity-label">Quantity</span>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              data-testid="harbor-buy-quantity"
+              [value]="quantityOf(cargo)"
+              (input)="setQuantity(cargo, $event)"
+            />
+          </label>
+          <button
+            mat-stroked-button
+            type="button"
+            data-testid="harbor-buy"
+            [disabled]="!canBuy(cargo)"
+            [attr.aria-label]="'Buy ' + cargo.name"
+            (click)="buy(cargo)"
+          >
+            Buy
+          </button>
+        </div>
       </li>
     }
   </ul>

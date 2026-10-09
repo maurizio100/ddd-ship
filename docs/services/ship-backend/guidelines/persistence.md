@@ -144,6 +144,11 @@
 - The Starting Savings are seeded by `V15__prices_and_savings.sql`, like the Starting Stock. Don't seed
   them from code or check for an empty table.
 - It is written only through `SavingsRepositoryPort`, in the caller's transaction.
+- Paying is one conditional statement, `UPDATE savings SET savings_amount = savings_amount - :amount
+  WHERE savings_amount >= :amount`; 0 updated rows means the Savings do not cover the amount. The Savings
+  are never read, changed in memory and saved back: the re-checked `WHERE` is what keeps two concurrent
+  payments from overspending them. A payment comes before the writes it pays for, so a refusal writes
+  nothing.
 - It is not in the Debezium connector's `table.include.list` and is never published.
 
 ## Binary data

@@ -19,6 +19,11 @@ fun JdbcTemplate.resetStockToStartingStock() {
     )
 }
 
+/** Puts the Savings back to the Starting Savings, [STARTING_SAVINGS]. */
+fun JdbcTemplate.resetSavingsToStartingSavings() {
+    update("UPDATE savings SET savings_amount = ?::numeric", STARTING_SAVINGS)
+}
+
 /** Makes [names] Known Harbors of this Harbor, as the Harbor Opening would. */
 fun JdbcTemplate.givenKnownHarbors(vararg names: String) {
     names.forEach {

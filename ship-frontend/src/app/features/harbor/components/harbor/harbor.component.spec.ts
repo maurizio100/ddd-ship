@@ -11,10 +11,18 @@ describe('HarborComponent (The harbor management page shows the Harbor\'s Stock)
   let fixture: ComponentFixture<HarborComponent>;
   let store: MockStore;
 
-  function render(stock: StockedCargo[], savings: Savings | null = null): void {
+  function render(
+    stock: StockedCargo[],
+    savings: Savings | null = null,
+    purchaseRefusal: string | null = null,
+  ): void {
     TestBed.configureTestingModule({
       imports: [HarborComponent],
-      providers: [provideMockStore({ initialState: { harbor: { stock, savings, loading: false, error: null } } })],
+      providers: [
+        provideMockStore({
+          initialState: { harbor: { stock, savings, loading: false, error: null, purchaseRefusal } },
+        }),
+      ],
     });
     store = TestBed.inject(MockStore);
     spyOn(store, 'dispatch');
@@ -99,5 +107,65 @@ describe('HarborComponent (The harbor management page shows the Harbor\'s Stock)
     render([aStockedCargo({ name: 'Rum', price: null })], aSavings());
 
     expect(all('harbor-stock-row')[0].querySelector('[data-testid="harbor-stock-price"]')?.textContent?.trim()).toBe('—');
+  });
+
+  it('Buying Cargo adds it to the Stock and pays from the Savings', () => {
+    const ale = aStockedCargo({ cargoId: 'c0a8f3a2-0000-4000-8000-000000000001', name: 'Ale', quantity: 1, price: '50.00' });
+    render([ale], aSavings({ amount: '150.00' }));
+
+    // When the User buys 2 Ale at the Market
+    const input = all('harbor-buy-quantity')[0] as HTMLInputElement;
+    input.value = '2';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (all('harbor-buy')[0] as HTMLButtonElement).click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.buyCargo({ cargoId: ale.cargoId, quantity: 2 }));
+
+    // Then, once the harbor page has refreshed, the Stock holds 3 Ale and the Savings are 50.00 $
+    store.setState({
+      harbor: {
+        stock: [{ ...ale, quantity: 3 }],
+        savings: aSavings({ amount: '50.00' }),
+        loading: false,
+        error: null,
+        purchaseRefusal: null,
+      },
+    });
+    fixture.detectChanges();
+    expect(rows()).toEqual([{ name: 'Ale', quantity: '3' }]);
+    expect(text('harbor-savings')).toBe('50.00 $');
+  });
+
+  it('A purchase the Savings cannot cover is refused', () => {
+    render(
+      [aStockedCargo({ name: 'Ale', quantity: 1, price: '50.00' })],
+      aSavings({ amount: '80.00' }),
+      'The Savings do not cover 100.00 $',
+    );
+
+    expect(text('harbor-purchase-refusal')).toBe('The Savings do not cover 100.00 $');
+    expect(rows()).toEqual([{ name: 'Ale', quantity: '1' }]);
+    expect(text('harbor-savings')).toBe('80.00 $');
+  });
+
+  it('cannot buy a Cargo that has no Price yet', () => {
+    render([aStockedCargo({ name: 'Rum', price: null })], aSavings());
+
+    expect((all('harbor-buy')[0] as HTMLButtonElement).disabled).toBeTrue();
+  });
+
+  it('cannot buy a quantity of 0', () => {
+    render([aStockedCargo({ name: 'Ale', price: '50.00' })], aSavings());
+
+    const input = all('harbor-buy-quantity')[0] as HTMLInputElement;
+    input.value = '0';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const buy = all('harbor-buy')[0] as HTMLButtonElement;
+    expect(buy.disabled).toBeTrue();
+    buy.click();
+    expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ type: HarborActions.buyCargo.type }));
   });
 });

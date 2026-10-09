@@ -152,4 +152,20 @@ class FakeDrivenPortsTest {
         savings.reset()
         savings.getSavings().toDecimalString() shouldBe STARTING_SAVINGS
     }
+
+    @Test
+    fun `paying from the Savings mirrors the adapter's conditional update`() {
+        val savings = InMemorySavings()
+        savings.setSavings("150.00")
+
+        savings.pay(Money.of("100.00")) shouldBe true
+        savings.getSavings().toDecimalString() shouldBe "50.00"
+
+        savings.pay(Money.of("50.00")) shouldBe true
+        savings.getSavings().toDecimalString() shouldBe "0.00"
+
+        savings.setSavings("80.00")
+        savings.pay(Money.of("100.00")) shouldBe false
+        savings.getSavings().toDecimalString() shouldBe "80.00"
+    }
 }
