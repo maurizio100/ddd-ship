@@ -1,10 +1,12 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { StockedCargo } from '../models/stocked-cargo';
 import { Savings } from '../models/savings';
+import { IncomingShip } from '../models/incoming-ship';
 
 export interface HarborState {
   stock: StockedCargo[];
   savings: Savings | null;
+  incomingShips: IncomingShip[];
   loading: boolean;
   error: unknown;
   /** Why the last purchase at the Market was refused, in the backend's words; null when it was not. */

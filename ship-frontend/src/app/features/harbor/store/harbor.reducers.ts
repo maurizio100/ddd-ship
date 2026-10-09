@@ -5,6 +5,7 @@ import * as HarborActions from './harbor.actions';
 export const initialState: HarborState = {
   stock: [],
   savings: null,
+  incomingShips: [],
   loading: false,
   error: null,
   purchaseRefusal: null,

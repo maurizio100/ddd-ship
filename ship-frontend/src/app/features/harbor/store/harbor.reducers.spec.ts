@@ -19,18 +19,18 @@ describe('harborReducers', () => {
 
     const state = harborReducers({ ...initialState, loading: true }, HarborActions.loadStockSuccess({ stock }));
 
-    expect(state).toEqual({ stock, savings: null, loading: false, error: null, purchaseRefusal: null });
+    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: null, purchaseRefusal: null });
   });
 
   it('loadStockFailure stores the error, keeps the stock and stops loading', () => {
     const stock = [aStockedCargo()];
 
     const state = harborReducers(
-      { stock, savings: null, loading: true, error: null, purchaseRefusal: null },
+      { stock, savings: null, incomingShips: [], loading: true, error: null, purchaseRefusal: null },
       HarborActions.loadStockFailure({ error: 'boom' }),
     );
 
-    expect(state).toEqual({ stock, savings: null, loading: false, error: 'boom', purchaseRefusal: null });
+    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null });
   });
 
   it('loadSavings sets loading and clears a previous error', () => {
@@ -45,18 +45,18 @@ describe('harborReducers', () => {
 
     const state = harborReducers({ ...initialState, loading: true }, HarborActions.loadSavingsSuccess({ savings }));
 
-    expect(state).toEqual({ stock: [], savings, loading: false, error: null, purchaseRefusal: null });
+    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: null, purchaseRefusal: null });
   });
 
   it('loadSavingsFailure stores the error, keeps the Savings and stops loading', () => {
     const savings = aSavings();
 
     const state = harborReducers(
-      { stock: [], savings, loading: true, error: null, purchaseRefusal: null },
+      { stock: [], savings, incomingShips: [], loading: true, error: null, purchaseRefusal: null },
       HarborActions.loadSavingsFailure({ error: 'boom' }),
     );
 
-    expect(state).toEqual({ stock: [], savings, loading: false, error: 'boom', purchaseRefusal: null });
+    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null });
   });
 
   it('starts without a purchase refusal', () => {
