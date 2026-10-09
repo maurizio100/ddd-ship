@@ -48,7 +48,8 @@
 }
 
 .purchase-refusal,
-.unload-refusal {
+.unload-refusal,
+.refuse-failure {
   margin: 12px 0 0;
   padding: 10px 14px;
   border-radius: 12px;
@@ -57,7 +58,8 @@
   font-weight: 600;
 }
 
-.unload-refusal {
+.unload-refusal,
+.refuse-failure {
   margin: 0 0 8px;
 }
 
@@ -113,7 +115,9 @@
     color: var(--hs-muted);
   }
 
-  &__unload {
+  &__actions {
+    display: flex;
+    gap: 8px;
     align-self: center;
   }
 }

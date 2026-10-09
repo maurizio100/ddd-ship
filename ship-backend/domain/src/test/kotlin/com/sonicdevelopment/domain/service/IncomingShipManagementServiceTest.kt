@@ -10,7 +10,13 @@ import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
+import com.sonicdevelopment.domain.model.enums.ShippingState
+import com.sonicdevelopment.domain.model.values.ShippingQuote
+import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
+import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
@@ -18,6 +24,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
 import jakarta.transaction.Transactional
@@ -32,8 +39,15 @@ class IncomingShipManagementServiceTest {
     private val savingsRepositoryPort = mockk<SavingsRepositoryPort>()
     private val stockRepositoryPort = mockk<StockRepositoryPort>(relaxed = true)
 
+    private val shippingRepositoryPort = mockk<ShippingRepositoryPort>(relaxed = true)
+    private val cargoPersistencePort = mockk<CargoPersistencePort>()
+    private val quoteRepositoryPort = mockk<QuoteRepositoryPort>()
+    private val shippingOutboxRepository = mockk<ShippingOutboxRepository>(relaxed = true)
+    private val tortuga = HarborName("Tortuga")
+
     private val service = IncomingShipManagementService(
-        shipRepositoryPort, priceRepositoryPort, savingsRepositoryPort, stockRepositoryPort
+        shipRepositoryPort, priceRepositoryPort, savingsRepositoryPort, stockRepositoryPort,
+        shippingRepositoryPort, cargoPersistencePort, quoteRepositoryPort, shippingOutboxRepository, tortuga,
     )
 
     private val rum = aCargo(name = "Rum")
@@ -47,6 +61,8 @@ class IncomingShipManagementServiceTest {
         every { priceRepositoryPort.getPrices() } returns mapOf(rum.id to Money.of("40.00"), sugar.id to Money.of("35.00"))
         every { savingsRepositoryPort.pay(any()) } returns true
         every { shipRepositoryPort.unloadIncomingShip(saltyWhiskerId) } returns true
+        every { cargoPersistencePort.updateCargoLoad(any()) } answers { firstArg() }
+        every { quoteRepositoryPort.getQuoteForSailorsCode(any()) } returns ShippingQuote("Fair winds")
     }
 
     @Test
@@ -130,6 +146,64 @@ class IncomingShipManagementServiceTest {
         val transactional = unload.getAnnotation(Transactional::class.java)
 
         // jakarta.transaction.Transactional rolls back on every RuntimeException unless told otherwise
+        (transactional != null) shouldBe true
+        transactional.dontRollbackOn.toList() shouldBe emptyList()
+    }
+
+    @Test
+    fun `refusing clears the ship first, then writes the voyage home and its Shipping Published, and pays nothing`() {
+        val shipSlot = slot<Ship>()
+        every { shippingOutboxRepository.broadcastShipping(capture(shipSlot), tortuga) } returns Unit
+
+        val sailsTo = service.refuseIncomingShip(saltyWhiskerId)
+
+        sailsTo shouldBe HarborName("Port Royal")
+        verifyOrder {
+            shipRepositoryPort.unloadIncomingShip(saltyWhiskerId)
+            shippingRepositoryPort.createShipping(any())
+            cargoPersistencePort.updateCargoLoad(match { it.cargoLoad == listOf(rum, rum, sugar) })
+            shippingRepositoryPort.updateActiveShipping(any())
+            shippingOutboxRepository.broadcastShipping(any(), tortuga)
+        }
+        val released = shipSlot.captured
+        released.shippingState() shouldBe ShippingState.SHIPPING
+        released.activeShipping!!.destinationHarbor shouldBe HarborName("Port Royal")
+        released.loadedCargo shouldBe listOf(rum, rum, sugar)
+        verify(exactly = 0) { savingsRepositoryPort.pay(any()) }
+        verify(exactly = 0) { stockRepositoryPort.putIntoStock(any(), any()) }
+        verify(exactly = 0) { priceRepositoryPort.getPrices() }
+    }
+
+    @Test
+    fun `refusing a ship not in the fleet returns null and writes nothing`() {
+        every { shipRepositoryPort.getShipDetails(saltyWhiskerId) } returns null
+
+        service.refuseIncomingShip(saltyWhiskerId) shouldBe null
+
+        verify(exactly = 0) { shipRepositoryPort.unloadIncomingShip(any()) }
+        verify(exactly = 0) { shippingRepositoryPort.createShipping(any()) }
+        verify(exactly = 0) { shippingOutboxRepository.broadcastShipping(any(), any()) }
+    }
+
+    @Test
+    fun `a refusal that loses the ship to a concurrent unloading writes no Shipping and no outbox row`() {
+        every { shipRepositoryPort.unloadIncomingShip(saltyWhiskerId) } returns false
+
+        shouldThrow<ShipNotIncomingException> { service.refuseIncomingShip(saltyWhiskerId) }
+            .message shouldBe "Salty Whisker is not an Incoming Ship anymore"
+
+        verify(exactly = 0) { shippingRepositoryPort.createShipping(any()) }
+        verify(exactly = 0) { cargoPersistencePort.updateCargoLoad(any()) }
+        verify(exactly = 0) { shippingRepositoryPort.updateActiveShipping(any()) }
+        verify(exactly = 0) { shippingOutboxRepository.broadcastShipping(any(), any()) }
+    }
+
+    @Test
+    fun `refusing runs in one transaction that rolls back on a domain exception`() {
+        val refuse = IncomingShipManagementService::class.java.getMethod("refuseIncomingShip", ShipId::class.java)
+
+        val transactional = refuse.getAnnotation(Transactional::class.java)
+
         (transactional != null) shouldBe true
         transactional.dontRollbackOn.toList() shouldBe emptyList()
     }

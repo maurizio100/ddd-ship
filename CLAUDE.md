@@ -37,9 +37,9 @@ to `DONE`. Bounded contexts: **Fleet**, **CargoLoading**, **Shipping**, **Harbor
 candidate **Trade**. Core flow: create ship (Fleet) → new Shipping → load Cargo (CargoLoading) →
 Release → `shipping-published` via outbox/Kafka → Arrival at the Destination Harbor → `ship-arrived`
 → HarborTerminal announces departures. Cargo has a **Price**, a Harbor holds **Savings**, buys at the
-**Market** and unloads **Incoming Ships** by hand paying the **Delivery Price** (built). Planned
-(harbor-economy, not built): a Harbor refuses Incoming Ships, sending them back to their **Home Harbor**,
-and ships carry **Earnings** home. Planned (crew, not built): each ship has a **Ship Class** setting its Crew Capacity,
+**Market** and unloads **Incoming Ships** by hand paying the **Delivery Price**, or refuses them, sending
+them back to their **Home Harbor** (built). Planned (harbor-economy, not built): a Home Harbor refuses its
+own ship, and ships carry **Earnings** home. Planned (crew, not built): each ship has a **Ship Class** setting its Crew Capacity,
 and at its Home Harbor a User **Hires** **Recruits** from the Harbor's own **Recruit Pool** for a
 **Hiring Fee**; the **Crew** sails with the ship. Full model: `docs/domain/`.
 

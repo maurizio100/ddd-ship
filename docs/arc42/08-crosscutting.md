@@ -41,9 +41,11 @@ Buying at the Market (STORY-025) is a REST-driven transaction that pays from the
 conditional update and puts the Cargo into the Stock; a purchase the Savings cannot cover writes nothing.
 Unloading an Incoming Ship (STORY-045, [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md))
 is a REST-driven transaction that changes the Savings, the Stock and the ship together in the same way,
-clearing the ship last with a conditional update. Decided, not built (EPIC-003,
-[ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md)): a refusal writes the return `shipping-published` outbox row in the same transaction. Crediting Earnings at the
-Home Harbor happens inside the Arrival's inbox transaction ([ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)).
+clearing the ship last with a conditional update. Refusing an Incoming Ship
+([ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md)) clears the ship first with the same
+conditional update, then writes the return Shipping and its `shipping-published` outbox row in the same
+transaction; of an unloading and a refusal of the same ship only one takes effect. Decided, not built:
+crediting Earnings at the Home Harbor happens inside the Arrival's inbox transaction ([ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)).
 
 Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): Hiring a Recruit is a REST-driven transaction that takes the Hiring Fee from
 the Savings and adds the Crew Member together (6.8). Storing an arriving ship's Crew happens inside the

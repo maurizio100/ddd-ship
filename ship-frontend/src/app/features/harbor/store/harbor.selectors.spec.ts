@@ -1,6 +1,8 @@
 import {
   selectIncomingShips,
   selectPurchaseRefusal,
+  selectRefuseFailure,
+  selectRefusingShipIds,
   selectSavings,
   selectStock,
   selectStockError,
@@ -24,6 +26,8 @@ describe('harbor selectors', () => {
       purchaseRefusal: 'The Savings do not cover 100.00 $',
       unloadRefusal: 'The Savings do not cover the Delivery Price of 115.00 $',
       unloadingShipIds: ['s1'],
+      refuseFailure: 'Salty Whisker is not an Incoming Ship anymore',
+      refusingShipIds: ['s2'],
     },
   };
 
@@ -37,4 +41,7 @@ describe('harbor selectors', () => {
     expect(selectUnloadRefusal(root)).toBe('The Savings do not cover the Delivery Price of 115.00 $'));
   it('selectIncomingShips reads the Incoming Ships', () => expect(selectIncomingShips(root)).toEqual(incomingShips));
   it('selectUnloadingShipIds reads unloadingShipIds', () => expect(selectUnloadingShipIds(root)).toEqual(['s1']));
+  it('selectRefuseFailure reads the refuse failure', () =>
+    expect(selectRefuseFailure(root)).toBe('Salty Whisker is not an Incoming Ship anymore'));
+  it('selectRefusingShipIds reads refusingShipIds', () => expect(selectRefusingShipIds(root)).toEqual(['s2']));
 });

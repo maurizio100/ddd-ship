@@ -18,4 +18,9 @@ export class IncomingShipsService {
   unload(shipId: string): Observable<void> {
     return this.http.post<void>(`${this.incomingShipsUrl}/${shipId}/unloading`, null);
   }
+
+  /** Refuses the Incoming Ship; it sails back to its Home Harbor. The backend answers 204, so read the Incoming Ships back. */
+  refuse(shipId: string): Observable<void> {
+    return this.http.post<void>(`${this.incomingShipsUrl}/${shipId}/refusal`, null);
+  }
 }

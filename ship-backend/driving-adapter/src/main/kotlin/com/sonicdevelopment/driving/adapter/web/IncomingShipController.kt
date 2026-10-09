@@ -40,6 +40,17 @@ class IncomingShipController(
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
     }
 
+    /**
+     * Refuses the Incoming Ship: it sails back to its Home Harbor with its Cargo aboard; nothing is paid and the
+     * Stock is unchanged. The client reads the Incoming Ships back from their GET.
+     */
+    @PostMapping("/{shipId}/refusal")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun refuseIncomingShip(@PathVariable shipId: UUID) {
+        incomingShipManagementPort.refuseIncomingShip(ShipId(shipId))
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
+    }
+
     private fun toIncomingShipResponse(incomingShip: IncomingShipDTO) =
         IncomingShipResponse(
             shipId = incomingShip.id.id,

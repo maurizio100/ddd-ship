@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.ports.driving.harbor
 
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 
@@ -11,4 +12,11 @@ interface IncomingShipManagementPort {
      * ship not in the fleet.
      */
     fun unloadIncomingShip(shipId: ShipId): Money?
+
+    /**
+     * Refuses the Incoming Ship [shipId]: it sails back to its Home Harbor with every Cargo aboard as the
+     * Loaded Cargo of a new Shipping. Nothing is paid and the Stock is unchanged. Returns the Home Harbor the
+     * ship sails to, or `null` for a ship not in the fleet.
+     */
+    fun refuseIncomingShip(shipId: ShipId): HarborName?
 }

@@ -96,7 +96,8 @@ class FailedChangeLeavesNoTraceTest {
     /**
      * The real fleet, counting the ship saves that went through, so a test can prove a save really ran. While
      * [concurrentUnloadWins], a concurrent unloading of the same ship clears it, and commits, just before this
-     * transaction's own conditional clear runs.
+     * transaction's own conditional clear runs. A [concurrentChange] runs once, in its own committed
+     * transaction, at the same point.
      */
     class CountingShipRepository(
         private val real: ShipRepositoryAdapter,
@@ -104,6 +105,7 @@ class FailedChangeLeavesNoTraceTest {
     ) : ShipRepositoryPort by real {
         var savesThrough = 0
         var concurrentUnloadWins = false
+        var concurrentChange: (() -> Unit)? = null
         private val concurrentTransaction = TransactionTemplate(transactionManager).apply {
             propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
         }
@@ -114,6 +116,10 @@ class FailedChangeLeavesNoTraceTest {
         }
 
         override fun unloadIncomingShip(shipId: ShipId): Boolean {
+            concurrentChange?.let { change ->
+                concurrentChange = null
+                concurrentTransaction.executeWithoutResult { change() }
+            }
             if (concurrentUnloadWins) {
                 check(concurrentTransaction.execute { real.unloadIncomingShip(shipId) } == true) {
                     "The concurrent unloading did not clear the ship"
@@ -221,6 +227,7 @@ class FailedChangeLeavesNoTraceTest {
         countingSavings.paysThrough = 0
         countingShipRepository.savesThrough = 0
         countingShipRepository.concurrentUnloadWins = false
+        countingShipRepository.concurrentChange = null
         failingOutbox.armed = false
         failingOutbox.shipArrivedArmed = false
         failingStock.armed = false
@@ -355,6 +362,62 @@ class FailedChangeLeavesNoTraceTest {
         count("ships_cargos_aboard") shouldBe 0
         shipIncoming(saltyWhisker) shouldBe false
     }
+
+    @Test
+    fun `A refusal whose outbox write fails leaves the ship Incoming with its Cargo aboard and no new Shipping`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
+        val shippingsBefore = count("shippings")
+        val outboxBefore = count("shipping_outbox")
+        failingOutbox.armed = true
+
+        shouldThrow<IllegalStateException> { incomingShipManagementPort.refuseIncomingShip(saltyWhisker) }
+
+        shipIncoming(saltyWhisker) shouldBe true
+        count("ships_cargos_aboard") shouldBe 3
+        count("shippings") shouldBe shippingsBefore
+        count("shipping_outbox") shouldBe outboxBefore
+        savingsAmount() shouldBe STARTING_SAVINGS
+        jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
+            .forEach { it shouldBe STARTING_STOCK }
+    }
+
+    @Test
+    fun `A refusal and an unloading of the same ship, only the first takes effect`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
+        countingShipRepository.concurrentChange = {
+            incomingShipManagementPort.refuseIncomingShip(saltyWhisker) shouldBe HarborName("Tortuga")
+        }
+
+        shouldThrow<ShipNotIncomingException> { incomingShipManagementPort.unloadIncomingShip(saltyWhisker) }
+
+        // this unloading really paid and stocked before its conditional clear found the ship already refused
+        countingSavings.paysThrough shouldBe 1
+        failingStock.putsThrough shouldBe 3
+        savingsAmount() shouldBe STARTING_SAVINGS
+        jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
+            .forEach { it shouldBe STARTING_STOCK }
+        // the refusal stays: the ship sails home with its Cargo as Loaded Cargo
+        shipIncoming(saltyWhisker) shouldBe false
+        count("ships_cargos_aboard") shouldBe 0
+        shippingPublishedRows() shouldBe 1
+    }
+
+    @Test
+    fun `A refusal that a concurrent unloading beat to the ship writes no Shipping and no Shipping Published`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
+        val shippingsBefore = count("shippings")
+        countingShipRepository.concurrentUnloadWins = true
+
+        shouldThrow<ShipNotIncomingException> { incomingShipManagementPort.refuseIncomingShip(saltyWhisker) }
+
+        count("shippings") shouldBe shippingsBefore
+        shippingPublishedRows() shouldBe 0
+        shipIncoming(saltyWhisker) shouldBe false
+    }
+
+    private fun shippingPublishedRows() = jdbcTemplate.queryForObject(
+        "SELECT count(*) FROM shipping_outbox WHERE event_type = 'shipping-published'", Int::class.java
+    )
 
     private fun anIncomingShipWithTwoRumAndOneSugar(): ShipId {
         val rum = CargoId(SeedData.cargoIdOf("Rum"))

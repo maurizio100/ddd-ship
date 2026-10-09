@@ -410,6 +410,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /web/incoming-ships/{shipId}/refusal:
+    post:
+      summary: Refuse an Incoming Ship; it sails back to its Home Harbor
+      description: >-
+        In one transaction the ship is no longer an Incoming Ship, and it is Released to its Home Harbor on a
+        new Shipping that carries every Cargo aboard as its Loaded Cargo; its Shipping Published names this
+        Harbor as Origin Harbor. Nothing is paid and the Stock is unchanged, whether or not the Savings could
+        cover the Delivery Price. The ship is shown at sea in `/web/ships` until its Home Harbor answers with
+        Ship Arrived, then it leaves this Harbor's fleet. Read the new Incoming Ships from `/web/incoming-ships`.
+      operationId: refuseIncomingShip
+      tags: [Harbors]
+      parameters:
+        - name: shipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: The ship sails to its Home Harbor with its Cargo aboard; nothing was paid
+        '404':
+          description: Ship not found in this Harbor's fleet
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The refusal is refused and nothing changes: the ship is not an Incoming Ship, or no longer one
+            (title "Not an Incoming Ship"), or this Harbor is the ship's Home Harbor (title "Ship at its Home
+            Harbor").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /web/market/purchases:
     post:
       summary: Buy Cargo at the Market

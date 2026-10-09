@@ -11,6 +11,7 @@ import * as ShipActions from '../../ships/store/actions/ship.actions';
 
 const PURCHASE_FAILED = 'The Market could not complete the purchase';
 const UNLOAD_FAILED = 'The Incoming Ship could not be unloaded';
+const REFUSE_FAILED = 'The Incoming Ship could not be refused';
 
 @Injectable()
 export class HarborEffects {
@@ -134,6 +135,29 @@ export class HarborEffects {
   refreshIncomingShipsAfterRefusedUnloading$ = createEffect(() =>
     this.actions$.pipe(
       ofType(HarborActions.unloadIncomingShipFailure),
+      map(() => HarborActions.loadIncomingShips()),
+    ),
+  );
+
+  /** concatMap: a refusal sends a ship to sea, so a later one never cancels it. */
+  refuseIncomingShip$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.refuseIncomingShip),
+      concatMap(({ shipId }) =>
+        this.incomingShipsService.refuse(shipId).pipe(
+          map(() => HarborActions.refuseIncomingShipSuccess({ shipId })),
+          catchError((error: HttpErrorResponse) =>
+            of(HarborActions.refuseIncomingShipFailure({ shipId, error, refusal: error.error?.detail ?? REFUSE_FAILED })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  /** A refusal moves no money, so only the Incoming Ships are read back, whether it succeeded or failed. */
+  refreshAfterRefusal$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.refuseIncomingShipSuccess, HarborActions.refuseIncomingShipFailure),
       map(() => HarborActions.loadIncomingShips()),
     ),
   );
