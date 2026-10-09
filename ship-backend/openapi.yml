@@ -266,6 +266,22 @@ paths:
                 items:
                   $ref: '#/components/schemas/AvailableCargoResponse'
 
+  /web/stock:
+    get:
+      summary: Get the Stock of this Harbor
+      description: Every catalog Cargo with the quantity this Harbor's Stock holds, including Cargo with Stock 0.
+      operationId: getStock
+      tags: [Stock]
+      responses:
+        '200':
+          description: The whole catalog with quantities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StockedCargo'
+
   /web/catains:
     get:
       summary: Get all captains
@@ -459,6 +475,20 @@ components:
           type: integer
           minimum: 1
           description: How many of this Cargo the Harbor's Stock holds
+
+    StockedCargo:
+      type: object
+      required: [cargoId, name, quantity]
+      properties:
+        cargoId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        quantity:
+          type: integer
+          minimum: 0
+          description: How many of this Cargo the Harbor's Stock holds, 0 included
 
     ProblemDetail:
       type: object
