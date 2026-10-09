@@ -122,13 +122,22 @@ class FakeDrivenPortsTest {
 
     @Test
     fun `rememberPrice keeps the first Price and reports false after`() {
-        val prices = InMemoryPrices()
+        val prices = InMemoryPrices(InMemoryCargoCatalog())
 
         prices.rememberPrice(rum, Money.of("42.00")) shouldBe true
         prices.rememberPrice(rum, Money.of("57.00")) shouldBe false
 
         prices.getPrices() shouldBe mapOf(rum to Money.of("42.00"))
         prices.reset()
+        prices.getPrices() shouldBe emptyMap()
+    }
+
+    @Test
+    fun `rememberPrice ignores a Cargo outside the catalog`() {
+        val prices = InMemoryPrices(InMemoryCargoCatalog())
+
+        prices.rememberPrice(CargoId(UUID.randomUUID()), Money.of("42.00")) shouldBe false
+
         prices.getPrices() shouldBe emptyMap()
     }
 

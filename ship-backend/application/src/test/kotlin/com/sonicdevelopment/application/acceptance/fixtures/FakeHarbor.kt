@@ -42,7 +42,7 @@ class FakeDrivenPorts {
     val catainImages = FakeCatainImages()
     val fleet = InMemoryFleet(catains)
     val stock = InMemoryStock(catalog)
-    val prices = InMemoryPrices()
+    val prices = InMemoryPrices(catalog)
     val savings = InMemorySavings()
     val outbox = InMemoryOutbox()
     val inbox = InMemoryInbox()

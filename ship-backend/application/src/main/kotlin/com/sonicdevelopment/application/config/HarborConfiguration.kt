@@ -21,7 +21,8 @@ class HarborConfiguration {
 
     /**
      * Opens the Harbor once per startup (ADR-0005): it rolls the Prices the Harbor has not rolled yet and
-     * writes the outbox row, so startup never waits for Kafka.
+     * writes the outbox row, so startup never waits for Kafka. A failed Price roll aborts startup, like a
+     * failed outbox write: the Harbor does not open without its Prices.
      */
     @Bean
     fun openHarborOnStartup(harborManagementPort: HarborManagementPort) = ApplicationRunner {

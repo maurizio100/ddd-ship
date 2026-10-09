@@ -4,8 +4,8 @@ import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
 
-/** The Prices in memory. Mirrors the adapter: the first write wins. A fresh Harbor has none. */
-class InMemoryPrices : PriceRepositoryPort {
+/** The Prices in memory. Mirrors the adapter: the first write wins, a Cargo outside the catalog is ignored. A fresh Harbor has none. */
+class InMemoryPrices(private val catalog: InMemoryCargoCatalog) : PriceRepositoryPort {
 
     private val prices = LinkedHashMap<CargoId, String>()
 
@@ -14,7 +14,7 @@ class InMemoryPrices : PriceRepositoryPort {
 
     @Synchronized
     override fun rememberPrice(cargoId: CargoId, price: Money): Boolean {
-        if (cargoId in prices) return false
+        if (cargoId in prices || catalog.findAllCargo().none { it.id == cargoId }) return false
         prices[cargoId] = price.amount.toPlainString()
         return true
     }
