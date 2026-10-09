@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
+import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.cargo.AvailableCargoDTO
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoInformationPort
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Service
 @Service
 class CargoInformationService(
     private val cargoQueryPort: CargoQueryPort,
-    private val stockRepositoryPort: StockRepositoryPort
+    private val stockRepositoryPort: StockRepositoryPort,
+    private val priceRepositoryPort: PriceRepositoryPort
 ): CargoInformationPort {
 
     /** The Available Cargo: the catalog Cargo this Harbor's Stock holds at least one of, in catalog order. */
@@ -30,7 +32,7 @@ class CargoInformationService(
     override fun getStockOverview(): List<StockedCargoDTO> {
         val stock = stockRepositoryPort.getStock()
         return cargoQueryPort.findAllCargo().map { cargo ->
-            StockedCargoDTO(id = cargo.id, name = cargo.name, quantity = stock[cargo.id] ?: 0)
+            StockedCargoDTO(id = cargo.id, name = cargo.name, quantity = stock[cargo.id] ?: 0, price = null)
         }
     }
 }

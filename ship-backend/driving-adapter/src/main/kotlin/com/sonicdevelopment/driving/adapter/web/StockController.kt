@@ -16,6 +16,6 @@ class StockController(
     @GetMapping
     fun getStock(): List<StockedCargoResponse> =
         cargoInformationPort.getStockOverview().map {
-            StockedCargoResponse(cargoId = it.id.id, name = it.name, quantity = it.quantity)
+            StockedCargoResponse(cargoId = it.id.id, name = it.name, quantity = it.quantity, price = null)
         }
 }
