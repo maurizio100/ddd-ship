@@ -2,7 +2,6 @@ package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
-import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.ShipId
@@ -54,19 +53,6 @@ class ShipCargoControllerTest {
             content { contentType(MediaType.APPLICATION_PROBLEM_JSON) }
             jsonPath("$.title") { value("Ship too heavy") }
             jsonPath("$.detail") { value("Loading Rum would exceed the Max Weight of 15.0") }
-        }
-    }
-
-    @Test
-    fun `POST cargos answers 409 Problem Details when the Cargo is already loaded`() {
-        every { cargoLoadManagementPort.addCargo(ShipId(shipId), CargoId(cargoId)) } throws
-            ItemAlreadyLoadedException("Rum is already loaded on the ship")
-
-        loadCargo("""{"cargoId":"$cargoId"}""").andExpect {
-            status { isConflict() }
-            content { contentType(MediaType.APPLICATION_PROBLEM_JSON) }
-            jsonPath("$.title") { value("Cargo already loaded") }
-            jsonPath("$.detail") { value("Rum is already loaded on the ship") }
         }
     }
 

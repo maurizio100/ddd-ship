@@ -40,6 +40,29 @@ class ShipTest {
     }
 
     @Test
+    fun `loading the same Cargo again adds a second instance and sums its weight`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val ship = aShip(loadedCargo = listOf(rum))
+
+        ship.addCargo(aCargo(id = rum.id, name = "Rum", weight = 5.5F))
+
+        ship.loadedCargo.map { it.name } shouldBe listOf("Rum", "Rum")
+        ship.weight shouldBe 11.0F
+    }
+
+    @Test
+    fun `removing one of several loaded instances of the same Cargo keeps the other aboard`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val ship = aShip(loadedCargo = listOf(rum, aCargo(id = rum.id, name = "Rum", weight = 5.5F)))
+
+        val removed = ship.removeCargo(rum)
+
+        removed shouldBe true
+        ship.loadedCargo.map { it.name } shouldBe listOf("Rum")
+        ship.weight shouldBe 5.5F
+    }
+
+    @Test
     fun `a too-heavy load names the Cargo and the Max Weight`() {
         val ship = aShip(loadedCargo = listOf(aCargo(name = "Planks", weight = 14.0F)))
 

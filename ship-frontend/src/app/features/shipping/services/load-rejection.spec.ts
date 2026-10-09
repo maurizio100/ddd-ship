@@ -13,10 +13,6 @@ describe('loadRejectionMessage', () => {
     );
   });
 
-  it('explains Cargo that is already loaded', () => {
-    expect(loadRejectionMessage(problem('Cargo already loaded', 'other'), rum, 15)).toBe('Rum is already loaded');
-  });
-
   it('explains Cargo that ran out of Stock', () => {
     expect(loadRejectionMessage(problem('Cargo out of Stock', 'other'), rum, 15)).toBe('Rum is out of Stock');
   });

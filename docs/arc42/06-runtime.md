@@ -37,7 +37,7 @@ sequenceDiagram
     BE-->>FE: ship details (weight / max weight)
 ```
 
-A rejected load (too heavy, already loaded, out of Stock) changes nothing and is answered with `409` (8.4).
+A rejected load (too heavy, out of Stock) changes nothing and is answered with `409` (8.4).
 The User loads Cargo by dragging it onto the ship, or with the Load button on its card. Decided, not built:
 a ship may carry several of the same Cargo (STORY-022).
 

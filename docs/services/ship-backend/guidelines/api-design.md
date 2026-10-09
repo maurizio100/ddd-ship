@@ -25,7 +25,7 @@
   |---|---|
   | Resource not found (port returns `null`) | `404` |
   | Malformed or invalid request input (missing field, blank Ship Name) | `400` |
-  | Domain rule violation (Max Weight exceeded, cargo already loaded, second Active Shipping) | `409` |
+  | Domain rule violation (Max Weight exceeded, Cargo out of Stock, second Active Shipping) | `409` |
   | Anything else | `500`, with no internal detail in the body |
 
 - `title` is a short fixed phrase per exception type. `detail` explains this case in domain

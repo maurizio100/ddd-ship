@@ -1,8 +1,9 @@
 # Context: CargoLoading
 
 Putting goods on board. A fixed catalog of Cargo (Ale, Rum, Silk, …), each with a Weight, can be
-loaded onto and unloaded from a ship while it is being prepared. A ship can carry at most its Max
-Weight, and the same Cargo cannot be loaded twice.
+loaded onto and unloaded from a ship while it is being prepared, the same Cargo more than once
+included. A ship can carry at most its Max Weight, applied to the summed Weight of everything
+aboard.
 
 Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the folder beside this file.
 
@@ -12,7 +13,7 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 ## Behaviour
 - Each Harbor keeps its own Stock: how many of each Cargo it has on hand. A Harbor starts with its Starting Stock (3 of every Cargo, the same at every Harbor), seeded once when it opens for the first time (`V7__stocks.sql`).
 - List the Available Cargo: the catalog Cargo (seeded by `V2__cargos.sql`) whose Stock at this Harbor is above 0, each with its Stock (`CargoInformationService`).
-- Load Cargo onto a ship: rejected if already loaded (`ItemAlreadyLoadedException`), if the ship would exceed its Max Weight of 15.0 (`ShipTooHeavyException`) — `Ship.addCargo` — or if the Harbor's Stock holds none of it (`CargoOutOfStockException`). A successful load takes one out of the Stock. A rejected load changes neither the ship nor the Stock and is answered with `409`.
+- Load Cargo onto a ship, the same Cargo more than once included: rejected if the ship would exceed its Max Weight of 15.0, applied to the summed Weight of everything aboard (`ShipTooHeavyException`) — `Ship.addCargo` — or if the Harbor's Stock holds none of it (`CargoOutOfStockException`). A successful load takes one out of the Stock. A rejected load changes neither the ship nor the Stock and is answered with `409`. *Modified by STORY-022.*
 - Unload Cargo while preparing; if it was on board, the ship's Current Weight drops by the Cargo's Weight, never below 0 (`Ship.removeCargo`), and one is put back into the Stock. Unloading Cargo that isn't on board changes nothing.
 - The Current Weight against the Max Weight is shown while preparing a shipping ("Current Weight: x / 15").
 
@@ -31,7 +32,7 @@ Built by STORY-006 unless marked otherwise.
 > source — tactical choices are made at code time, not at analysis time.
 
 ### Aggregates
-- **Ship** (Shared Kernel with Fleet and Shipping) — holds the Loaded Cargo and the Current Weight; enforces "each Cargo at most once" and "at most the Max Weight" in `addCargo`, and names the Cargo in the rejection. `removeCargo` returns whether the Cargo was on board and changes the Current Weight only then. *Modified by STORY-004.*
+- **Ship** (Shared Kernel with Fleet and Shipping) — holds the Loaded Cargo and the Current Weight; enforces "at most the Max Weight" in `addCargo`, applied to the summed Weight of everything aboard, and names the Cargo in the rejection. The same Cargo may be loaded more than once. `removeCargo` removes one matching instance, returns whether the Cargo was on board, and changes the Current Weight only then. *Modified by STORY-004, STORY-022.*
 
 ### Entities (non-aggregate roots)
 _No entries yet._

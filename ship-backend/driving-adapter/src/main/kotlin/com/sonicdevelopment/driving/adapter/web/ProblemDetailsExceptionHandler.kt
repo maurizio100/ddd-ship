@@ -1,7 +1,6 @@
 package com.sonicdevelopment.driving.adapter.web
 
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
-import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.UnknownHarborException
@@ -21,9 +20,6 @@ class ProblemDetailsExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(ShipTooHeavyException::class)
     fun shipTooHeavy(exception: ShipTooHeavyException) = conflict("Ship too heavy", exception)
-
-    @ExceptionHandler(ItemAlreadyLoadedException::class)
-    fun cargoAlreadyLoaded(exception: ItemAlreadyLoadedException) = conflict("Cargo already loaded", exception)
 
     @ExceptionHandler(CargoOutOfStockException::class)
     fun cargoOutOfStock(exception: CargoOutOfStockException) = conflict("Cargo out of Stock", exception)

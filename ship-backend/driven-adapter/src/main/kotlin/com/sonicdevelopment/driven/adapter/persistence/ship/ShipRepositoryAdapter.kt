@@ -90,9 +90,7 @@ class ShipRepositoryAdapter(
             Ship(
                 id = ShipId(shipPersistenceEntity.shipId),
                 name = shipPersistenceEntity.shipName,
-                cargoLoad = it.cargoLoad.associate {
-                    cargo -> CargoId(cargo.cargoId) to toCargo(cargo)
-                }.toMutableMap(),
+                cargoLoad = it.cargoLoad.map { cargo -> toCargo(cargo) }.toMutableList(),
                 activeShipping = toShipping(it),
                 catainId = catainId,
                 catainName = shipPersistenceEntity.catain.catainName,
