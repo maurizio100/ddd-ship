@@ -9,5 +9,6 @@ class SavingsRepositoryAdapter(
     private val savingsPersistenceEntityRepository: SavingsPersistenceEntityRepository
 ) : SavingsRepositoryPort {
 
-    override fun getSavings(): Money = TODO("STORY-024")
+    /** The single row of `savings`, seeded with the Starting Savings by `V15`. */
+    override fun getSavings(): Money = Money(savingsPersistenceEntityRepository.findAll().single().savingsAmount)
 }

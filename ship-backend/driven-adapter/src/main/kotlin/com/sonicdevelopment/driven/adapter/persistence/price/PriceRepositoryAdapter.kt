@@ -12,8 +12,11 @@ class PriceRepositoryAdapter(
     private val pricePersistenceEntityRepository: PricePersistenceEntityRepository
 ) : PriceRepositoryPort {
 
-    override fun getPrices(): Map<CargoId, Money> = TODO("STORY-024")
+    override fun getPrices(): Map<CargoId, Money> =
+        pricePersistenceEntityRepository.findAll().associate { CargoId(it.cargo.cargoId) to Money(it.priceAmount) }
 
+    /** One `INSERT … ON CONFLICT DO NOTHING`, so the first Price wins, also against a concurrent opening. */
     @Transactional(propagation = Propagation.MANDATORY)
-    override fun rememberPrice(cargoId: CargoId, price: Money): Boolean = TODO("STORY-024")
+    override fun rememberPrice(cargoId: CargoId, price: Money): Boolean =
+        pricePersistenceEntityRepository.remember(cargoId.id, price.amount) == 1
 }

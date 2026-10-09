@@ -14,5 +14,6 @@ class SavingsController(
     private val harborInformationPort: HarborInformationPort
 ) {
     @GetMapping
-    fun getSavings(): SavingsResponse = TODO("STORY-024")
+    fun getSavings(): SavingsResponse =
+        SavingsResponse(amount = harborInformationPort.getSavings().toDecimalString())
 }
