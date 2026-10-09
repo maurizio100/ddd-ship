@@ -51,6 +51,7 @@ export function anAvailableShip(overrides: Partial<AvailableShip> = {}): Availab
     name: 'Black Pearl',
     catain: 'Furry Jones',
     shippingState: AvailableShipShippingState.IDLE,
+    homeHarbor: 'Port Royal',
     arrivedFrom: null,
     incoming: false,
     ...overrides,
