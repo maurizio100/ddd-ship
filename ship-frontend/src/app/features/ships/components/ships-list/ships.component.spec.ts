@@ -314,3 +314,46 @@ describe('ShipsComponent (An arriving ship becomes an Incoming Ship)', () => {
     expect(all('ship-incoming')).toEqual([]);
   });
 });
+
+describe('ShipsComponent (Unloading earns the ship its Earnings)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] }, catains: { catains: [], loading: false, error: null } } }),
+        {
+          provide: ShipService,
+          useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']),
+        },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const earnings = (): string[] =>
+    Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('[data-testid="ship-earnings"]')).map((line) =>
+      line.textContent!.replace(/\s+/g, ' ').trim().replace(/^payments\s*/, ''),
+    );
+
+  it('shows the Earnings a ship carries', () => {
+    render([anAvailableShip({ name: 'Salty Whisker', earnings: '80.00' })]);
+
+    expect(earnings()).toEqual(['Earnings 80.00 $']);
+  });
+
+  it('shows collected Earnings as the backend reports them', () => {
+    render([anAvailableShip({ name: 'Salty Whisker', earnings: '120.00' })]);
+
+    expect(earnings()).toEqual(['Earnings 120.00 $']);
+  });
+
+  it('shows no Earnings for a ship that carries none', () => {
+    render([anAvailableShip({ name: 'Salty Whisker', earnings: '0.00' })]);
+
+    expect(earnings()).toEqual([]);
+  });
+});
