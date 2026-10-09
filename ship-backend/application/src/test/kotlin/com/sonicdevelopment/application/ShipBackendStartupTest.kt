@@ -105,6 +105,7 @@ class ShipBackendStartupTest {
 
     @Test
     fun `opening again keeps the Prices and the Savings`() {
+        val outboxBefore = jdbcTemplate.queryForList("SELECT message_id FROM shipping_outbox", UUID::class.java)
         try {
             jdbcTemplate.update("UPDATE savings SET savings_amount = 640.50")
             val pricesBefore = allPrices()
@@ -117,7 +118,11 @@ class ShipBackendStartupTest {
             jdbcTemplate.queryForObject("SELECT savings_amount FROM savings", BigDecimal::class.java) shouldBe
                 BigDecimal("640.50")
         } finally {
+            // Leave the startup state for the other tests: the Starting Savings and only the startup's Harbor Opened
             jdbcTemplate.update("UPDATE savings SET savings_amount = 1000.00")
+            jdbcTemplate.queryForList("SELECT message_id FROM shipping_outbox", UUID::class.java)
+                .filterNot { it in outboxBefore }
+                .forEach { jdbcTemplate.update("DELETE FROM shipping_outbox WHERE message_id = ?", it) }
         }
     }
 
