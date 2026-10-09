@@ -68,9 +68,13 @@ export class HarborComponent implements OnInit, OnDestroy {
     this.store.dispatch(HarborActions.buyCargo({ cargoId: cargo.cargoId, quantity: this.quantityOf(cargo) }));
   }
 
+  /** An Incoming Ship whose Delivery Price cannot be computed yet cannot be unloaded. */
   canUnload(ship: IncomingShip): boolean {
-    return false;
+    return ship.deliveryPrice !== null;
   }
 
-  unload(ship: IncomingShip): void {}
+  unload(ship: IncomingShip): void {
+    if (!this.canUnload(ship)) return;
+    this.store.dispatch(HarborActions.unloadIncomingShip({ shipId: ship.shipId }));
+  }
 }

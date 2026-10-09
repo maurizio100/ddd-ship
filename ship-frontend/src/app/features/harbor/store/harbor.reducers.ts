@@ -25,4 +25,7 @@ export const harborReducers = createReducer(
   on(HarborActions.buyCargo, (state) => ({ ...state, purchaseRefusal: null })),
   on(HarborActions.buyCargoSuccess, (state) => ({ ...state, purchaseRefusal: null })),
   on(HarborActions.buyCargoFailure, (state, { refusal }) => ({ ...state, purchaseRefusal: refusal })),
+  on(HarborActions.unloadIncomingShip, (state) => ({ ...state, unloadRefusal: null })),
+  on(HarborActions.unloadIncomingShipSuccess, (state) => ({ ...state, unloadRefusal: null })),
+  on(HarborActions.unloadIncomingShipFailure, (state, { refusal }) => ({ ...state, unloadRefusal: refusal })),
 );

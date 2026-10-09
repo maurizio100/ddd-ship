@@ -29,4 +29,4 @@ export const selectIncomingShips = createSelector(selectHarborState, (state): In
 
 export const selectPurchaseRefusal = createSelector(selectHarborState, (state) => state.purchaseRefusal);
 
-export const selectUnloadRefusal = createSelector(selectHarborState, (): string | null => null);
+export const selectUnloadRefusal = createSelector(selectHarborState, (state) => state.unloadRefusal);

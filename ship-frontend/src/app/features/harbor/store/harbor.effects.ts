@@ -1,8 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, concatMap, map, Observable, of, switchMap, takeUntil } from 'rxjs';
-import { Action } from '@ngrx/store';
+import { catchError, concatMap, map, of, switchMap, takeUntil } from 'rxjs';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
@@ -11,6 +10,7 @@ import { IncomingShipsService } from '../services/incoming-ships.service';
 import * as ShipActions from '../../ships/store/actions/ship.actions';
 
 const PURCHASE_FAILED = 'The Market could not complete the purchase';
+const UNLOAD_FAILED = 'The Incoming Ship could not be unloaded';
 
 @Injectable()
 export class HarborEffects {
@@ -107,7 +107,26 @@ export class HarborEffects {
     ),
   );
 
-  unloadIncomingShip$ = createEffect((): Observable<Action> => new Observable<Action>());
+  /** concatMap: an unloading moves money, so a later one never cancels it. */
+  unloadIncomingShip$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.unloadIncomingShip),
+      concatMap(({ shipId }) =>
+        this.incomingShipsService.unload(shipId).pipe(
+          map(() => HarborActions.unloadIncomingShipSuccess()),
+          catchError((error: HttpErrorResponse) =>
+            of(HarborActions.unloadIncomingShipFailure({ error, refusal: error.error?.detail ?? UNLOAD_FAILED })),
+          ),
+        ),
+      ),
+    ),
+  );
 
-  refreshAfterUnloading$ = createEffect((): Observable<Action> => new Observable<Action>());
+  /** The backend owns the money: after an unloading the Incoming Ships, the Stock and the Savings are read back. */
+  refreshAfterUnloading$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.unloadIncomingShipSuccess),
+      switchMap(() => [HarborActions.loadIncomingShips(), HarborActions.loadStock(), HarborActions.loadSavings()]),
+    ),
+  );
 }
