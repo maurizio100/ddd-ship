@@ -18,3 +18,10 @@ fun JdbcTemplate.resetStockToStartingStock() {
         "INSERT INTO stocks (id, cargo_id, stock_quantity) SELECT nextval('stocks_seq'), id, $STARTING_STOCK FROM cargos"
     )
 }
+
+/** Makes [names] Known Harbors of this Harbor, as the Harbor Opening would. */
+fun JdbcTemplate.givenKnownHarbors(vararg names: String) {
+    names.forEach {
+        update("INSERT INTO known_harbors (id, harbor_name) VALUES (nextval('known_harbors_seq'), ?)", it)
+    }
+}
