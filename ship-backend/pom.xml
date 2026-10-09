@@ -31,6 +31,10 @@
 		<kotest.version>5.9.1</kotest.version>
 		<mockk.version>1.14.11</mockk.version>
 		<springmockk.version>4.0.2</springmockk.version>
+		<!-- Overrides the Boot-managed version: 1.21.4 talks to Docker Engine 29 -->
+		<testcontainers.version>1.21.4</testcontainers.version>
+		<!-- Tests tagged "db" need Docker; they run only under -Pdb -->
+		<test.excludedGroups>db</test.excludedGroups>
 	</properties>
 
 	<dependencyManagement>
@@ -50,12 +54,6 @@
 			<dependency>
 				<groupId>com.sonicdevelopment</groupId>
 				<artifactId>driven-adapter</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.sonicdevelopment</groupId>
-				<artifactId>integration-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -108,6 +106,13 @@
 		<testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludedGroups>${test.excludedGroups}</excludedGroups>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
 				<artifactId>kotlin-maven-plugin</artifactId>
 				<configuration>
@@ -134,5 +139,14 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>db</id>
+			<properties>
+				<test.excludedGroups></test.excludedGroups>
+			</properties>
+		</profile>
+	</profiles>
 </project>
 

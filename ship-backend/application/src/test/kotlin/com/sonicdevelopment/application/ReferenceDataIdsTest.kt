@@ -12,6 +12,7 @@ import java.util.*
  * Every Harbor has its own database, and an arriving ship names its Catain and Loaded Cargo by id, so
  * the seeded reference data must carry the same business ids at every Harbor.
  */
+@DbTest
 class ReferenceDataIdsTest {
 
     private val postgres = PostgresTestcontainer().postgresContainer().also { it.start() }

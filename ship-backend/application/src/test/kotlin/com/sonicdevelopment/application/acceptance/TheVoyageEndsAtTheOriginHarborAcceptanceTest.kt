@@ -1,5 +1,6 @@
 package com.sonicdevelopment.application.acceptance
 
+import com.sonicdevelopment.application.DbTest
 import com.sonicdevelopment.application.KafkaTestcontainer
 import com.sonicdevelopment.application.PostgresTestcontainer
 import com.sonicdevelopment.application.acceptance.fixtures.aShipArrivedRecord
@@ -38,6 +39,7 @@ import java.util.*
  * itself is simulated by producing Tortuga's `shipping-published`. "Learns" means the Harbor has consumed
  * the event (its event id is in the inbox).
  */
+@DbTest
 class TheVoyageEndsAtTheOriginHarborAcceptanceTest {
 
     @Nested

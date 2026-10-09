@@ -39,6 +39,7 @@ import java.util.UUID
 @Import(PostgresTestcontainer::class, KafkaTestcontainer::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestPropertySource(properties = ["harbor.name=Port Royal"])
+@DbTest
 class FleetEventsAfterCommitIntegrationTest {
 
     @Autowired

@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driven.adapter.persistence.arrival
 
+import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.driven.adapter.PostgresTestcontainer
@@ -20,6 +21,7 @@ import java.util.*
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(PostgresTestcontainer::class, ArrivalRepositoryAdapter::class)
+@DbTest
 class ArrivalRepositoryAdapterTest {
 
     @Autowired

@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driven.adapter.persistence.outbox
 
+import com.sonicdevelopment.driven.adapter.DbTest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
@@ -28,6 +29,7 @@ import java.util.*
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(PostgresTestcontainer::class, ShippingOutboxRepositoryAdapter::class)
+@DbTest
 class ShippingOutboxRepositoryAdapterTest {
 
     @Autowired

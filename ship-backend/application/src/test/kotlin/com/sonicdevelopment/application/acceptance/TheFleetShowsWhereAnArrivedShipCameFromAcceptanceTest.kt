@@ -1,5 +1,6 @@
 package com.sonicdevelopment.application.acceptance
 
+import com.sonicdevelopment.application.DbTest
 import com.sonicdevelopment.application.KafkaTestcontainer
 import com.sonicdevelopment.application.PostgresTestcontainer
 import com.sonicdevelopment.application.acceptance.fixtures.aShipArrivedRecord
@@ -31,6 +32,7 @@ import java.util.*
  * The scenarios run at "Port Royal". An Arrival is simulated by producing the `shipping-published` record
  * Debezium would relay from the Origin Harbor's outbox; "arrived" means Port Royal has consumed it.
  */
+@DbTest
 class TheFleetShowsWhereAnArrivedShipCameFromAcceptanceTest {
 
     @Nested

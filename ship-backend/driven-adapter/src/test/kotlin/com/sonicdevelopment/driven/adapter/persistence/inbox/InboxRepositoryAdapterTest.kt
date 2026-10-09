@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driven.adapter.persistence.inbox
 
+import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.driven.adapter.PostgresTestcontainer
 import io.kotest.assertions.throwables.shouldThrow
@@ -21,6 +22,7 @@ import java.util.*
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(PostgresTestcontainer::class, InboxRepositoryAdapter::class)
+@DbTest
 class InboxRepositoryAdapterTest {
 
     @Autowired

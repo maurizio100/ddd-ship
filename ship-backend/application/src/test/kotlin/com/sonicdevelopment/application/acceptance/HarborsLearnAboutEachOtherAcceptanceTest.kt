@@ -1,5 +1,6 @@
 package com.sonicdevelopment.application.acceptance
 
+import com.sonicdevelopment.application.DbTest
 import com.sonicdevelopment.application.KafkaTestcontainer
 import com.sonicdevelopment.application.PostgresTestcontainer
 import com.sonicdevelopment.application.acceptance.fixtures.aHarborOpenedRecord
@@ -31,6 +32,7 @@ import java.util.*
  * class is one Harbor with its own application context, closed after the class, so two Harbor
  * listeners never run at once.
  */
+@DbTest
 class HarborsLearnAboutEachOtherAcceptanceTest {
 
     @Nested
