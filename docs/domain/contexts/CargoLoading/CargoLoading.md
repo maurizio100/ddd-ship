@@ -20,8 +20,8 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 
 ### Unloading on Arrival (harbor-voyages ideation, 2026-10-03)
 Built by STORY-006 unless marked otherwise.
-- After the Starting Stock, a Harbor's Stock is refilled only by ships delivering Cargo (and by a User unloading while preparing, which returns what was taken).
-- Unloading on Arrival is replaced by STORY-044: an Arrival leaves the Stock unchanged and the Cargo stays aboard an Incoming Ship (Shipping); the Stock grows only when a User unloads it (STORY-045, planned).
+- After the Starting Stock, a Harbor's Stock is refilled only by ships delivering Cargo (a User unloading an Incoming Ship), by buying at the Market, and by a User unloading while preparing, which returns what was taken.
+- Unloading on Arrival is replaced by STORY-044: an Arrival leaves the Stock unchanged and the Cargo stays aboard an Incoming Ship (Shipping); the Stock grows only when a User unloads it, all its Cargo at once.
 - Every Harbor names each Cargo by the same Cargo id (seeded with fixed ids by `V9__same_reference_ids_at_every_harbor.sql`), so an arriving ship's Cargo resolves at any Harbor. *Built by STORY-006.*
 
 ## Tactical model

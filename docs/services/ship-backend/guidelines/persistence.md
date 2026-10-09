@@ -79,6 +79,11 @@
   effect. It is never derived from `arrivals`, which may hold an Arrival that was skipped.
 - `removeFromFleet` runs in the caller's transaction (`Propagation.MANDATORY`), together with the inbox
   record and the Shipping going `DONE`.
+- Clearing an Incoming Ship is one conditional `UPDATE ships … WHERE ship_in_fleet AND ship_incoming`,
+  followed by deleting its `ships_cargos_aboard` rows only when it updated a row. It runs in the caller's
+  transaction (`Propagation.MANDATORY`) and is the last write of the unloading, so 0 rows means a
+  concurrent unloading won: the caller throws and its payment and Stock writes roll back. Never clear the
+  flag with `saveNewShip` (read-modify-write).
 
 ## Arrivals
 

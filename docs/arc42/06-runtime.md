@@ -205,11 +205,14 @@ after 3 s; events in between are not replayed.
 The harbor management page reacts to the same `ship-arrived` event, and to every (re)connect, by
 refetching its Incoming Ships (`GET /web/incoming-ships`, STORY-044).
 
-## 6.7 Unload or refuse an Incoming Ship (decided, not built yet)
+## 6.7 Unload or refuse an Incoming Ship (unload built, refuse decided)
 
 Per [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md) and
 [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md) (EPIC-003, STORY-026 to STORY-029). Both
-are REST-driven, each in one DB transaction at the Destination Harbor.
+are REST-driven, each in one DB transaction at the Destination Harbor. Unloading is built by STORY-045
+(`POST /web/incoming-ships/{id}/unloading`) without the Earnings step: it pays, stocks, and then clears
+the ship with a conditional update, so of two concurrent unloadings of the same ship the second fails and
+rolls its payment back. Refusing and the Earnings are decided, not built.
 
 ```mermaid
 sequenceDiagram
@@ -226,7 +229,8 @@ sequenceDiagram
         BE->>BE: Delivery Price = sum of the Prices of all Cargo aboard
         BE->>DB: take the Delivery Price from the Savings (refused if they fall short, nothing written)
         BE->>DB: put the Cargo into the Stock
-        BE->>DB: add the Delivery Price to the ship's Earnings
+        BE->>DB: clear the Incoming flag and the Cargo aboard (only if still Incoming)
+        BE->>DB: add the Delivery Price to the ship's Earnings (not built)
         end
     else refuse
         FE->>BE: refuse the Incoming Ship
