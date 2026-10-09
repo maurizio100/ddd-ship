@@ -9,6 +9,7 @@ import com.sonicdevelopment.driven.adapter.persistence.ship.ShipRepositoryAdapte
 import com.sonicdevelopment.driven.adapter.persistence.shipping.ShippingRepositoryAdapter
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -87,7 +88,7 @@ class CargoPersistenceAdapterTest {
     }
 
     @Test
-    fun `ships_cargos has a primary key on ship_id and cargo_id`() {
+    fun `ships_cargos has a primary key on id`() {
         val primaryKeyColumns = jdbcTemplate.queryForList(
             """
             SELECT a.attname FROM pg_index i
@@ -97,7 +98,34 @@ class CargoPersistenceAdapterTest {
             String::class.java
         )
 
-        primaryKeyColumns shouldContainExactlyInAnyOrder listOf("ship_id", "cargo_id")
+        primaryKeyColumns shouldContainExactlyInAnyOrder listOf("id")
+    }
+
+    @Test
+    fun `loading the same Cargo twice persists two rows in ships_cargos, each with a distinct database-generated id`() {
+        val ship = aShipBeingPrepared()
+        val cargo = cargos.findAllCargo().first()
+
+        ship.addCargo(cargo)
+        cargoLoads.updateCargoLoad(CargoLoadInformation.fromShip(ship))
+        entityManager.flush()
+        ship.addCargo(cargo)
+        cargoLoads.updateCargoLoad(CargoLoadInformation.fromShip(ship))
+        entityManager.flush()
+
+        val ids = jdbcTemplate.queryForList(
+            """
+            SELECT sc.id FROM ships_cargos sc
+            JOIN shippings s ON s.id = sc.ship_id
+            WHERE s.shipping_id = ?
+            """.trimIndent(),
+            Long::class.java,
+            ship.activeShipping!!.id.id
+        )
+
+        ids.size shouldBe 2
+        ids.toSet().size shouldBe 2
+        ids.forEach { it shouldNotBe null }
     }
 
     private fun aShipBeingPrepared(): Ship {
