@@ -38,7 +38,7 @@ candidate **Trade**. Core flow: create ship (Fleet) → new Shipping → load Ca
 Release → `shipping-published` via outbox/Kafka → Arrival at the Destination Harbor → `ship-arrived`
 → HarborTerminal announces departures. Cargo has a **Price**, a Harbor holds **Savings**, buys at the
 **Market** and unloads **Incoming Ships** by hand paying the **Delivery Price**, or refuses them, sending
-them back to their **Home Harbor**, or, at the Home Harbor itself, keeping the ship and its Cargo (built). Planned (harbor-economy, not built): ships carry **Earnings** home. Planned (crew, not built): each ship has a **Ship Class** setting its Crew Capacity,
+them back to their **Home Harbor**, or, at the Home Harbor itself, keeping the ship and its Cargo (built). A Delivery Price paid away from a ship's Home Harbor becomes the ship's **Earnings**, which it carries from Harbor to Harbor (built); at the Home Harbor it goes back into the Savings at once (built). Planned (harbor-economy, not built): the Earnings a ship carries home are credited to its Home Harbor's Savings on Arrival. Planned (crew, not built): each ship has a **Ship Class** setting its Crew Capacity,
 and at its Home Harbor a User **Hires** **Recruits** from the Harbor's own **Recruit Pool** for a
 **Hiring Fee**; the **Crew** sails with the ship. Full model: `docs/domain/`.
 

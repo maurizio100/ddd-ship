@@ -4,6 +4,7 @@ import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 
 interface ShipRepositoryPort {
@@ -21,10 +22,13 @@ interface ShipRepositoryPort {
         val homeHarbor: HarborName,
         val cargoAboard: List<Cargo>,
         val incoming: Boolean,
+        /** The Earnings the ship carries until it reaches its Home Harbor. */
+        val earnings: Money,
     ) {
         companion object {
             fun fromShip(ship: Ship) = InitialShipInformation(
-                ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom, ship.homeHarbor, ship.cargoAboard, ship.isIncoming
+                ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom, ship.homeHarbor, ship.cargoAboard, ship.isIncoming,
+                ship.earnings,
             )
         }
     }
@@ -50,6 +54,9 @@ interface ShipRepositoryPort {
      * nothing, when the ship is not Incoming (anymore) or not in the fleet. Runs in the caller's transaction.
      */
     fun endIncoming(shipId: ShipId): Boolean
+
+    /** Adds [amount] to the Earnings of a ship in the fleet in one atomic step; runs in the caller's transaction. */
+    fun addEarnings(shipId: ShipId, amount: Money)
 
     /** Deletes the ship's Cargo aboard; runs in the caller's transaction. */
     fun clearCargoAboard(shipId: ShipId)

@@ -56,6 +56,7 @@ export function anAvailableShip(overrides: Partial<AvailableShip> = {}): Availab
     homeHarbor: 'Port Royal',
     arrivedFrom: null,
     incoming: false,
+    earnings: '0.00',
     ...overrides,
   };
 }

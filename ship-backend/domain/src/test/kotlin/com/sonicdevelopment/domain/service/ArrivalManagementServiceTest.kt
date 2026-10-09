@@ -9,6 +9,7 @@ import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.CatainImageId
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
@@ -160,6 +161,26 @@ class ArrivalManagementServiceTest {
         )
 
         saved.map { it.homeHarbor } shouldBe listOf(HarborName("Isla de Muerta"), tortuga)
+    }
+
+    @Test
+    fun `an arriving ship keeps the Earnings it carries`() {
+        val saved = slot<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+
+        service.receiveShippingPublished(eventId, blackPearl.copy(earnings = Money.of("80.00")))
+
+        saved.captured.earnings shouldBe Money.of("80.00")
+    }
+
+    @Test
+    fun `an arriving ship without Earnings in the event carries none`() {
+        val saved = slot<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+
+        service.receiveShippingPublished(eventId, blackPearl)
+
+        saved.captured.earnings.toDecimalString() shouldBe "0.00"
     }
 
     @Test

@@ -73,6 +73,11 @@ export class ShipsComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** Whether the ship carries Earnings; a zero amount is not shown. */
+  hasEarnings(ship: Ship): boolean {
+    return Number(ship.earnings) > 0;
+  }
+
   shippingExists(ship: Ship): boolean {
     return ship.shippingState === ShippingState.PREPARING;
   }

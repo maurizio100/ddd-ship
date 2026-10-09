@@ -10,6 +10,7 @@ import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.springframework.transaction.support.TransactionSynchronization
@@ -208,6 +209,24 @@ class FakeDrivenPortsTest {
     }
 
     @Test
+    fun `addEarnings mirrors the adapter - only a ship in the fleet`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val saltyWhisker = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+            earnings = Money.of("80.00"),
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(saltyWhisker))
+        fleet.getShipDetails(saltyWhisker.id)!!.earnings.toDecimalString() shouldBe "80.00"
+
+        fleet.addEarnings(saltyWhisker.id, Money.of("40.05"))
+
+        fleet.getShipDetails(saltyWhisker.id)!!.earnings.toDecimalString() shouldBe "120.05"
+        shouldThrow<IllegalStateException> { fleet.addEarnings(ShipId(UUID.randomUUID()), Money.of("1.00")) }
+        fleet.removeFromFleet(saltyWhisker.id)
+        shouldThrow<IllegalStateException> { fleet.addEarnings(saltyWhisker.id, Money.of("1.00")) }
+    }
+
+    @Test
     fun `rememberPrice keeps the first Price and reports false after`() {
         val prices = InMemoryPrices(InMemoryCargoCatalog())
 
@@ -254,5 +273,15 @@ class FakeDrivenPortsTest {
         savings.setSavings("80.00")
         savings.pay(Money.of("100.00")) shouldBe false
         savings.getSavings().toDecimalString() shouldBe "80.00"
+    }
+
+    @Test
+    fun `receive adds to the Savings`() {
+        val savings = InMemorySavings()
+        savings.setSavings("920.00")
+
+        savings.receive(Money.of("80.05"))
+
+        savings.getSavings().toDecimalString() shouldBe "1000.05"
     }
 }

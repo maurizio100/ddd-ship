@@ -51,6 +51,12 @@
             <mat-icon fontIcon="home" aria-hidden="true"></mat-icon>
             Home Harbor {{ ship.homeHarbor }}
           </p>
+          @if (hasEarnings(ship)) {
+            <p class="earnings" data-testid="ship-earnings">
+              <mat-icon fontIcon="payments" aria-hidden="true"></mat-icon>
+              Earnings {{ ship.earnings }} $
+            </p>
+          }
           @if (ship.arrivedFrom) {
             <p class="arrived-from" data-testid="ship-arrived-from">
               <mat-icon fontIcon="anchor" aria-hidden="true"></mat-icon>

@@ -11,4 +11,7 @@ interface SavingsRepositoryPort {
      * the Savings hold less than [amount]. Runs in the caller's transaction.
      */
     fun pay(amount: Money): Boolean
+
+    /** Puts [amount] into the Savings in one atomic step. Runs in the caller's transaction. */
+    fun receive(amount: Money)
 }

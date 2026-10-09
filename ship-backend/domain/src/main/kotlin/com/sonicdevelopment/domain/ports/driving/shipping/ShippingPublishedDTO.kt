@@ -3,6 +3,7 @@ package com.sonicdevelopment.domain.ports.driving.shipping
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 
@@ -20,4 +21,6 @@ data class ShippingPublishedDTO(
     val originHarbor: HarborName?,
     val destinationHarbor: HarborName?,
     val homeHarbor: HarborName? = null,
+    /** The Earnings the ship carries; zero for events from Harbors that do not send them. */
+    val earnings: Money = Money.dollars(0),
 )

@@ -16,4 +16,10 @@ class SavingsRepositoryAdapter(
 
     @Transactional(propagation = Propagation.MANDATORY)
     override fun pay(amount: Money): Boolean = savingsPersistenceEntityRepository.pay(amount.amount) == 1
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun receive(amount: Money) {
+        val updated = savingsPersistenceEntityRepository.receive(amount.amount)
+        check(updated == 1) { "The Savings are a single row, but $updated rows received $amount" }
+    }
 }

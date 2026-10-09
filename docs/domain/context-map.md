@@ -15,7 +15,7 @@
 > The harbor's departure board, announcing every ship that has put to sea.
 
 ### 5. Trade
-> A Harbor's money: Cargo Prices, the Harbor's Savings, paying for delivered Cargo, buying Cargo at the Market, and the Earnings ships bring home. Candidate (harbor-economy, 2026-10-04), not built yet.
+> A Harbor's money: Cargo Prices, the Harbor's Savings, paying for delivered Cargo, buying Cargo at the Market, and the Earnings ships collect and bring home. Candidate context; Prices, Savings, Market, Delivery Price and collecting Earnings on unloading are built, crediting Earnings on Arrival at the Home Harbor is not.
 
 ---
 
@@ -27,9 +27,9 @@
 | 2 | Fleet | Shipping | Shared Kernel (SK) | assumed | Both use the same `Ship` class in one backend module; Ship identity and Catain name are copied into the Shipping and its event. Planned (crew ideation, 2026-10-05): the Crew also lives on the shared `Ship`. |
 | 3 | CargoLoading | Shipping | Shared Kernel (SK) | assumed | Loaded Cargo and Current Weight live on the shared `Ship` and feed the Sailors Code and the event. |
 | 4 | Fleet | CargoLoading | Shared Kernel (SK) | assumed | Cargo is loaded onto the shared `Ship`. |
-| 5 | Shipping | Shipping | Published Language (PL) | assumed | Future (harbor-voyages, 2026-10-03): Shipping at one Harbor talks to Shipping at another Harbor via Harbor Opened, Shipping Published (with Origin and Destination Harbor) and Ship Arrived over Kafka. Inside a Harbor, Arrival hands the ship to Fleet and its Cargo to CargoLoading in-process, through the existing Shared Kernel. Shipping Published carries the ship's Home Harbor, which the Arrival keeps. Planned (harbor-economy, 2026-10-04): Shipping Published also carries Cargo quantities and the ship's Earnings. Built: a Refused Delivery sends the ship back to its Home Harbor as an ordinary Shipping Published. Planned (crew ideation, 2026-10-05): Shipping Published also carries the Crew in full; Arrival keeps it aboard the ship. |
+| 5 | Shipping | Shipping | Published Language (PL) | assumed | Future (harbor-voyages, 2026-10-03): Shipping at one Harbor talks to Shipping at another Harbor via Harbor Opened, Shipping Published (with Origin and Destination Harbor) and Ship Arrived over Kafka. Inside a Harbor, Arrival hands the ship to Fleet and its Cargo to CargoLoading in-process, through the existing Shared Kernel. Shipping Published carries the ship's Home Harbor and its Earnings, which the Arrival keeps. Planned (harbor-economy, 2026-10-04): Shipping Published also carries Cargo quantities. Built: a Refused Delivery sends the ship back to its Home Harbor as an ordinary Shipping Published. Planned (crew ideation, 2026-10-05): Shipping Published also carries the Crew in full; Arrival keeps it aboard the ship. |
 | 6 | CargoLoading | Trade | Customer-Supplier (CS) | assumed | Built (STORY-025, STORY-045): Cargo bought at the Market and Cargo unloaded from an Incoming Ship go into CargoLoading's Stock. |
-| 7 | Trade | Shipping | Customer-Supplier (CS) | assumed | Built (STORY-045): Shipping asks Trade to pay the Delivery Price when an Incoming Ship is unloaded (refused if Savings fall short). Planned (harbor-economy, 2026-10-04): crediting Earnings to Savings when a ship reaches its Home Harbor. |
+| 7 | Trade | Shipping | Customer-Supplier (CS) | assumed | Built (STORY-045): Shipping asks Trade to pay the Delivery Price when an Incoming Ship is unloaded (refused if Savings fall short). In the same unloading, the Delivery Price becomes the ship's Earnings away from its Home Harbor, or goes back into the Savings at once at its Home Harbor. Planned (harbor-economy, 2026-10-04): crediting the Earnings a ship carries to Savings when it arrives at its Home Harbor. |
 | 8 | Trade | Fleet | Customer-Supplier (CS) | assumed | Planned (crew ideation, 2026-10-05). Fleet asks Trade to pay the Hiring Fee from the Harbor's Savings when a Recruit is Hired (refused if Savings fall short). |
 
 ---

@@ -23,7 +23,12 @@ class Ship(
     private val cargoLoad: MutableList<Cargo> = mutableListOf(),
     cargoAboard: List<Cargo> = emptyList(),
     incoming: Boolean = false,
+    earnings: Money = Money.dollars(0),
 ) {
+
+    /** The Earnings the ship carries until it reaches its Home Harbor. */
+    var earnings: Money = earnings
+        private set
 
     /**
      * The Cargo aboard, one entry per Cargo instance; separate from the Loaded Cargo of an Active Shipping. It
@@ -97,6 +102,17 @@ class Ship(
         cargoAboard = emptyList()
         isIncoming = false
         return unloaded
+    }
+
+    /**
+     * The ship earns the [deliveryPrice] paid for its Cargo at [currentHarbor]. Away from its Home Harbor the
+     * Delivery Price is added to its Earnings and `true` is returned. At its Home Harbor nothing changes and
+     * `false` is returned: the caller credits the Delivery Price to the Savings at once.
+     */
+    fun earn(deliveryPrice: Money, currentHarbor: HarborName): Boolean {
+        if (homeHarbor == currentHarbor) return false
+        earnings += deliveryPrice
+        return true
     }
 
     /**

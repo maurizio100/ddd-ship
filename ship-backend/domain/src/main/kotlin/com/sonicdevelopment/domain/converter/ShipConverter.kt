@@ -15,7 +15,8 @@ object ShipConverter {
             shippingState = ship.shippingState(),
             arrivedFrom = ship.arrivedFrom?.name,
             homeHarbor = ship.homeHarbor.name,
-            incoming = ship.isIncoming
+            incoming = ship.isIncoming,
+            earnings = ship.earnings,
         )
 
     fun toShipDetailDTO(ship: Ship) =

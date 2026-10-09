@@ -10,6 +10,7 @@ import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
 import io.kotest.assertions.throwables.shouldThrow
@@ -376,4 +377,27 @@ class ShipTest {
         cargoAboard = cargoAboard,
         incoming = incoming,
     )
+
+    @Test
+    fun `earn adds the Delivery Price to the Earnings away from the Home Harbor`() {
+        val ship = Ship(
+            name = "Salty Whisker", catainId = CatainId(UUID.randomUUID()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), earnings = Money.of("80.00"),
+        )
+
+        val earned = ship.earn(Money.of("40.00"), HarborName("Isla de Muerta"))
+
+        earned shouldBe true
+        ship.earnings.toDecimalString() shouldBe "120.00"
+    }
+
+    @Test
+    fun `earn changes nothing at the Home Harbor and returns false`() {
+        val ship = aShip(homeHarbor = HarborName("Port Royal"))
+
+        val earned = ship.earn(Money.of("80.00"), HarborName("Port Royal"))
+
+        earned shouldBe false
+        ship.earnings.toDecimalString() shouldBe "0.00"
+    }
 }

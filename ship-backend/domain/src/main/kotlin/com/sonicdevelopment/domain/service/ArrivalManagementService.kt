@@ -42,7 +42,8 @@ import org.springframework.stereotype.Service
  * as an Incoming Ship with that Cargo aboard, one entry per Cargo instance; a ship that carries none joins as
  * an ordinary ship. The Stock is unchanged: Cargo goes into it only when a User unloads the ship (STORY-045).
  * The ship keeps the Home Harbor carried in the Shipping Published; an event without one (from a Harbor that
- * does not send it yet) makes the Origin Harbor the ship's Home Harbor.
+ * does not send it yet) makes the Origin Harbor the ship's Home Harbor. The ship also keeps the Earnings it
+ * carries; an event without them carries none.
  *
  * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
  * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
@@ -97,6 +98,7 @@ class ArrivalManagementService(
             arrivedFrom = originHarbor,
             cargoAboard = cargo,
             incoming = cargo.isNotEmpty(),
+            earnings = shippingPublished.earnings,
         )
         shipRepositoryPort.saveNewShip(fromShip(ship))
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import java.math.BigDecimal
 import java.util.UUID
 
 @Repository
@@ -26,4 +27,16 @@ interface ShipPersistenceEntityRepository: JpaRepository<ShipPersistenceEntity, 
             "WHERE ship_id = :shipId AND ship_in_fleet = true AND ship_incoming = true"
     )
     fun unloadIncoming(@Param("shipId") shipId: UUID): Int
+
+    /**
+     * Adds [amount] to the Earnings of a ship in the fleet in one atomic step, never read-modify-write; returns
+     * the number of updated rows (1 or 0). Clears the persistence context, so a ship loaded before is read again
+     * with the new Earnings.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(
+        nativeQuery = true,
+        value = "UPDATE ships SET ship_earnings = ship_earnings + :amount WHERE ship_id = :shipId AND ship_in_fleet = true"
+    )
+    fun addEarnings(@Param("shipId") shipId: UUID, @Param("amount") amount: BigDecimal): Int
 }

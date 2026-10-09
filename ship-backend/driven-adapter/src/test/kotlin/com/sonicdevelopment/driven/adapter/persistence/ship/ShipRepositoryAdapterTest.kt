@@ -7,6 +7,7 @@ import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
@@ -376,10 +377,59 @@ class ShipRepositoryAdapterTest {
     }
 
     @Test
+    fun `saveNewShip writes and getShipDetails reads the Earnings`() {
+        val ship = Ship(
+            name = "Salty Whisker", catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), earnings = Money.of("80.00"),
+        )
+        ships.saveNewShip(InitialShipInformation.fromShip(ship))
+        flushAndClear()
+
+        val loaded = ships.getShipDetails(ship.id)!!
+        loaded.earnings.toDecimalString() shouldBe "80.00"
+        loaded.shipName = "Wicked Wench"
+        ships.saveNewShip(InitialShipInformation.fromShip(loaded))
+        flushAndClear()
+
+        ships.getAllShips().single().earnings.toDecimalString() shouldBe "80.00"
+        jdbcTemplate.queryForObject(
+            "SELECT ship_earnings FROM ships WHERE ship_id = ?", java.math.BigDecimal::class.java, ship.id.id
+        )!!.toPlainString() shouldBe "80.00"
+    }
+
+    @Test
+    fun `addEarnings adds to the Earnings of a ship in the fleet`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum()))
+        val blackPearl = anIncomingShip("Black Pearl", listOf(sugar()))
+        // loaded into the persistence context before the update, as the unloading service does
+        ships.getShipDetails(saltyWhisker.id)!!.earnings.toDecimalString() shouldBe "0.00"
+
+        ships.addEarnings(saltyWhisker.id, Money.of("80.00"))
+        ships.addEarnings(saltyWhisker.id, Money.of("40.05"))
+
+        ships.getShipDetails(saltyWhisker.id)!!.earnings.toDecimalString() shouldBe "120.05"
+        ships.getShipDetails(blackPearl.id)!!.earnings.toDecimalString() shouldBe "0.00"
+    }
+
+    @Test
+    fun `addEarnings fails for a ship not in the fleet`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum()))
+        ships.removeFromFleet(saltyWhisker.id)
+        flushAndClear()
+
+        shouldThrow<IllegalStateException> { ships.addEarnings(saltyWhisker.id, Money.of("80.00")) }
+        shouldThrow<IllegalStateException> { ships.addEarnings(ShipId(UUID.randomUUID()), Money.of("80.00")) }
+        jdbcTemplate.queryForObject(
+            "SELECT ship_earnings FROM ships WHERE ship_id = ?", java.math.BigDecimal::class.java, saltyWhisker.id.id
+        )!!.toPlainString() shouldBe "0.00"
+    }
+
+    @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun `endIncoming and clearCargoAboard require a transaction`() {
         shouldThrow<IllegalTransactionStateException> { ships.endIncoming(ShipId(UUID.randomUUID())) }
         shouldThrow<IllegalTransactionStateException> { ships.clearCargoAboard(ShipId(UUID.randomUUID())) }
+        shouldThrow<IllegalTransactionStateException> { ships.addEarnings(ShipId(UUID.randomUUID()), Money.of("1.00")) }
     }
 
     @Test

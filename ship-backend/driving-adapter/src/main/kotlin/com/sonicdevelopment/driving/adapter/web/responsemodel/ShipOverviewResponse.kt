@@ -13,4 +13,6 @@ data class ShipOverviewResponse(
     val incoming: Boolean = false,
     /** The Harbor where the ship was registered; never changes. */
     val homeHarbor: String,
+    /** The Earnings the ship carries until it reaches its Home Harbor: a decimal string with two decimals, `"0.00"` for none. */
+    val earnings: String,
 )

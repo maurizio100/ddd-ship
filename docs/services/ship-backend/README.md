@@ -6,7 +6,9 @@ Catain Images in MinIO, and on Release it writes the Shipping Published event to
 outbox. A ship Released to this Harbor arrives by itself: on consuming its Shipping Published the
 backend takes it into the fleet with its Cargo aboard (an Incoming Ship), and writes Ship Arrived to the outbox.
 On the harbor management page the User unloads an Incoming Ship: the backend pays its Delivery Price from
-the Savings and puts its Cargo into the Stock. Or the User refuses it: nothing is paid, and the backend
+the Savings, puts its Cargo into the Stock, and adds the Delivery Price to the ship's Earnings (or, at the
+ship's own Home Harbor, puts it back into the Savings at once); the Earnings travel with the ship in
+Shipping Published. Or the User refuses it: nothing is paid, and the backend
 Releases it to its Home Harbor with its Cargo aboard, or, at its own Home Harbor, keeps it in the fleet with
 that Cargo aboard to be delivered to another Harbor.
 When it consumes Ship Arrived for a ship it Released, it sets that Shipping to `DONE` and the ship
