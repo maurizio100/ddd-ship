@@ -15,8 +15,9 @@ Pet project for trying out Hexagonal Architecture, Domain-Driven Design and the 
 ## How to run things
 
 ```
-cd ship-backend  && ./mvnw verify      # backend build + tests; needs no Docker
-cd ship-backend  && ./mvnw verify -Pdb # + the tests that need Docker (Testcontainers)
+cd ship-backend  && ./mvnw -q verify -pl <module> -am  # backend inner loop; needs no Docker, JDK 21
+cd ship-backend  && ./mvnw -q verify                    # whole backend once before pushing
+cd ship-backend  && ./mvnw verify -Pdb  # + Docker tests; locally only for persistence/migration/transaction changes, CI runs it always
 cd ship-frontend && npm test -- --watch=false --browsers=ChromeHeadless   # frontend tests (Karma/Jasmine); plain npm test watches forever
 cd ship-frontend && npm start          # frontend dev server
 cd ship-terminal && mvn package        # terminal build
