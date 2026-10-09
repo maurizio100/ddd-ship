@@ -7,6 +7,7 @@ import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
+import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort.CargoLoadInformation
 import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
@@ -24,6 +25,12 @@ import org.springframework.stereotype.Service
  * into the Stock; and it **clears** the ship last, with a conditional step that is re-checked under the ship's
  * row lock. Of two concurrent unloadings of the same ship only one clears it; the other fails there, after
  * paying, and its transaction rolls its payment and its Stock writes back.
+ *
+ * Refuses an Incoming Ship in one transaction, in the order of a Release: it **clears** the ship first, with the
+ * same conditional step, then writes the new Shipping, its Loaded Cargo, the Release to the Home Harbor, and the
+ * Shipping Published. The conditional step comes first so that, of a refusal and an unloading of the same ship,
+ * only the one that clears it takes effect: a refusal that loses writes nothing, and an unloading that loses
+ * rolls back. Nothing is paid and the Stock is not touched.
  */
 @Service
 class IncomingShipManagementService(
@@ -61,6 +68,17 @@ class IncomingShipManagementService(
 
     @Transactional
     override fun refuseIncomingShip(shipId: ShipId): HarborName? {
-        TODO("STORY-047")
+        val ship = shipRepositoryPort.getShipDetails(shipId) ?: return null
+        ship.refuse(currentHarbor)
+
+        if (!shipRepositoryPort.unloadIncomingShip(ship.id)) {
+            throw ShipNotIncomingException("${ship.shipName} is not an Incoming Ship anymore")
+        }
+        shippingRepositoryPort.createShipping(ship)
+        cargoPersistencePort.updateCargoLoad(CargoLoadInformation.fromShip(ship))
+        ship.release(quoteRepositoryPort.getQuoteForSailorsCode(ship.createSailorsCode()), ship.homeHarbor)
+        shippingRepositoryPort.updateActiveShipping(ship)
+        shippingOutboxRepository.broadcastShipping(ship, currentHarbor)
+        return ship.homeHarbor
     }
 }

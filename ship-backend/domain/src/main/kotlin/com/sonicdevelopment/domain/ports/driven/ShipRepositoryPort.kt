@@ -37,9 +37,10 @@ interface ShipRepositoryPort {
     fun removeFromFleet(shipId: ShipId)
 
     /**
-     * Clears the Incoming flag and the Cargo aboard of an Incoming Ship in the fleet in one conditional step;
-     * returns `false`, and changes nothing, when the ship is not Incoming (anymore) or not in the fleet. Runs in
-     * the caller's transaction.
+     * The conditional step that ends an Incoming Ship's wait, used by both unloading and refusal: clears the
+     * Incoming flag and the Cargo aboard of an Incoming Ship in the fleet under the ship's row lock; returns
+     * `false`, and changes nothing, when the ship is not Incoming (anymore) or not in the fleet. Runs in the
+     * caller's transaction.
      */
     fun unloadIncomingShip(shipId: ShipId): Boolean
 }

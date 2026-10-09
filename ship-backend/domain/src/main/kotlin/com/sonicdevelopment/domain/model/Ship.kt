@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
+import com.sonicdevelopment.domain.exception.ShipAtItsHomeHarborException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
@@ -27,7 +28,8 @@ class Ship(
     /**
      * The Cargo aboard while the ship has no Shipping, one entry per Cargo instance; separate from the Loaded
      * Cargo of an Active Shipping. An Incoming Ship keeps the Cargo it arrived with here until it is unloaded
-     * ([unload] clears it together with [isIncoming]) or refused. Cargo aboard without [isIncoming] is a ship
+     * ([unload] clears it together with [isIncoming]) or refused ([refuse] moves it into the Loaded Cargo of the
+     * voyage home). Cargo aboard without [isIncoming] is a ship
      * refused by its own Home Harbor (STORY-028, not built).
      */
     var cargoAboard: List<Cargo> = cargoAboard.toList()
@@ -93,8 +95,19 @@ class Ship(
         return unloaded
     }
 
+    /**
+     * Refuses an Incoming Ship at [currentHarbor], which is not its Home Harbor: starts a new Shipping, moves
+     * every Cargo aboard into its Loaded Cargo, and clears the Cargo aboard and the Incoming flag together. The
+     * ship is then ready to be Released to its Home Harbor. Changes nothing when it is refused.
+     */
     fun refuse(currentHarbor: HarborName) {
-        TODO("STORY-047")
+        if (!isIncoming) throw ShipNotIncomingException("$shipName is not an Incoming Ship")
+        if (homeHarbor == currentHarbor) throw ShipAtItsHomeHarborException("$shipName is at its Home Harbor")
+
+        activeShipping = Shipping(ShippingId(UUID.randomUUID()))
+        cargoAboard.forEach { addCargo(it) }
+        cargoAboard = emptyList()
+        isIncoming = false
     }
 
     fun createSailorsCode(): SailorsCode {
