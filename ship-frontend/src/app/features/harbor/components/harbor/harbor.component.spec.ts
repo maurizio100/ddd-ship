@@ -148,4 +148,24 @@ describe('HarborComponent (The harbor management page shows the Harbor\'s Stock)
     expect(rows()).toEqual([{ name: 'Ale', quantity: '1' }]);
     expect(text('harbor-savings')).toBe('80.00 $');
   });
+
+  it('cannot buy a Cargo that has no Price yet', () => {
+    render([aStockedCargo({ name: 'Rum', price: null })], aSavings());
+
+    expect((all('harbor-buy')[0] as HTMLButtonElement).disabled).toBeTrue();
+  });
+
+  it('cannot buy a quantity of 0', () => {
+    render([aStockedCargo({ name: 'Ale', price: '50.00' })], aSavings());
+
+    const input = all('harbor-buy-quantity')[0] as HTMLInputElement;
+    input.value = '0';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const buy = all('harbor-buy')[0] as HTMLButtonElement;
+    expect(buy.disabled).toBeTrue();
+    buy.click();
+    expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ type: HarborActions.buyCargo.type }));
+  });
 });
