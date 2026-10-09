@@ -37,9 +37,11 @@ a second kind of transaction boundary is the handling of a consumed event. The i
 change and any outbox row it causes (for example `ship-arrived`) commit together; an event id already
 in the inbox is skipped, so redelivery has no effect.
 
+Buying at the Market (STORY-025) is a REST-driven transaction that pays from the Savings with one
+conditional update and puts the Cargo into the Stock; a purchase the Savings cannot cover writes nothing.
 Decided, not built (EPIC-003, [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md),
-[ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): unloading an Incoming Ship and buying at
-the Market are REST-driven transactions that change the Stock and the Savings together; a refusal
+[ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): unloading an Incoming Ship is a REST-driven
+transaction that changes the Stock and the Savings together in the same way; a refusal
 writes the return `shipping-published` outbox row in the same transaction. Crediting Earnings at the
 Home Harbor happens inside the Arrival's inbox transaction.
 
