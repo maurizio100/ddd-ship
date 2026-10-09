@@ -3,6 +3,7 @@ import { KnownHarbors } from '../app/features/shipping/models/known-harbors';
 import { Ship, ShippingState } from '../app/features/shipping/models/ship';
 import { ShippingSummary } from '../app/features/shipping/models/shipping-summary';
 import { ArrivalNotice } from '../app/features/ships/models/fleet-event';
+import { Savings } from '../app/features/harbor/models/savings';
 import { StockedCargo } from '../app/features/harbor/models/stocked-cargo';
 import { Catain } from '../app/features/catains/model/catain';
 import {
@@ -101,6 +102,12 @@ export function aStockedCargo(overrides: Partial<StockedCargo> = {}): StockedCar
     cargoId: 'c0a8f3a2-0000-4000-8000-000000000009',
     name: 'Rum',
     quantity: 3,
+    price: '42.00',
     ...overrides,
   };
+}
+
+/** The Savings of a Harbor; by default the Starting Savings. */
+export function aSavings(overrides: Partial<Savings> = {}): Savings {
+  return { amount: '1000.00', ...overrides };
 }

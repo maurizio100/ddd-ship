@@ -1,8 +1,10 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { StockedCargo } from '../models/stocked-cargo';
+import { Savings } from '../models/savings';
 
 export interface HarborState {
   stock: StockedCargo[];
+  savings?: Savings | null;
   loading: boolean;
   error: unknown;
 }
