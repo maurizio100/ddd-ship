@@ -5,7 +5,12 @@ import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
+import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
+import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
@@ -26,6 +31,11 @@ class IncomingShipManagementService(
     private val priceRepositoryPort: PriceRepositoryPort,
     private val savingsRepositoryPort: SavingsRepositoryPort,
     private val stockRepositoryPort: StockRepositoryPort,
+    private val shippingRepositoryPort: ShippingRepositoryPort,
+    private val cargoPersistencePort: CargoPersistencePort,
+    private val quoteRepositoryPort: QuoteRepositoryPort,
+    private val shippingOutboxRepository: ShippingOutboxRepository,
+    private val currentHarbor: HarborName,
 ) : IncomingShipManagementPort {
 
     @Transactional
@@ -47,5 +57,10 @@ class IncomingShipManagementService(
             throw ShipNotIncomingException("${ship.shipName} is not an Incoming Ship anymore")
         }
         return deliveryPrice
+    }
+
+    @Transactional
+    override fun refuseIncomingShip(shipId: ShipId): HarborName? {
+        TODO("STORY-047")
     }
 }

@@ -93,6 +93,10 @@ class Ship(
         return unloaded
     }
 
+    fun refuse(currentHarbor: HarborName) {
+        TODO("STORY-047")
+    }
+
     fun createSailorsCode(): SailorsCode {
         return SailorsCode(currentWeight)
     }
