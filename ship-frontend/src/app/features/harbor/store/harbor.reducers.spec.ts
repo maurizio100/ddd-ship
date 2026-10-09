@@ -19,18 +19,18 @@ describe('harborReducers', () => {
 
     const state = harborReducers({ ...initialState, loading: true }, HarborActions.loadStockSuccess({ stock }));
 
-    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [] });
+    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [] });
   });
 
   it('loadStockFailure stores the error, keeps the stock and stops loading', () => {
     const stock = [aStockedCargo()];
 
     const state = harborReducers(
-      { stock, savings: null, incomingShips: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [] },
+      { stock, savings: null, incomingShips: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [] },
       HarborActions.loadStockFailure({ error: 'boom' }),
     );
 
-    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [] });
+    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [] });
   });
 
   it('loadSavings sets loading and clears a previous error', () => {
@@ -45,18 +45,18 @@ describe('harborReducers', () => {
 
     const state = harborReducers({ ...initialState, loading: true }, HarborActions.loadSavingsSuccess({ savings }));
 
-    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [] });
+    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [] });
   });
 
   it('loadSavingsFailure stores the error, keeps the Savings and stops loading', () => {
     const savings = aSavings();
 
     const state = harborReducers(
-      { stock: [], savings, incomingShips: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [] },
+      { stock: [], savings, incomingShips: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [] },
       HarborActions.loadSavingsFailure({ error: 'boom' }),
     );
 
-    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [] });
+    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [] });
   });
 
   it('starts without a purchase refusal', () => {
@@ -164,5 +164,40 @@ describe('harborReducers', () => {
     );
 
     expect(state.unloadingShipIds).toEqual(['other']);
+  });
+
+  it('starts without a refuse failure and with no refusal in flight', () => {
+    expect(initialState.refuseFailure).toBeNull();
+    expect(initialState.refusingShipIds).toEqual([]);
+  });
+
+  it('refuseIncomingShip marks the ship as being refused and clears a previous failure, until it succeeds', () => {
+    const started = harborReducers(
+      { ...initialState, refuseFailure: 'nope' },
+      HarborActions.refuseIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }),
+    );
+    expect(started.refusingShipIds).toEqual(['b1a2c3d4-0000-4000-8000-000000000001']);
+    expect(started.refuseFailure).toBeNull();
+
+    const done = harborReducers(
+      { ...started, refuseFailure: 'nope' },
+      HarborActions.refuseIncomingShipSuccess({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }),
+    );
+    expect(done.refusingShipIds).toEqual([]);
+    expect(done.refuseFailure).toBeNull();
+  });
+
+  it('refuseIncomingShipFailure stores the failure and ends the refusal of that ship only', () => {
+    const state = harborReducers(
+      { ...initialState, refusingShipIds: ['b1a2c3d4-0000-4000-8000-000000000001', 'other'] },
+      HarborActions.refuseIncomingShipFailure({
+        shipId: 'b1a2c3d4-0000-4000-8000-000000000001',
+        error: 'boom',
+        refusal: 'Salty Whisker is not an Incoming Ship anymore',
+      }),
+    );
+
+    expect(state.refusingShipIds).toEqual(['other']);
+    expect(state.refuseFailure).toBe('Salty Whisker is not an Incoming Ship anymore');
   });
 });

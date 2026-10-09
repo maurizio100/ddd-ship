@@ -26,7 +26,7 @@ describe('HarborEffects', () => {
     stockService = jasmine.createSpyObj<StockService>('StockService', ['getStock']);
     savingsService = jasmine.createSpyObj<SavingsService>('SavingsService', ['getSavings']);
     marketService = jasmine.createSpyObj<MarketService>('MarketService', ['buyCargo']);
-    incomingShipsService = jasmine.createSpyObj<IncomingShipsService>('IncomingShipsService', ['getIncomingShips', 'unload']);
+    incomingShipsService = jasmine.createSpyObj<IncomingShipsService>('IncomingShipsService', ['getIncomingShips', 'unload', 'refuse']);
     TestBed.configureTestingModule({
       providers: [
         HarborEffects,
@@ -243,5 +243,59 @@ describe('HarborEffects', () => {
     actions$.next(HarborActions.unloadIncomingShipFailure({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001', error: 'boom', refusal: 'nope' }));
 
     expect(emitted).toEqual([HarborActions.loadIncomingShips()]);
+  });
+
+  it('refuseIncomingShip$ refuses the Incoming Ship and emits refuseIncomingShipSuccess', () => {
+    incomingShipsService.refuse.and.returnValue(of(undefined));
+    const emitted: Action[] = [];
+    effects.refuseIncomingShip$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.refuseIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
+
+    expect(incomingShipsService.refuse).toHaveBeenCalledWith('b1a2c3d4-0000-4000-8000-000000000001');
+    expect(emitted).toEqual([HarborActions.refuseIncomingShipSuccess({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' })]);
+  });
+
+  it('refuseIncomingShip$ emits refuseIncomingShipFailure with the detail from the Problem Details', () => {
+    const error = new HttpErrorResponse({
+      status: 409,
+      error: { title: 'Not an Incoming Ship', detail: 'Salty Whisker is not an Incoming Ship anymore' },
+    });
+    incomingShipsService.refuse.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.refuseIncomingShip$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.refuseIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
+
+    expect(emitted).toEqual([
+      HarborActions.refuseIncomingShipFailure({
+        shipId: 'b1a2c3d4-0000-4000-8000-000000000001',
+        error,
+        refusal: 'Salty Whisker is not an Incoming Ship anymore',
+      }),
+    ]);
+  });
+
+  it('refuseIncomingShip$ falls back to a general failure text when the error has no detail', () => {
+    const error = new HttpErrorResponse({ status: 0 });
+    incomingShipsService.refuse.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.refuseIncomingShip$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.refuseIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
+
+    expect(emitted).toEqual([
+      HarborActions.refuseIncomingShipFailure({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001', error, refusal: 'The Incoming Ship could not be refused' }),
+    ]);
+  });
+
+  it('refreshAfterRefusal$ reloads only the Incoming Ships after a refusal succeeds or fails', () => {
+    const emitted: Action[] = [];
+    effects.refreshAfterRefusal$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.refuseIncomingShipSuccess({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
+    actions$.next(HarborActions.refuseIncomingShipFailure({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001', error: 'boom', refusal: 'nope' }));
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShips(), HarborActions.loadIncomingShips()]);
   });
 });
