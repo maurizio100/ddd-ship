@@ -95,7 +95,8 @@ class FailedChangeLeavesNoTraceTest {
     }
 
     /**
-     * The real fleet, counting the ship saves that went through, so a test can prove a save really ran. While
+     * The real fleet, counting the ship saves and Earnings additions that went through, so a test can prove they
+     * really ran, and letting a concurrent writer commit first. While
      * [concurrentUnloadWins], a concurrent unloading of the same ship clears it, and commits, just before this
      * transaction's own conditional clear runs. A [concurrentChange] runs once, in its own committed
      * transaction, at the same point. Both happen once, before this transaction's first write to the
@@ -416,8 +417,15 @@ class FailedChangeLeavesNoTraceTest {
         countingSavings.paysThrough shouldBe 1
         countingSavings.receivesThrough shouldBe 1
         countingShipRepository.earningsAddedThrough shouldBe 0
+        failingStock.putsThrough shouldBe 3
+        // pay and receive cancel out, so the rest proves the rollback: no Stock write, no Earnings, and the Cargo
+        // aboard as the concurrent unloading left it
         savingsAmount() shouldBe STARTING_SAVINGS
+        jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
+            .forEach { it shouldBe STARTING_STOCK }
         shipEarnings(saltyWhisker) shouldBe "0.00"
+        count("ships_cargos_aboard") shouldBe 0
+        shipIncoming(saltyWhisker) shouldBe false
     }
 
     @Test
