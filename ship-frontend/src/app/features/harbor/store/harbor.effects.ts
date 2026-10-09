@@ -1,14 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, concatMap, defer, filter, map, of, retry, switchMap, takeUntil } from 'rxjs';
+import { catchError, concatMap, map, of, switchMap, takeUntil } from 'rxjs';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
 import { MarketService } from '../services/market.service';
 import { IncomingShipsService } from '../services/incoming-ships.service';
-import { FleetEventsService } from '../../ships/services/fleet-events.service';
-import { FLEET_RECONNECT_DELAY_MS } from '../../ships/store/effects/ship.effects';
+import * as ShipActions from '../../ships/store/actions/ship.actions';
 
 const PURCHASE_FAILED = 'The Market could not complete the purchase';
 
@@ -19,7 +18,6 @@ export class HarborEffects {
   private savingsService = inject(SavingsService);
   private marketService = inject(MarketService);
   private incomingShipsService = inject(IncomingShipsService);
-  private fleetEventsService = inject(FleetEventsService);
 
   loadStock$ = createEffect(() =>
     this.actions$.pipe(
@@ -73,17 +71,26 @@ export class HarborEffects {
     ),
   );
 
+  /** The harbor page rides on the ships store's fleet-events stream, so there is one connection only. */
+  watchFleet$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.watchArrivals, HarborActions.stopWatchingArrivals),
+      map((action) =>
+        action.type === HarborActions.watchArrivals.type ? ShipActions.watchFleet() : ShipActions.stopWatchingFleet(),
+      ),
+    ),
+  );
+
   /**
    * An arriving ship may be an Incoming Ship, so the list is read again on every Arrival and whenever the
-   * fleet-events stream (re)opens, since an Arrival may have been missed meanwhile (as ShipEffects.watchFleet$).
+   * stream (re)connects, which the ships store answers with a fleet load, since an Arrival may have been missed.
    */
   watchArrivals$ = createEffect(() =>
     this.actions$.pipe(
       ofType(HarborActions.watchArrivals),
       switchMap(() =>
-        defer(() => this.fleetEventsService.events()).pipe(
-          retry({ delay: FLEET_RECONNECT_DELAY_MS }),
-          filter((event) => event.type === 'ship-arrived' || event.type === 'connected'),
+        this.actions$.pipe(
+          ofType(ShipActions.shipArrived, ShipActions.loadShips),
           map(() => HarborActions.loadIncomingShips()),
           takeUntil(this.actions$.pipe(ofType(HarborActions.stopWatchingArrivals))),
         ),

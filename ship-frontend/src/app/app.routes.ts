@@ -1,6 +1,7 @@
 import {Routes} from '@angular/router';
 
 import {HARBOR_STORE_PROVIDERS} from './features/harbor/store/HarborStoreProviders';
+import {SHIPS_STORE_PROVIDERS} from './features/ships/store/ShipsStoreProviders';
 
 export const routes: Routes = [
   {path: '', redirectTo: '/ships', pathMatch: 'full'},
@@ -16,7 +17,8 @@ export const routes: Routes = [
         .then(m => m.SHIPPING_ROUTES)
   }, {
     path: 'harbor',
-    providers: [HARBOR_STORE_PROVIDERS],
+    // The Incoming Ships follow the fleet-events stream, which the ships store owns.
+    providers: [HARBOR_STORE_PROVIDERS, SHIPS_STORE_PROVIDERS],
     loadComponent: () =>
       import('./features/harbor/components/harbor/harbor.component')
         .then(m => m.HarborComponent)
