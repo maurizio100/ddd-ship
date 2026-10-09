@@ -7,6 +7,7 @@ export const initialState: HarborState = {
   savings: null,
   loading: false,
   error: null,
+  purchaseRefusal: null,
 };
 
 export const harborReducers = createReducer(

@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap } from 'rxjs';
+import { Action } from '@ngrx/store';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
@@ -34,4 +35,8 @@ export class HarborEffects {
       ),
     ),
   );
+
+  buyCargo$ = createEffect(() => new Observable<Action>());
+
+  refreshAfterPurchase$ = createEffect(() => new Observable<Action>());
 }

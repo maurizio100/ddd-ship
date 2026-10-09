@@ -30,3 +30,10 @@ export const buyCargo = createAction(
   '[Harbor] Buy Cargo',
   props<{cargoId: string; quantity: number}>()
 );
+
+export const buyCargoSuccess = createAction('[Harbor] Buy Cargo Success');
+
+export const buyCargoFailure = createAction(
+  '[Harbor] Buy Cargo Failure',
+  props<{error: unknown; refusal: string}>()
+);
