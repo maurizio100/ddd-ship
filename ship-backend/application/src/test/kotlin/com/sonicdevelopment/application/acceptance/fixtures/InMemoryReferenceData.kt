@@ -71,6 +71,10 @@ object SeedData {
     fun cargoIdOf(name: String): UUID =
         cargos.singleOrNull { it.name == name }?.id?.id ?: error("No seeded Cargo named $name")
 
+    /** The business id of the seeded Catain [name]; fails for an unknown name. */
+    fun catainIdOf(name: String): UUID =
+        catains.singleOrNull { it.catainName == name }?.catainId?.id ?: error("No seeded Catain named $name")
+
     /** Furry Jones, the first seeded Catain. */
     val aCatainId: UUID = catains.first().catainId.id
 }

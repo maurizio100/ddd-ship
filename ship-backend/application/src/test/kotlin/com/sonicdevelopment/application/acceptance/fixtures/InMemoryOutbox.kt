@@ -73,6 +73,9 @@ class InMemoryOutbox : ShippingOutboxRepository, HarborOutboxRepositoryPort {
     fun shippingPublished(): List<OutboxMessage.ShippingPublished> =
         messages().filterIsInstance<OutboxMessage.ShippingPublished>()
 
+    fun shipArrived(): List<OutboxMessage.ShipArrived> =
+        messages().filterIsInstance<OutboxMessage.ShipArrived>()
+
     @Synchronized
     fun reset() {
         messages.clear()

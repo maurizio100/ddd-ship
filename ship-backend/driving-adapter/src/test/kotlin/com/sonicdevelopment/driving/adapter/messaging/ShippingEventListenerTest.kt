@@ -10,7 +10,9 @@ import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipArrivedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
+import io.kotest.assertions.throwables.shouldThrow
 import io.mockk.confirmVerified
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -50,6 +52,16 @@ class ShippingEventListenerTest {
                     destinationHarbor = HarborName("Port Royal"),
                 )
             )
+        }
+    }
+
+    @Test
+    fun `propagates a failure of the Arrival so the record is redelivered`() {
+        every { arrivalManagementPort.receiveShippingPublished(any(), any()) } throws
+            IllegalStateException("unknown Catain")
+
+        shouldThrow<IllegalStateException> {
+            listener.onShippingEvent(aRecord(payload = aShippingPublishedPayload()))
         }
     }
 
