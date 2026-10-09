@@ -26,7 +26,7 @@ describe('HarborEffects', () => {
     stockService = jasmine.createSpyObj<StockService>('StockService', ['getStock']);
     savingsService = jasmine.createSpyObj<SavingsService>('SavingsService', ['getSavings']);
     marketService = jasmine.createSpyObj<MarketService>('MarketService', ['buyCargo']);
-    incomingShipsService = jasmine.createSpyObj<IncomingShipsService>('IncomingShipsService', ['getIncomingShips']);
+    incomingShipsService = jasmine.createSpyObj<IncomingShipsService>('IncomingShipsService', ['getIncomingShips', 'unload']);
     TestBed.configureTestingModule({
       providers: [
         HarborEffects,
@@ -181,5 +181,67 @@ describe('HarborEffects', () => {
     actions$.next(arrived);
 
     expect(emitted.length).toBe(2);
+  });
+
+  it('unloadIncomingShip$ unloads the Incoming Ship and emits unloadIncomingShipSuccess', () => {
+    incomingShipsService.unload.and.returnValue(of(undefined));
+    const emitted: Action[] = [];
+    effects.unloadIncomingShip$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.unloadIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
+
+    expect(incomingShipsService.unload).toHaveBeenCalledWith('b1a2c3d4-0000-4000-8000-000000000001');
+    expect(emitted).toEqual([HarborActions.unloadIncomingShipSuccess({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' })]);
+  });
+
+  it('unloadIncomingShip$ emits unloadIncomingShipFailure with the refusal from the Problem Details', () => {
+    const error = new HttpErrorResponse({
+      status: 409,
+      error: { title: 'Savings do not cover', detail: 'The Savings do not cover the Delivery Price of 115.00 $' },
+    });
+    incomingShipsService.unload.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.unloadIncomingShip$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.unloadIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
+
+    expect(emitted).toEqual([
+      HarborActions.unloadIncomingShipFailure({
+        shipId: 'b1a2c3d4-0000-4000-8000-000000000001',
+        error,
+        refusal: 'The Savings do not cover the Delivery Price of 115.00 $',
+      }),
+    ]);
+  });
+
+  it('unloadIncomingShip$ falls back to a general refusal when the error has no detail', () => {
+    const error = new HttpErrorResponse({ status: 0 });
+    incomingShipsService.unload.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.unloadIncomingShip$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.unloadIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
+
+    expect(emitted).toEqual([
+      HarborActions.unloadIncomingShipFailure({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001', error, refusal: 'The Incoming Ship could not be unloaded' }),
+    ]);
+  });
+
+  it('refreshAfterUnloading$ reloads the Incoming Ships, the Stock and the Savings after an unloading', () => {
+    const emitted: Action[] = [];
+    effects.refreshAfterUnloading$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.unloadIncomingShipSuccess({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShips(), HarborActions.loadStock(), HarborActions.loadSavings()]);
+  });
+
+  it('refreshIncomingShipsAfterRefusedUnloading$ reloads the Incoming Ships after a refused unloading', () => {
+    const emitted: Action[] = [];
+    effects.refreshIncomingShipsAfterRefusedUnloading$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.unloadIncomingShipFailure({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001', error: 'boom', refusal: 'nope' }));
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShips()]);
   });
 });

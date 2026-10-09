@@ -13,4 +13,9 @@ export class IncomingShipsService {
   getIncomingShips(): Observable<IncomingShip[]> {
     return this.http.get<IncomingShip[]>(this.incomingShipsUrl);
   }
+
+  /** Unloads the Incoming Ship; the backend answers 204, so read the new state back from its GETs. */
+  unload(shipId: string): Observable<void> {
+    return this.http.post<void>(`${this.incomingShipsUrl}/${shipId}/unloading`, null);
+  }
 }

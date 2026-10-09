@@ -47,13 +47,18 @@
   }
 }
 
-.purchase-refusal {
+.purchase-refusal,
+.unload-refusal {
   margin: 12px 0 0;
   padding: 10px 14px;
   border-radius: 12px;
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
   font-weight: 600;
+}
+
+.unload-refusal {
+  margin: 0 0 8px;
 }
 
 .incoming {
@@ -106,6 +111,10 @@
   &__price-label {
     font-style: italic;
     color: var(--hs-muted);
+  }
+
+  &__unload {
+    align-self: center;
   }
 }
 

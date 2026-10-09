@@ -235,3 +235,104 @@ describe('HarborComponent (An arriving ship becomes an Incoming Ship)', () => {
     expect(all('harbor-incoming-ships-empty').map((line) => line.textContent!.trim())).toEqual(['No Incoming Ships']);
   });
 });
+
+describe('HarborComponent (Unload an Incoming Ship and pay the Delivery Price)', () => {
+  let fixture: ComponentFixture<HarborComponent>;
+  let store: MockStore;
+
+  function render(incomingShips: IncomingShip[], unloadRefusal: string | null = null, unloadingShipIds: string[] = []): void {
+    TestBed.configureTestingModule({
+      imports: [HarborComponent],
+      providers: [
+        provideMockStore({
+          initialState: {
+            harbor: {
+              stock: [aStockedCargo()],
+              savings: aSavings({ amount: '1000.00' }),
+              incomingShips,
+              loading: false,
+              error: null,
+              purchaseRefusal: null,
+              unloadRefusal,
+              unloadingShipIds,
+            },
+          },
+        }),
+      ],
+    });
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    fixture = TestBed.createComponent(HarborComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  it('Unloading puts the Cargo into the Stock and pays the Delivery Price', () => {
+    const saltyWhisker = anIncomingShipListing();
+    render([saltyWhisker]);
+
+    // When the User unloads "Salty Whisker"
+    (all('harbor-unload')[0] as HTMLButtonElement).click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.unloadIncomingShip({ shipId: saltyWhisker.shipId }));
+
+    // Then, once the harbor page has refreshed, "Salty Whisker" is no longer an Incoming Ship
+    store.setState({
+      harbor: {
+        stock: [aStockedCargo()],
+        savings: aSavings({ amount: '885.00' }),
+        incomingShips: [],
+        loading: false,
+        error: null,
+        purchaseRefusal: null,
+        unloadRefusal: null,
+        unloadingShipIds: [],
+      },
+    });
+    fixture.detectChanges();
+    expect(all('harbor-incoming-ship')).toEqual([]);
+    expect(all('harbor-savings')[0].textContent!.trim()).toBe('885.00 $');
+  });
+
+  it('An Incoming Ship cannot be unloaded when the Savings fall short', () => {
+    render([anIncomingShipListing()], 'The Savings do not cover the Delivery Price of 115.00 $');
+
+    const refusal = all('harbor-unload-refusal');
+    expect(refusal.length).toBe(1);
+    expect(refusal[0].textContent!.trim()).toBe('The Savings do not cover the Delivery Price of 115.00 $');
+    expect(refusal[0].getAttribute('role')).toBe('alert');
+    // And its Cargo is still aboard
+    expect(all('harbor-incoming-ship').length).toBe(1);
+    expect(all('harbor-incoming-ship-cargo')[0].textContent!.trim()).toBe('2 × Rum, 1 × Sugar');
+  });
+
+  it('cannot unload an Incoming Ship whose Delivery Price cannot be computed yet', () => {
+    render([anIncomingShipListing({ deliveryPrice: null })]);
+
+    const unload = all('harbor-unload')[0] as HTMLButtonElement;
+    expect(unload.disabled).toBeTrue();
+    expect(unload.getAttribute('aria-label')).toBe('Unload Salty Whisker');
+    unload.click();
+    expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ type: HarborActions.unloadIncomingShip.type }));
+  });
+
+  it('shows no unload refusal when there is none', () => {
+    render([anIncomingShipListing()]);
+
+    expect(all('harbor-unload-refusal')).toEqual([]);
+  });
+
+  it('disables Unload for a ship whose unloading is in flight, and only for that ship', () => {
+    const salty = anIncomingShipListing();
+    const other = anIncomingShipListing({ shipId: 'b1a2c3d4-0000-4000-8000-000000000002', name: 'Pepper Paw' });
+    render([salty, other], null, [salty.shipId]);
+
+    const buttons = all('harbor-unload') as HTMLButtonElement[];
+    expect(buttons[0].disabled).toBeTrue();
+    expect(buttons[1].disabled).toBeFalse();
+    buttons[0].click();
+    expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ type: HarborActions.unloadIncomingShip.type }));
+  });
+});

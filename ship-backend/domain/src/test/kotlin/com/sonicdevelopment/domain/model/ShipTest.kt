@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
+import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.fixtures.aCargo
@@ -195,6 +196,39 @@ class ShipTest {
 
         ship.isIncoming shouldBe false
         ship.cargoAboard shouldBe emptyList()
+    }
+
+    @Test
+    fun `unloading an Incoming Ship returns its Cargo aboard and clears the Cargo aboard and the Incoming flag together`() {
+        val rum = aCargo(name = "Rum")
+        val sugar = aCargo(name = "Sugar", weight = 0.7F)
+        val ship = anIdleShip(cargoAboard = listOf(rum, rum, sugar), incoming = true)
+
+        val unloaded = ship.unload()
+
+        unloaded shouldBe listOf(rum, rum, sugar)
+        ship.cargoAboard shouldBe emptyList()
+        ship.isIncoming shouldBe false
+    }
+
+    @Test
+    fun `a ship that is not Incoming cannot be unloaded and keeps its Cargo aboard`() {
+        // Cargo aboard without the flag: refused by its own Home Harbor (STORY-028)
+        val rum = aCargo(name = "Rum")
+        val ship = anIdleShip(cargoAboard = listOf(rum), incoming = false)
+
+        shouldThrow<ShipNotIncomingException> { ship.unload() }
+            .message shouldBe "Salty Whisker is not an Incoming Ship"
+        ship.cargoAboard shouldBe listOf(rum)
+        ship.isIncoming shouldBe false
+    }
+
+    @Test
+    fun `an Incoming Ship can be unloaded only once`() {
+        val ship = anIdleShip(cargoAboard = listOf(aCargo(name = "Rum")), incoming = true)
+        ship.unload()
+
+        shouldThrow<ShipNotIncomingException> { ship.unload() }
     }
 
     private fun anIdleShip(cargoAboard: List<Cargo> = emptyList(), incoming: Boolean = false) = Ship(

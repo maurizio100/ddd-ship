@@ -4,6 +4,7 @@ import com.sonicdevelopment.domain.exception.CargoHasNoPriceException
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
+import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.UnknownHarborException
@@ -41,6 +42,9 @@ class ProblemDetailsExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(NewShippingRefusedException::class)
     fun newShippingRefused(exception: NewShippingRefusedException) = conflict("New Shipping refused", exception)
+
+    @ExceptionHandler(ShipNotIncomingException::class)
+    fun shipNotIncoming(exception: ShipNotIncomingException) = conflict("Not an Incoming Ship", exception)
 
     private fun conflict(title: String, exception: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.message).apply { this.title = title }

@@ -10,6 +10,7 @@ import { IncomingShipsService } from '../services/incoming-ships.service';
 import * as ShipActions from '../../ships/store/actions/ship.actions';
 
 const PURCHASE_FAILED = 'The Market could not complete the purchase';
+const UNLOAD_FAILED = 'The Incoming Ship could not be unloaded';
 
 @Injectable()
 export class HarborEffects {
@@ -103,6 +104,37 @@ export class HarborEffects {
     this.actions$.pipe(
       ofType(HarborActions.buyCargoSuccess),
       switchMap(() => [HarborActions.loadStock(), HarborActions.loadSavings()]),
+    ),
+  );
+
+  /** concatMap: an unloading moves money, so a later one never cancels it. */
+  unloadIncomingShip$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.unloadIncomingShip),
+      concatMap(({ shipId }) =>
+        this.incomingShipsService.unload(shipId).pipe(
+          map(() => HarborActions.unloadIncomingShipSuccess({ shipId })),
+          catchError((error: HttpErrorResponse) =>
+            of(HarborActions.unloadIncomingShipFailure({ shipId, error, refusal: error.error?.detail ?? UNLOAD_FAILED })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  /** The backend owns the money: after an unloading the Incoming Ships, the Stock and the Savings are read back. */
+  refreshAfterUnloading$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.unloadIncomingShipSuccess),
+      switchMap(() => [HarborActions.loadIncomingShips(), HarborActions.loadStock(), HarborActions.loadSavings()]),
+    ),
+  );
+
+  /** A refused unloading may mean another User unloaded the ship first: read the Incoming Ships back. */
+  refreshIncomingShipsAfterRefusedUnloading$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.unloadIncomingShipFailure),
+      map(() => HarborActions.loadIncomingShips()),
     ),
   );
 }

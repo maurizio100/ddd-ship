@@ -3,7 +3,14 @@ import { LowerCasePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { Store } from '@ngrx/store';
 import * as HarborActions from '../../store/harbor.actions';
-import { selectIncomingShips, selectPurchaseRefusal, selectSavings, selectStock } from '../../store/harbor.selectors';
+import {
+  selectIncomingShips,
+  selectPurchaseRefusal,
+  selectSavings,
+  selectStock,
+  selectUnloadingShipIds,
+  selectUnloadRefusal,
+} from '../../store/harbor.selectors';
 import { StockedCargo } from '../../models/stocked-cargo';
 import { IncomingShip } from '../../models/incoming-ship';
 
@@ -20,6 +27,8 @@ export class HarborComponent implements OnInit, OnDestroy {
   savings = this.store.selectSignal(selectSavings);
   purchaseRefusal = this.store.selectSignal(selectPurchaseRefusal);
   incomingShips = this.store.selectSignal(selectIncomingShips);
+  unloadRefusal = this.store.selectSignal(selectUnloadRefusal);
+  unloadingShipIds = this.store.selectSignal(selectUnloadingShipIds);
 
   /** The quantity the User entered per Cargo; a Cargo without an entry buys 1. */
   private readonly quantities = signal<Record<string, number>>({});
@@ -59,5 +68,15 @@ export class HarborComponent implements OnInit, OnDestroy {
   buy(cargo: StockedCargo): void {
     if (!this.canBuy(cargo)) return;
     this.store.dispatch(HarborActions.buyCargo({ cargoId: cargo.cargoId, quantity: this.quantityOf(cargo) }));
+  }
+
+  /** An Incoming Ship cannot be unloaded while its Delivery Price is unknown or its unloading is in flight. */
+  canUnload(ship: IncomingShip): boolean {
+    return ship.deliveryPrice !== null && !this.unloadingShipIds().includes(ship.shipId);
+  }
+
+  unload(ship: IncomingShip): void {
+    if (!this.canUnload(ship)) return;
+    this.store.dispatch(HarborActions.unloadIncomingShip({ shipId: ship.shipId }));
   }
 }

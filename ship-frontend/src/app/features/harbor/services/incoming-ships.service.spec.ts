@@ -28,4 +28,16 @@ describe('IncomingShipsService', () => {
     request.flush([anIncomingShipListing()]);
     expect(incomingShips).toEqual([anIncomingShipListing()]);
   });
+
+  it('unload POSTs to /incoming-ships/<id>/unloading without a body', () => {
+    let completed = false;
+
+    service.unload('b1a2c3d4-0000-4000-8000-000000000001').subscribe({ complete: () => (completed = true) });
+
+    const request = http.expectOne(`${environment.baseUrl}/incoming-ships/b1a2c3d4-0000-4000-8000-000000000001/unloading`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toBeNull();
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    expect(completed).toBeTrue();
+  });
 });

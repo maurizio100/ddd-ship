@@ -28,8 +28,8 @@
 | 3 | CargoLoading | Shipping | Shared Kernel (SK) | assumed | Loaded Cargo and Current Weight live on the shared `Ship` and feed the Sailors Code and the event. |
 | 4 | Fleet | CargoLoading | Shared Kernel (SK) | assumed | Cargo is loaded onto the shared `Ship`. |
 | 5 | Shipping | Shipping | Published Language (PL) | assumed | Future (harbor-voyages, 2026-10-03): Shipping at one Harbor talks to Shipping at another Harbor via Harbor Opened, Shipping Published (with Origin and Destination Harbor) and Ship Arrived over Kafka. Inside a Harbor, Arrival hands the ship to Fleet and its Cargo to CargoLoading in-process, through the existing Shared Kernel. Planned (harbor-economy, 2026-10-04): Shipping Published also carries Cargo quantities, the Home Harbor and the ship's Earnings; a Refused Delivery sends the ship back to its Home Harbor. Planned (crew ideation, 2026-10-05): Shipping Published also carries the Crew in full; Arrival keeps it aboard the ship. |
-| 6 | CargoLoading | Trade | Customer-Supplier (CS) | assumed | Planned (harbor-economy, 2026-10-04): Cargo bought at the Market and Cargo unloaded from an Incoming Ship go into CargoLoading's Stock. |
-| 7 | Trade | Shipping | Customer-Supplier (CS) | assumed | Planned (harbor-economy, 2026-10-04): Shipping asks Trade to pay the Delivery Price when an Incoming Ship is unloaded (refused if Savings fall short) and to credit Earnings to Savings when a ship reaches its Home Harbor. |
+| 6 | CargoLoading | Trade | Customer-Supplier (CS) | assumed | Built (STORY-025, STORY-045): Cargo bought at the Market and Cargo unloaded from an Incoming Ship go into CargoLoading's Stock. |
+| 7 | Trade | Shipping | Customer-Supplier (CS) | assumed | Built (STORY-045): Shipping asks Trade to pay the Delivery Price when an Incoming Ship is unloaded (refused if Savings fall short). Planned (harbor-economy, 2026-10-04): crediting Earnings to Savings when a ship reaches its Home Harbor. |
 | 8 | Trade | Fleet | Customer-Supplier (CS) | assumed | Planned (crew ideation, 2026-10-05). Fleet asks Trade to pay the Hiring Fee from the Harbor's Savings when a Recruit is Hired (refused if Savings fall short). |
 
 ---

@@ -155,6 +155,36 @@ class FakeDrivenPortsTest {
     }
 
     @Test
+    fun `unloading an Incoming Ship clears its flag and its Cargo aboard once, and reports false after`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val rumCargo = SeedData.allCargo().single { it.id == rum }
+        val incoming = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain",
+            cargoAboard = listOf(rumCargo, rumCargo), incoming = true,
+        )
+        val refused = Ship(
+            name = "Refused Rover", catainId = CatainId(SeedData.aCatainId), catainName = "Catain",
+            cargoAboard = listOf(rumCargo), incoming = false,
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(incoming))
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(refused))
+
+        fleet.unloadIncomingShip(incoming.id) shouldBe true
+
+        val unloaded = fleet.getShipDetails(incoming.id)!!
+        unloaded.isIncoming shouldBe false
+        unloaded.cargoAboard shouldBe emptyList()
+        fleet.unloadIncomingShip(incoming.id) shouldBe false
+        // a ship that is not Incoming, an unknown one and one that left the fleet are left alone
+        fleet.unloadIncomingShip(refused.id) shouldBe false
+        fleet.getShipDetails(refused.id)!!.cargoAboard.map { it.id } shouldBe listOf(rum)
+        fleet.unloadIncomingShip(ShipId(UUID.randomUUID())) shouldBe false
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(incoming))
+        fleet.removeFromFleet(incoming.id)
+        fleet.unloadIncomingShip(incoming.id) shouldBe false
+    }
+
+    @Test
     fun `rememberPrice keeps the first Price and reports false after`() {
         val prices = InMemoryPrices(InMemoryCargoCatalog())
 

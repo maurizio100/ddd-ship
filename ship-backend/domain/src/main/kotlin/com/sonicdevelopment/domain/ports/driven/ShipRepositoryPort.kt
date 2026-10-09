@@ -34,4 +34,11 @@ interface ShipRepositoryPort {
 
     /** The ship leaves this Harbor's fleet; its Shippings are kept; runs in the caller's transaction. */
     fun removeFromFleet(shipId: ShipId)
+
+    /**
+     * Clears the Incoming flag and the Cargo aboard of an Incoming Ship in the fleet in one conditional step;
+     * returns `false`, and changes nothing, when the ship is not Incoming (anymore) or not in the fleet. Runs in
+     * the caller's transaction.
+     */
+    fun unloadIncomingShip(shipId: ShipId): Boolean
 }

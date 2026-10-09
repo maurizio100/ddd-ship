@@ -9,6 +9,8 @@ export const initialState: HarborState = {
   loading: false,
   error: null,
   purchaseRefusal: null,
+  unloadRefusal: null,
+  unloadingShipIds: [],
 };
 
 export const harborReducers = createReducer(
@@ -24,4 +26,19 @@ export const harborReducers = createReducer(
   on(HarborActions.buyCargo, (state) => ({ ...state, purchaseRefusal: null })),
   on(HarborActions.buyCargoSuccess, (state) => ({ ...state, purchaseRefusal: null })),
   on(HarborActions.buyCargoFailure, (state, { refusal }) => ({ ...state, purchaseRefusal: refusal })),
+  on(HarborActions.unloadIncomingShip, (state, { shipId }) => ({
+    ...state,
+    unloadRefusal: null,
+    unloadingShipIds: [...state.unloadingShipIds, shipId],
+  })),
+  on(HarborActions.unloadIncomingShipSuccess, (state, { shipId }) => ({
+    ...state,
+    unloadRefusal: null,
+    unloadingShipIds: state.unloadingShipIds.filter((id) => id !== shipId),
+  })),
+  on(HarborActions.unloadIncomingShipFailure, (state, { shipId, refusal }) => ({
+    ...state,
+    unloadRefusal: refusal,
+    unloadingShipIds: state.unloadingShipIds.filter((id) => id !== shipId),
+  })),
 );

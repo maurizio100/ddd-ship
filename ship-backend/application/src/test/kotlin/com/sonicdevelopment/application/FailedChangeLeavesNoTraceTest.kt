@@ -25,12 +25,14 @@ import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
+import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipManagementPort
 import com.sonicdevelopment.domain.ports.driving.market.MarketPort
 import com.sonicdevelopment.driven.adapter.persistence.outbox.HarborOutboxRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.outbox.ShippingOutboxRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.savings.SavingsRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.ship.ShipRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.stock.StockRepositoryAdapter
+import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -46,6 +48,9 @@ import org.springframework.context.annotation.Primary
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.support.TransactionTemplate
 import java.util.UUID
 
 /**
@@ -88,13 +93,33 @@ class FailedChangeLeavesNoTraceTest {
         }
     }
 
-    /** The real fleet, counting the ship saves that went through, so a test can prove a save really ran. */
-    class CountingShipRepository(private val real: ShipRepositoryAdapter) : ShipRepositoryPort by real {
+    /**
+     * The real fleet, counting the ship saves that went through, so a test can prove a save really ran. While
+     * [concurrentUnloadWins], a concurrent unloading of the same ship clears it, and commits, just before this
+     * transaction's own conditional clear runs.
+     */
+    class CountingShipRepository(
+        private val real: ShipRepositoryAdapter,
+        transactionManager: PlatformTransactionManager,
+    ) : ShipRepositoryPort by real {
         var savesThrough = 0
+        var concurrentUnloadWins = false
+        private val concurrentTransaction = TransactionTemplate(transactionManager).apply {
+            propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+        }
 
         override fun saveNewShip(ship: ShipRepositoryPort.InitialShipInformation) {
             real.saveNewShip(ship)
             savesThrough++
+        }
+
+        override fun unloadIncomingShip(shipId: ShipId): Boolean {
+            if (concurrentUnloadWins) {
+                check(concurrentTransaction.execute { real.unloadIncomingShip(shipId) } == true) {
+                    "The concurrent unloading did not clear the ship"
+                }
+            }
+            return real.unloadIncomingShip(shipId)
         }
     }
 
@@ -148,7 +173,8 @@ class FailedChangeLeavesNoTraceTest {
 
         @Bean
         @Primary
-        fun countingShipRepository(real: ShipRepositoryAdapter) = CountingShipRepository(real)
+        fun countingShipRepository(real: ShipRepositoryAdapter, transactionManager: PlatformTransactionManager) =
+            CountingShipRepository(real, transactionManager)
     }
 
     @Autowired
@@ -182,6 +208,9 @@ class FailedChangeLeavesNoTraceTest {
     lateinit var countingSavings: CountingSavings
 
     @Autowired
+    lateinit var incomingShipManagementPort: IncomingShipManagementPort
+
+    @Autowired
     lateinit var countingShipRepository: CountingShipRepository
 
     @BeforeEach
@@ -191,6 +220,7 @@ class FailedChangeLeavesNoTraceTest {
         jdbcTemplate.resetSavingsToStartingSavings()
         countingSavings.paysThrough = 0
         countingShipRepository.savesThrough = 0
+        countingShipRepository.concurrentUnloadWins = false
         failingOutbox.armed = false
         failingOutbox.shipArrivedArmed = false
         failingStock.armed = false
@@ -289,6 +319,65 @@ class FailedChangeLeavesNoTraceTest {
         jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
             .forEach { it shouldBe STARTING_STOCK }
     }
+
+    @Test
+    fun `An unloading whose second Stock write fails leaves the Savings, the Stock, the Cargo aboard and the Incoming flag unchanged`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
+        failingStock.armed = true
+        failingStock.succeedingPuts = 1
+
+        shouldThrow<IllegalStateException> { incomingShipManagementPort.unloadIncomingShip(saltyWhisker) }
+
+        // the payment and the first Stock write really reached the database before the second Stock write failed
+        countingSavings.paysThrough shouldBe 1
+        failingStock.putsThrough shouldBe 1
+        savingsAmount() shouldBe STARTING_SAVINGS
+        jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
+            .forEach { it shouldBe STARTING_STOCK }
+        count("ships_cargos_aboard") shouldBe 3
+        shipIncoming(saltyWhisker) shouldBe true
+    }
+
+    @Test
+    fun `An unloading that a concurrent one beat to the ship rolls back its payment and its Stock writes`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
+        countingShipRepository.concurrentUnloadWins = true
+
+        shouldThrow<ShipNotIncomingException> { incomingShipManagementPort.unloadIncomingShip(saltyWhisker) }
+
+        // this unloading really paid and stocked before its conditional clear found nothing to clear
+        countingSavings.paysThrough shouldBe 1
+        failingStock.putsThrough shouldBe 3
+        savingsAmount() shouldBe STARTING_SAVINGS
+        jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
+            .forEach { it shouldBe STARTING_STOCK }
+        // the concurrent unloading's clear stays
+        count("ships_cargos_aboard") shouldBe 0
+        shipIncoming(saltyWhisker) shouldBe false
+    }
+
+    private fun anIncomingShipWithTwoRumAndOneSugar(): ShipId {
+        val rum = CargoId(SeedData.cargoIdOf("Rum"))
+        val arrival = ShippingPublishedDTO(
+            shipId = ShipId(UUID.randomUUID()),
+            shipName = "Salty Whisker",
+            catainId = CatainId(SeedData.aCatainId),
+            shippingId = ShippingId(UUID.randomUUID()),
+            cargoIds = listOf(rum, rum, CargoId(SeedData.cargoIdOf("Sugar"))),
+            originHarbor = HarborName("Tortuga"),
+            destinationHarbor = HarborName("Port Royal"),
+        )
+        arrivalManagementPort.receiveShippingPublished(EventId(UUID.randomUUID()), arrival)
+        shipIncoming(arrival.shipId) shouldBe true
+        count("ships_cargos_aboard") shouldBe 3
+        return arrival.shipId
+    }
+
+    private fun savingsAmount(): String =
+        jdbcTemplate.queryForObject("SELECT savings_amount FROM savings", java.math.BigDecimal::class.java)!!.toPlainString()
+
+    private fun shipIncoming(shipId: ShipId): Boolean =
+        jdbcTemplate.queryForObject("SELECT ship_incoming FROM ships WHERE ship_id = ?", Boolean::class.java, shipId.id)!!
 
     private fun shippingRowOf(shipId: UUID): Map<String, Any?> = jdbcTemplate.queryForMap(
         """

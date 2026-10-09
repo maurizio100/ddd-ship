@@ -373,6 +373,43 @@ paths:
                 items:
                   $ref: '#/components/schemas/IncomingShip'
 
+  /web/incoming-ships/{shipId}/unloading:
+    post:
+      summary: Unload an Incoming Ship and pay its Delivery Price
+      description: >-
+        In one transaction the Harbor pays the ship's Delivery Price from its Savings, every Cargo aboard
+        goes into its Stock, and the ship is no longer an Incoming Ship, with no Cargo aboard. A refused
+        unloading changes nothing. Read the new Incoming Ships, Stock and Savings from
+        `/web/incoming-ships`, `/web/stock` and `/web/savings`.
+      operationId: unloadIncomingShip
+      tags: [Harbors]
+      parameters:
+        - name: shipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: The ship was unloaded and its Delivery Price paid
+        '404':
+          description: Ship not found in this Harbor's fleet
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The unloading is refused and nothing changes: the ship is not an Incoming Ship, or no longer
+            one (title "Not an Incoming Ship"), a Cargo aboard has no Price yet (title "Cargo has no
+            Price"), or the Savings do not cover the Delivery Price (title "Savings do not cover", e.g.
+            `detail` "The Savings do not cover the Delivery Price of 115.00 $").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /web/market/purchases:
     post:
       summary: Buy Cargo at the Market

@@ -79,6 +79,14 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[shipId]?.let { ships[shipId] = it.copy(inFleet = false) }
     }
 
+    /** Like the adapter's conditional `UPDATE`: only an Incoming Ship in the fleet is cleared, and only once. */
+    @Synchronized
+    override fun unloadIncomingShip(shipId: ShipId): Boolean {
+        val record = ships[shipId]?.takeIf { it.inFleet && it.incoming } ?: return false
+        ships[shipId] = record.copy(incoming = false, cargoAboard = emptyList())
+        return true
+    }
+
     @Synchronized
     override fun createShipping(ship: Ship) {
         ships[ship.id] ?: throw IllegalStateException()
