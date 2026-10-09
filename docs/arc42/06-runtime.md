@@ -124,8 +124,8 @@ sequenceDiagram
 Once each of these transactions commits, the Harbor pushes the change to its Users' open fleet pages
 (6.6).
 
-The Stock is unchanged by an Arrival; it changes only when a User unloads an Incoming Ship (6.7,
-[ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md), built by STORY-044). A ship that
+The Stock is unchanged by an Arrival; it changes only when a User buys at the Market (STORY-025) or unloads an
+Incoming Ship (6.7, [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md), built by STORY-045). A ship that
 arrives with no Cargo joins as an ordinary ship.
 
 ### Decided, not built yet: Earnings (EPIC-003)
