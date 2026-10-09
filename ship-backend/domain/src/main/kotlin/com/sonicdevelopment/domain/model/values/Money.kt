@@ -20,7 +20,7 @@ class Money(amount: BigDecimal) {
     fun toDecimalString(): String = amount.toPlainString()
 
     /** This amount [quantity] times, exact to the cent. */
-    operator fun times(quantity: Int): Money = TODO("STORY-025")
+    operator fun times(quantity: Int): Money = Money(amount.multiply(BigDecimal.valueOf(quantity.toLong())))
 
     override fun equals(other: Any?): Boolean = other is Money && other.amount == amount
 

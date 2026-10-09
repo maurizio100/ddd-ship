@@ -4,7 +4,10 @@ import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import java.math.BigDecimal
 
-/** The Savings in memory. A fresh Harbor holds the Starting Savings, standing in for the seed of `V15`. */
+/**
+ * The Savings in memory. A fresh Harbor holds the Starting Savings, standing in for the seed of `V15`.
+ * [pay] mirrors the adapter's conditional update: it takes the amount only when the Savings cover it.
+ */
 class InMemorySavings : SavingsRepositoryPort {
 
     private var savings: String = STARTING_SAVINGS
@@ -13,7 +16,12 @@ class InMemorySavings : SavingsRepositoryPort {
     override fun getSavings(): Money = Money(BigDecimal(savings))
 
     @Synchronized
-    override fun pay(amount: Money): Boolean = TODO("STORY-025")
+    override fun pay(amount: Money): Boolean {
+        val held = BigDecimal(savings)
+        if (held < amount.amount) return false
+        savings = (held - amount.amount).toPlainString()
+        return true
+    }
 
     @Synchronized
     fun setSavings(decimal: String) {
