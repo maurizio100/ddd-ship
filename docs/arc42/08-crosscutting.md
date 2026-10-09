@@ -27,7 +27,7 @@ Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-rec
 `ShippingManagementService.releaseShipping` (`@Transactional`) commits the shipping state change and
 the `shipping_outbox` insert together. `CargoLoadManagementService.addCargo` and `removeCargo` are
 transactional too: a load takes one Cargo out of the Stock and an unload of Loaded Cargo puts one back,
-in the same transaction as the cargo load, so a rejected load (Max Weight, already loaded, out of
+in the same transaction as the cargo load, so a rejected load (Max Weight, out of
 Stock) rolls back and leaves the Stock unchanged. Publication to Kafka is
 asynchronous and at-least-once via Debezium; consumers must tolerate duplicates.
 See [ADR-0002](../adr/0002-transactional-outbox-via-debezium.md).
@@ -57,7 +57,7 @@ events ([ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-se
 
 - One global handler, `ProblemDetailsExceptionHandler` (`@RestControllerAdvice` in `driving-adapter`), renders errors as RFC 9457 Problem Details (`application/problem+json`).
 - Missing resources: driving adapters map `null` from a port to `404` (`ResponseStatusException`, "Unable to find resource"), rendered as Problem Details.
-- Cargo loading rule violations (`ShipTooHeavyException`, `ItemAlreadyLoadedException`, `CargoOutOfStockException`) propagate from the domain and are answered with `409`; `detail` is the exception's message in domain language. A load without `cargoId` is a `400`.
+- Cargo loading rule violations (`ShipTooHeavyException`, `CargoOutOfStockException`) propagate from the domain and are answered with `409`; `detail` is the exception's message in domain language. A load without `cargoId` is a `400`.
 - Other violations (`IllegalArgumentException` / `IllegalStateException`, e.g. a second Shipping, unknown Catain) are not mapped yet and surface as `500`.
 
 ## 8.5 Configuration
