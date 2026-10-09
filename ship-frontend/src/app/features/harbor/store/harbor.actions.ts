@@ -25,3 +25,8 @@ export const loadSavingsFailure = createAction(
   '[Harbor] Load Savings Failure',
   props<{error: unknown}>()
 );
+
+export const buyCargo = createAction(
+  '[Harbor] Buy Cargo',
+  props<{cargoId: string; quantity: number}>()
+);
