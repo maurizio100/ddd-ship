@@ -16,6 +16,7 @@ sealed interface OutboxMessage {
         val cargoIds: List<UUID>,
         val originHarbor: String,
         val destinationHarbor: String?,
+        val homeHarbor: String? = null,
     ) : OutboxMessage
 
     data class ShipArrived(

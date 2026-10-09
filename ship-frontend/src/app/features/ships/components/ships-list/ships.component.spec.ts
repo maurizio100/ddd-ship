@@ -105,6 +105,55 @@ describe('ShipsComponent (The fleet shows where an arrived ship came from)', () 
   });
 });
 
+describe('ShipsComponent (A ship keeps its Home Harbor)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] }, catains: { catains: [], loading: false, error: null } } }),
+        {
+          provide: ShipService,
+          useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']),
+        },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  const homeHarbor = (): string[] =>
+    all('ship-home-harbor').map((line) => line.textContent!.replace(/\s+/g, ' ').trim());
+
+  const arrivedFrom = (): string[] =>
+    all('ship-arrived-from').map((badge) => badge.textContent!.trim());
+
+  it('A newly registered ship has this Harbor as its Home Harbor', () => {
+    render([anAvailableShip({ name: 'Salty Whisker', homeHarbor: 'Port Royal', arrivedFrom: null })]);
+
+    expect(homeHarbor().map((text) => text.replace(/^home\s*/, ''))).toEqual(['Home Harbor Port Royal']);
+    expect(all('ship-arrived-from')).toEqual([]);
+  });
+
+  it('The Home Harbor does not change when the ship sails elsewhere', () => {
+    render([anAvailableShip({ homeHarbor: 'Port Royal', arrivedFrom: 'Port Royal' })]);
+
+    expect(homeHarbor().map((text) => text.replace(/^home\s*/, ''))).toEqual(['Home Harbor Port Royal']);
+  });
+
+  it('The Home Harbor survives several voyages', () => {
+    render([anAvailableShip({ homeHarbor: 'Port Royal', arrivedFrom: 'Tortuga' })]);
+
+    expect(homeHarbor().map((text) => text.replace(/^home\s*/, ''))).toEqual(['Home Harbor Port Royal']);
+    expect(arrivedFrom()).toEqual(['Arrived from Tortuga']);
+  });
+});
+
 describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)', () => {
   let fixture: ComponentFixture<ShipsComponent>;
   let store: MockStore;
