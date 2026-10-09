@@ -57,7 +57,7 @@ class CargoPersistenceAdapterTest {
      */
     @BeforeEach
     fun truncateMutableTablesAndPublishAllTables() {
-        jdbcTemplate.execute("TRUNCATE TABLE ships_cargos, shippings, ships")
+        jdbcTemplate.execute("TRUNCATE TABLE ships_cargos_aboard, ships_cargos, shippings, ships")
         jdbcTemplate.execute("DROP PUBLICATION IF EXISTS all_tables_regression")
         jdbcTemplate.execute("CREATE PUBLICATION all_tables_regression FOR ALL TABLES")
     }

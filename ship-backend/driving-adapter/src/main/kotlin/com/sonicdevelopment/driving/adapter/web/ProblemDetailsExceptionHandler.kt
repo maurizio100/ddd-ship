@@ -2,6 +2,7 @@ package com.sonicdevelopment.driving.adapter.web
 
 import com.sonicdevelopment.domain.exception.CargoHasNoPriceException
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
+import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
@@ -37,6 +38,9 @@ class ProblemDetailsExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(CargoHasNoPriceException::class)
     fun cargoHasNoPrice(exception: CargoHasNoPriceException) = conflict("Cargo has no Price", exception)
+
+    @ExceptionHandler(NewShippingRefusedException::class)
+    fun newShippingRefused(exception: NewShippingRefusedException) = conflict("New Shipping refused", exception)
 
     private fun conflict(title: String, exception: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.message).apply { this.title = title }

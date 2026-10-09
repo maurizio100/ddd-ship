@@ -36,10 +36,11 @@ import org.springframework.stereotype.Service
  * no effect. A ship in the fleet that is not at sea does not arrive again: an Arrival handled before the
  * Arrivals were recorded, re-published.
  *
- * Otherwise, in one transaction with the inbox record: one of each Loaded Cargo goes into the Stock,
- * the ship joins the fleet with its Ship Id, Ship Name and Catain and no Shipping, remembering the Origin
- * Harbor it arrived from (replacing the one of an earlier Arrival), and Ship Arrived is written to the
- * outbox for the Origin Harbor.
+ * Otherwise, in one transaction with the inbox record: the ship joins the fleet with its Ship Id, Ship Name
+ * and Catain and no Shipping, remembering the Origin Harbor it arrived from (replacing the one of an earlier
+ * Arrival), and Ship Arrived is written to the outbox for the Origin Harbor. A ship that carries Cargo joins
+ * as an Incoming Ship with that Cargo aboard, one entry per Cargo instance; a ship that carries none joins as
+ * an ordinary ship. The Stock is unchanged: Cargo goes into it only when a User unloads the ship (STORY-045).
  *
  * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
  * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
@@ -91,6 +92,8 @@ class ArrivalManagementService(
             catainId = catain.catainId,
             catainName = catain.catainName,
             arrivedFrom = originHarbor,
+            cargoAboard = cargo,
+            incoming = cargo.isNotEmpty(),
         )
         shipRepositoryPort.saveNewShip(fromShip(ship))
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)

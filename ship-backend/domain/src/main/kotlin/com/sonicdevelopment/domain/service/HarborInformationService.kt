@@ -1,11 +1,14 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
+import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborInformationPort
 import com.sonicdevelopment.domain.ports.driving.harbor.KnownHarborsDTO
@@ -27,5 +30,26 @@ class HarborInformationService(
 
     override fun getSavings(): Money = savingsRepositoryPort.getSavings()
 
-    override fun getIncomingShips(): List<IncomingShipDTO> = TODO()
+    /** Delivery Prices are computed when the list is read, from this Harbor's Prices only. */
+    override fun getIncomingShips(): List<IncomingShipDTO> {
+        val incomingShips = shipRepositoryPort.getAllShips().filter { it.isIncoming }
+        if (incomingShips.isEmpty()) return emptyList()
+        val prices = priceRepositoryPort.getPrices()
+        return incomingShips.map { ship ->
+            IncomingShipDTO(
+                id = ship.id,
+                name = ship.shipName,
+                arrivedFrom = ship.arrivedFrom?.name,
+                cargo = ship.cargoAboard.map { CargoDTO(it.id, it.name, it.weight) },
+                deliveryPrice = deliveryPrice(ship.cargoAboard, prices),
+            )
+        }
+    }
+
+    /** The sum of the Prices of every Cargo aboard, each counted as often as it is aboard; `null` if one has none. */
+    private fun deliveryPrice(cargoAboard: List<Cargo>, prices: Map<CargoId, Money>): Money? {
+        var sum = Money.dollars(0)
+        for (cargo in cargoAboard) sum += prices[cargo.id] ?: return null
+        return sum
+    }
 }

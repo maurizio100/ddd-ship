@@ -28,6 +28,8 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         val catainId: CatainId,
         val inFleet: Boolean,
         val arrivedFrom: HarborName?,
+        val cargoAboard: List<Cargo>,
+        val incoming: Boolean,
     )
 
     private data class ShippingRecord(
@@ -51,7 +53,11 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
     @Synchronized
     override fun saveNewShip(ship: ShipRepositoryPort.InitialShipInformation) {
         catains.findCatainById(ship.catainId) ?: throw IllegalStateException("Unknown Catain ${ship.catainId}")
-        ships[ship.shipId] = ShipRecord(ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom)
+        // like the adapter, a save replaces the Cargo aboard and the Incoming flag
+        ships[ship.shipId] = ShipRecord(
+            ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom,
+            ship.cargoAboard.map { Cargo(it.id, it.name, it.weight) }, ship.incoming,
+        )
     }
 
     @Synchronized
@@ -136,6 +142,8 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
                 Shipping(it.shippingId, it.quote, it.state, it.destinationHarbor)
             },
             cargoLoad = active?.cargo?.map { Cargo(it.id, it.name, it.weight) }?.toMutableList() ?: mutableListOf(),
+            cargoAboard = record.cargoAboard.map { Cargo(it.id, it.name, it.weight) },
+            incoming = record.incoming,
         )
     }
 }
