@@ -1,8 +1,14 @@
 # ship-backend — testing
 
-**Run:** `cd ship-backend && ./mvnw verify` (no Docker needed), and
-`./mvnw verify -Pdb` for the whole suite including the tests that need Docker. Local runs need JDK 21
-(`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`); the shell default may be older.
+**Run locally** ([decision 0001](../decisions/0001-run-only-the-default-build-locally.md)), on JDK 21
+(`JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`; the shell default may be older):
+
+- while working: `cd ship-backend && ./mvnw -q verify -pl <module> -am` (no Docker needed);
+- once before pushing: `./mvnw -q verify`;
+- `-Pdb` (the tests that need Docker) only when the change touches a persistence adapter, a Flyway
+  migration or a transaction boundary, and only for that module:
+  `./mvnw -q verify -Pdb -pl driven-adapter -am` or `-pl application -am`. CI runs the full
+  `./mvnw verify -Pdb` on every pull request.
 
 Test dependencies (JUnit 5, Kotest assertions, MockK, springmockk, Testcontainers, `spring-boot-starter-test`)
 are managed in the parent `pom.xml` and declared with `test` scope in the module that uses them.

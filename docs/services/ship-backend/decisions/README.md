@@ -21,4 +21,4 @@ open only the decisions that bear on your task.>
 
 | ID | Decision | Status | Category | Date |
 | --- | --- | --- | --- | --- |
-| — | _No decisions recorded yet._ | | | |
+| 0001 | [Run only the default build locally; leave -Pdb to CI](0001-run-only-the-default-build-locally.md) | Accepted | process | 2026-10-09 |
