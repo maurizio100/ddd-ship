@@ -4,7 +4,6 @@ import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
 import com.sonicdevelopment.domain.model.enums.ShippingState
-import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
@@ -136,8 +135,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
             activeShipping = active?.let {
                 Shipping(it.shippingId, it.quote, it.state, it.destinationHarbor)
             },
-            cargoLoad = active?.cargo?.associate { CargoId(it.id.id) to Cargo(it.id, it.name, it.weight) }
-                ?.toMutableMap() ?: mutableMapOf(),
+            cargoLoad = active?.cargo?.map { Cargo(it.id, it.name, it.weight) }?.toMutableList() ?: mutableListOf(),
         )
     }
 }

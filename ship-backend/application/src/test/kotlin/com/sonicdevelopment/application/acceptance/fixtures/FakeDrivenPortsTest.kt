@@ -1,6 +1,10 @@
 package com.sonicdevelopment.application.acceptance.fixtures
 
+import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.CargoId
+import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
+import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
@@ -88,5 +92,30 @@ class FakeDrivenPortsTest {
         listOf("Port Royal", "Nassau", "Port Royal").forEach { harbors.rememberHarbor(HarborName(it)) }
 
         harbors.getKnownHarbors() shouldBe listOf(HarborName("Nassau"), HarborName("Port Royal"))
+    }
+
+    @Test
+    fun `the fleet keeps the same Cargo more than once and unloading removes one instance`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val rumCargo = SeedData.allCargo().single { it.id == rum }
+        val ship = Ship(
+            name = "Black Pearl", catainId = CatainId(SeedData.aCatainId), catainName = "Catain",
+        )
+        ship.createNewShipping()
+        val shipId = ship.id
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(ship))
+        fleet.createShipping(ship)
+
+        ship.addCargo(rumCargo)
+        ship.addCargo(rumCargo)
+        fleet.updateCargoLoad(CargoPersistencePort.CargoLoadInformation.fromShip(ship))
+
+        fleet.getShipDetails(shipId)!!.loadedCargo.map { it.id } shouldBe listOf(rum, rum)
+
+        val unloading = fleet.getShipDetails(shipId)!!
+        unloading.removeCargo(rumCargo) shouldBe true
+        fleet.updateCargoLoad(CargoPersistencePort.CargoLoadInformation.fromShip(unloading))
+
+        fleet.getShipDetails(shipId)!!.loadedCargo.map { it.id } shouldBe listOf(rum)
     }
 }

@@ -1,29 +1,21 @@
 package com.sonicdevelopment.application.acceptance
 
-import com.sonicdevelopment.application.KafkaTestcontainer
-import com.sonicdevelopment.application.PostgresTestcontainer
+import com.sonicdevelopment.application.acceptance.fixtures.FakeDrivenPorts
+import com.sonicdevelopment.application.acceptance.fixtures.FakeHarborTest
+import com.sonicdevelopment.application.acceptance.fixtures.SeedData
 import com.sonicdevelopment.application.acceptance.fixtures.aShipBeingPrepared
 import com.sonicdevelopment.application.acceptance.fixtures.aShippingPublishedRecord
-import com.sonicdevelopment.application.acceptance.fixtures.cargoIdOf
-import com.sonicdevelopment.application.acceptance.fixtures.resetStockToStartingStock
-import com.sonicdevelopment.application.acceptance.fixtures.truncateMutableTables
+import com.sonicdevelopment.driving.adapter.messaging.ShippingEventListener
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
-import java.time.Duration
 import java.util.*
 
 /**
@@ -40,7 +32,7 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
         @Test
         fun `loading the same Cargo again adds another one aboard`() {
             // Given 1 Rum is among the Loaded Cargo
-            val shipId = restTemplate.aShipBeingPrepared(jdbcTemplate)
+            val shipId = restTemplate.aShipBeingPrepared()
             load(shipId, "Rum").statusCode shouldBe HttpStatus.OK
 
             // When the User loads Rum
@@ -58,7 +50,7 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
         @Test
         fun `the Max Weight applies to everything aboard`() {
             // Given 2 Rum are among the Loaded Cargo
-            val shipId = restTemplate.aShipBeingPrepared(jdbcTemplate)
+            val shipId = restTemplate.aShipBeingPrepared()
             load(shipId, "Rum").statusCode shouldBe HttpStatus.OK
             load(shipId, "Rum").statusCode shouldBe HttpStatus.OK
 
@@ -75,7 +67,7 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
         @Test
         fun `a Cargo cannot be loaded more often than the Stock holds`() {
             // Given 3 Sugar are among the Loaded Cargo
-            val shipId = restTemplate.aShipBeingPrepared(jdbcTemplate)
+            val shipId = restTemplate.aShipBeingPrepared()
             repeat(3) { load(shipId, "Sugar").statusCode shouldBe HttpStatus.OK }
 
             // When the User loads Sugar
@@ -91,7 +83,7 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
         @Test
         fun `unloading takes one off the ship and puts it back into the Stock`() {
             // Given 2 Rum are among the Loaded Cargo
-            val shipId = restTemplate.aShipBeingPrepared(jdbcTemplate)
+            val shipId = restTemplate.aShipBeingPrepared()
             load(shipId, "Rum").statusCode shouldBe HttpStatus.OK
             load(shipId, "Rum").statusCode shouldBe HttpStatus.OK
 
@@ -107,26 +99,26 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
     }
 
     @Nested
-    inner class ArrivalAtTheDestinationHarbor : AKafkaHarbor() {
+    inner class ArrivalAtTheDestinationHarbor : AHarbor() {
 
         @Test
         fun `the Destination Harbor receives every Cargo aboard`() {
             // Given 2 Rum and 1 Sugar are among the Loaded Cargo and the ship is Released to "Tortuga":
             // simulated by the shipping-published record Debezium would relay, carrying two Rum and one Sugar
-            val rumId = jdbcTemplate.cargoIdOf("Rum")
-            val sugarId = jdbcTemplate.cargoIdOf("Sugar")
+            val rumId = SeedData.cargoIdOf("Rum")
+            val sugarId = SeedData.cargoIdOf("Sugar")
             val eventId = UUID.randomUUID()
 
             // When the ship arrives at "Tortuga"
-            kafkaTemplate.send(
+            shippingEventListener.onShippingEvent(
                 aShippingPublishedRecord(
+                    catainId = SeedData.aCatainId,
                     cargoIds = listOf(rumId, rumId, sugarId),
                     originHarbor = "Nassau",
                     destinationHarbor = "Tortuga",
                     eventId = eventId,
                 )
-            ).get()
-            awaitConsumed(eventId)
+            )
 
             // Then the Stock of "Tortuga" grows by 2 Rum and 1 Sugar
             stockOf("Rum") shouldBe 5
@@ -134,38 +126,33 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
         }
     }
 
-    /** The Harbor "Tortuga": the app against the shared Postgres, with Kafka unreachable. */
-    @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-    @Import(PostgresTestcontainer::class)
-    @TestPropertySource(
-        properties = [
-            "harbor.name=Tortuga",
-            "spring.kafka.bootstrap-servers=localhost:1",
-            "spring.kafka.listener.auto-startup=false",
-        ]
-    )
+    /** The Harbor "Tortuga" on in-memory fakes; inbound events are handed to the listener, which is synchronous. */
+    @FakeHarborTest
+    @TestPropertySource(properties = ["harbor.name=Tortuga"])
     abstract class AHarbor {
 
         @Autowired
         lateinit var restTemplate: TestRestTemplate
 
         @Autowired
-        lateinit var jdbcTemplate: JdbcTemplate
+        lateinit var fakes: FakeDrivenPorts
+
+        @Autowired
+        lateinit var shippingEventListener: ShippingEventListener
 
         @BeforeEach
         fun resetHarbor() {
-            jdbcTemplate.truncateMutableTables()
-            jdbcTemplate.resetStockToStartingStock()
+            fakes.reset()
         }
 
         fun load(shipId: UUID, cargoName: String) =
             restTemplate.postForEntity(
-                "/web/ships/$shipId/cargos", mapOf("cargoId" to jdbcTemplate.cargoIdOf(cargoName)), Map::class.java
+                "/web/ships/$shipId/cargos", mapOf("cargoId" to SeedData.cargoIdOf(cargoName)), Map::class.java
             )
 
         fun unload(shipId: UUID, cargoName: String) =
             restTemplate.exchange(
-                "/web/ships/$shipId/cargos/${jdbcTemplate.cargoIdOf(cargoName)}", HttpMethod.DELETE, null, Map::class.java
+                "/web/ships/$shipId/cargos/${SeedData.cargoIdOf(cargoName)}", HttpMethod.DELETE, null, Map::class.java
             )
 
         fun availableCargo(): List<Map<*, *>> {
@@ -191,45 +178,5 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
             loadedCargoNames(shipId).count { it == cargoName }
 
         fun currentWeight(shipId: UUID): Double = (ship(shipId)["weight"] as Number).toDouble()
-    }
-
-    /** The Harbor "Tortuga" acting as a Destination Harbor: Postgres and Kafka both running. */
-    @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-    @Import(PostgresTestcontainer::class, KafkaTestcontainer::class)
-    @TestPropertySource(properties = ["harbor.name=Tortuga"])
-    @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-    abstract class AKafkaHarbor {
-
-        @Autowired
-        lateinit var restTemplate: TestRestTemplate
-
-        @Autowired
-        lateinit var jdbcTemplate: JdbcTemplate
-
-        @Autowired
-        lateinit var kafkaTemplate: KafkaTemplate<String, String>
-
-        @BeforeEach
-        fun resetHarbor() {
-            jdbcTemplate.truncateMutableTables()
-            jdbcTemplate.resetStockToStartingStock()
-        }
-
-        fun awaitConsumed(eventId: UUID) {
-            await().atMost(Duration.ofSeconds(30)).untilAsserted {
-                jdbcTemplate.queryForObject(
-                    "SELECT count(*) FROM inbox_events WHERE event_id = ?", Int::class.java, eventId
-                ) shouldBe 1
-            }
-        }
-
-        fun availableCargo(): List<Map<*, *>> {
-            val response = restTemplate.getForEntity("/web/cargos", List::class.java)
-            response.statusCode shouldBe HttpStatus.OK
-            return response.body!!.map { it as Map<*, *> }
-        }
-
-        fun stockOf(cargoName: String): Int =
-            (availableCargo().singleOrNull { it["name"] == cargoName }?.get("stock") as Int?) ?: 0
     }
 }
