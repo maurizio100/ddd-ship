@@ -6,6 +6,7 @@ import com.sonicdevelopment.domain.model.Shipping
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
@@ -95,6 +96,9 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[shipId] = record.copy(incoming = false)
         return true
     }
+
+    @Synchronized
+    override fun addEarnings(shipId: ShipId, amount: Money): Unit = TODO("STORY-049")
 
     @Synchronized
     override fun clearCargoAboard(shipId: ShipId) {

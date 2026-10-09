@@ -24,6 +24,9 @@ class InMemorySavings : SavingsRepositoryPort {
     }
 
     @Synchronized
+    override fun receive(amount: Money): Unit = TODO("STORY-049")
+
+    @Synchronized
     fun setSavings(decimal: String) {
         savings = decimal
     }

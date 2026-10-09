@@ -96,6 +96,9 @@ class ShipRepositoryAdapter(
         shipPersistenceEntityRepository.unloadIncoming(shipId.id) == 1
 
     @Transactional(propagation = Propagation.MANDATORY)
+    override fun addEarnings(shipId: ShipId, amount: Money): Unit = TODO("STORY-049")
+
+    @Transactional(propagation = Propagation.MANDATORY)
     override fun clearCargoAboard(shipId: ShipId) {
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
     }

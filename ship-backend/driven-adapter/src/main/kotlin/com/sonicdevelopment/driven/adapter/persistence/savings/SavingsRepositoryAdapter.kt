@@ -16,4 +16,7 @@ class SavingsRepositoryAdapter(
 
     @Transactional(propagation = Propagation.MANDATORY)
     override fun pay(amount: Money): Boolean = savingsPersistenceEntityRepository.pay(amount.amount) == 1
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun receive(amount: Money): Unit = TODO("STORY-049")
 }

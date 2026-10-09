@@ -12,7 +12,8 @@ object ShippingEventConverter {
             ?: throw IllegalStateException("A released Shipping must have a Destination Harbor")
         return ShippingEvent(
             shipEventData = ShippingEvent.ShipEventData(
-                shipId = foundShip.id.id, shipName = foundShip.shipName, homeHarbor = foundShip.homeHarbor.name
+                shipId = foundShip.id.id, shipName = foundShip.shipName, homeHarbor = foundShip.homeHarbor.name,
+                earnings = "0.00"
             ),
             catain = ShippingEvent.CatainEventData(
                 catainId = foundShip.catainId.id, catainName = foundShip.catainName

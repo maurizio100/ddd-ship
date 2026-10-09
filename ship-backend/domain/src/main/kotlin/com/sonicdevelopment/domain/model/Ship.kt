@@ -105,6 +105,13 @@ class Ship(
     }
 
     /**
+     * The ship earns the [deliveryPrice] paid for its Cargo at [currentHarbor]. Away from its Home Harbor the
+     * Delivery Price is added to its Earnings and `true` is returned. At its Home Harbor nothing changes and
+     * `false` is returned: the caller credits the Delivery Price to the Savings at once.
+     */
+    fun earn(deliveryPrice: Money, currentHarbor: HarborName): Boolean = TODO("STORY-049")
+
+    /**
      * Refuses an Incoming Ship at [currentHarbor]. At its Home Harbor it only stops being Incoming: the Cargo
      * aboard stays aboard and no Shipping is started. Anywhere else it starts a new Shipping, moves every Cargo
      * aboard into its Loaded Cargo, and clears the Cargo aboard and the Incoming flag together, so that the ship
