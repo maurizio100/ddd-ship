@@ -2,7 +2,6 @@ import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, concatMap, map, of, switchMap, takeUntil } from 'rxjs';
-import { Action } from '@ngrx/store';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
@@ -12,6 +11,7 @@ import * as ShipActions from '../../ships/store/actions/ship.actions';
 
 const PURCHASE_FAILED = 'The Market could not complete the purchase';
 const UNLOAD_FAILED = 'The Incoming Ship could not be unloaded';
+const REFUSE_FAILED = 'The Incoming Ship could not be refused';
 
 @Injectable()
 export class HarborEffects {
@@ -139,7 +139,26 @@ export class HarborEffects {
     ),
   );
 
-  refuseIncomingShip$ = createEffect(() => of<Action>());
+  /** concatMap: a refusal sends a ship to sea, so a later one never cancels it. */
+  refuseIncomingShip$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.refuseIncomingShip),
+      concatMap(({ shipId }) =>
+        this.incomingShipsService.refuse(shipId).pipe(
+          map(() => HarborActions.refuseIncomingShipSuccess({ shipId })),
+          catchError((error: HttpErrorResponse) =>
+            of(HarborActions.refuseIncomingShipFailure({ shipId, error, refusal: error.error?.detail ?? REFUSE_FAILED })),
+          ),
+        ),
+      ),
+    ),
+  );
 
-  refreshAfterRefusal$ = createEffect(() => of<Action>());
+  /** A refusal moves no money, so only the Incoming Ships are read back, whether it succeeded or failed. */
+  refreshAfterRefusal$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.refuseIncomingShipSuccess, HarborActions.refuseIncomingShipFailure),
+      map(() => HarborActions.loadIncomingShips()),
+    ),
+  );
 }

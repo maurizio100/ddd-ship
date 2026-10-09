@@ -18,6 +18,9 @@
     @if (unloadRefusal(); as refusal) {
       <p class="unload-refusal" data-testid="harbor-unload-refusal" role="alert">{{ refusal }}</p>
     }
+    @if (refuseFailure(); as failure) {
+      <p class="refuse-failure" data-testid="harbor-refuse-failure" role="alert">{{ failure }}</p>
+    }
     @if (incomingShips().length === 0) {
       <p class="incoming__empty" data-testid="harbor-incoming-ships-empty">No Incoming Ships</p>
     } @else {
@@ -30,17 +33,30 @@
               <span class="incoming__price-label">Delivery Price</span>
               <span data-testid="harbor-incoming-ship-delivery-price">{{ ship.deliveryPrice === null ? '—' : ship.deliveryPrice + ' $' }}</span>
             </span>
-            <button
-              mat-stroked-button
-              type="button"
-              class="incoming__unload"
-              data-testid="harbor-unload"
-              [disabled]="!canUnload(ship)"
-              [attr.aria-label]="'Unload ' + ship.name"
-              (click)="unload(ship)"
-            >
-              Unload
-            </button>
+            <span class="incoming__actions">
+              <button
+                mat-stroked-button
+                type="button"
+                class="incoming__unload"
+                data-testid="harbor-unload"
+                [disabled]="!canUnload(ship)"
+                [attr.aria-label]="'Unload ' + ship.name"
+                (click)="unload(ship)"
+              >
+                Unload
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                class="incoming__refuse"
+                data-testid="harbor-refuse"
+                [disabled]="!canRefuse(ship)"
+                [attr.aria-label]="'Refuse ' + ship.name"
+                (click)="refuse(ship)"
+              >
+                Refuse
+              </button>
+            </span>
           </li>
         }
       </ul>

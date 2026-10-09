@@ -6,6 +6,8 @@ import * as HarborActions from '../../store/harbor.actions';
 import {
   selectIncomingShips,
   selectPurchaseRefusal,
+  selectRefuseFailure,
+  selectRefusingShipIds,
   selectSavings,
   selectStock,
   selectUnloadingShipIds,
@@ -29,6 +31,8 @@ export class HarborComponent implements OnInit, OnDestroy {
   incomingShips = this.store.selectSignal(selectIncomingShips);
   unloadRefusal = this.store.selectSignal(selectUnloadRefusal);
   unloadingShipIds = this.store.selectSignal(selectUnloadingShipIds);
+  refuseFailure = this.store.selectSignal(selectRefuseFailure);
+  refusingShipIds = this.store.selectSignal(selectRefusingShipIds);
 
   /** The quantity the User entered per Cargo; a Cargo without an entry buys 1. */
   private readonly quantities = signal<Record<string, number>>({});
@@ -70,13 +74,27 @@ export class HarborComponent implements OnInit, OnDestroy {
     this.store.dispatch(HarborActions.buyCargo({ cargoId: cargo.cargoId, quantity: this.quantityOf(cargo) }));
   }
 
-  /** An Incoming Ship cannot be unloaded while its Delivery Price is unknown or its unloading is in flight. */
+  /** An Incoming Ship cannot be unloaded while its Delivery Price is unknown or its unloading or refusal is in flight. */
   canUnload(ship: IncomingShip): boolean {
-    return ship.deliveryPrice !== null && !this.unloadingShipIds().includes(ship.shipId);
+    return ship.deliveryPrice !== null && !this.isInFlight(ship);
   }
 
   unload(ship: IncomingShip): void {
     if (!this.canUnload(ship)) return;
     this.store.dispatch(HarborActions.unloadIncomingShip({ shipId: ship.shipId }));
+  }
+
+  /** A Harbor may refuse whether or not it could pay; only an unloading or refusal in flight blocks it. */
+  canRefuse(ship: IncomingShip): boolean {
+    return !this.isInFlight(ship);
+  }
+
+  refuse(ship: IncomingShip): void {
+    if (!this.canRefuse(ship)) return;
+    this.store.dispatch(HarborActions.refuseIncomingShip({ shipId: ship.shipId }));
+  }
+
+  private isInFlight(ship: IncomingShip): boolean {
+    return this.unloadingShipIds().includes(ship.shipId) || this.refusingShipIds().includes(ship.shipId);
   }
 }
