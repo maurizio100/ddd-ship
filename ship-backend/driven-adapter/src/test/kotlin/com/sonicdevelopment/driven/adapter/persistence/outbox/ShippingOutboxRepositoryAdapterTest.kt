@@ -70,7 +70,7 @@ class ShippingOutboxRepositoryAdapterTest {
     fun `announceShipArrived writes a ship-arrived row for the Shipping with the Origin and Destination Harbor`() {
         val ship = Ship(
             id = ShipId(UUID.randomUUID()), name = "Black Pearl",
-            catainId = CatainId(UUID.randomUUID()), catainName = "Whiskers"
+            catainId = CatainId(UUID.randomUUID()), catainName = "Whiskers", homeHarbor = HarborName("Port Royal")
         )
         val shippingId = ShippingId(UUID.randomUUID())
 
@@ -94,7 +94,7 @@ class ShippingOutboxRepositoryAdapterTest {
     }
 
     private fun aReleasedShip(): Ship {
-        val ship = Ship(name = "Black Pearl", catainId = CatainId(UUID.randomUUID()), catainName = "Jack Sparrow")
+        val ship = Ship(name = "Black Pearl", catainId = CatainId(UUID.randomUUID()), catainName = "Jack Sparrow", homeHarbor = HarborName("Port Royal"))
         ship.addCargo(Cargo(CargoId(UUID.randomUUID()), "Rum", 5.0f))
         ship.createNewShipping()
         ship.release(ShippingQuote("Fair winds"), HarborName("Port Royal"))

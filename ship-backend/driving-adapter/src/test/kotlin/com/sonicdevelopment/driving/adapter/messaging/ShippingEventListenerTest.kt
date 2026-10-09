@@ -128,8 +128,37 @@ class ShippingEventListenerTest {
         }
     }
 
-    private fun aShippingPublishedPayload() = """
-        {"shipEventData":{"shipId":"$shipId","shipName":"Black Pearl"},
+    @Test
+    fun `maps the Home Harbor of the ship, and a missing or blank one to null`() {
+        val withHomeHarbor = UUID.randomUUID()
+        val withoutHomeHarbor = UUID.randomUUID()
+        val withBlankHomeHarbor = UUID.randomUUID()
+
+        listener.onShippingEvent(aRecord(id = withHomeHarbor, payload = aShippingPublishedPayload(homeHarbor = "\"Isla de Muerta\"")))
+        listener.onShippingEvent(aRecord(id = withoutHomeHarbor, payload = aShippingPublishedPayload()))
+        listener.onShippingEvent(aRecord(id = withBlankHomeHarbor, payload = aShippingPublishedPayload(homeHarbor = "\" \"")))
+
+        val published = ShippingPublishedDTO(
+            shipId = ShipId(shipId),
+            shipName = "Black Pearl",
+            catainId = CatainId(catainId),
+            shippingId = ShippingId(shippingId),
+            cargoIds = listOf(CargoId(rumId), CargoId(silkId)),
+            originHarbor = HarborName("Tortuga"),
+            destinationHarbor = HarborName("Port Royal"),
+        )
+        verify(exactly = 1) {
+            arrivalManagementPort.receiveShippingPublished(
+                EventId(withHomeHarbor), published.copy(homeHarbor = HarborName("Isla de Muerta"))
+            )
+            arrivalManagementPort.receiveShippingPublished(EventId(withoutHomeHarbor), published.copy(homeHarbor = null))
+            arrivalManagementPort.receiveShippingPublished(EventId(withBlankHomeHarbor), published.copy(homeHarbor = null))
+        }
+    }
+
+    /** [homeHarbor] is a JSON value written into `shipEventData`, or left out when `null`. */
+    private fun aShippingPublishedPayload(homeHarbor: String? = null) = """
+        {"shipEventData":{"shipId":"$shipId","shipName":"Black Pearl"${homeHarbor?.let { ",\"homeHarbor\":$it" } ?: ""}},
          "shippingEventData":{"shippingId":"$shippingId","weight":7.5,"shippingQuote":"Fair winds",
            "cargo":[{"cargoId":"$rumId","cargoName":"Rum"},{"cargoId":"$silkId","cargoName":"Silk"}],
            "originHarbor":"Tortuga","destinationHarbor":"Port Royal"},

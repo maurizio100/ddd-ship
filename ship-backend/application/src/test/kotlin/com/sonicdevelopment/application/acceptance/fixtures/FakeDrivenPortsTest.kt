@@ -100,7 +100,7 @@ class FakeDrivenPortsTest {
         val fleet = InMemoryFleet(InMemoryCatains())
         val rumCargo = SeedData.allCargo().single { it.id == rum }
         val ship = Ship(
-            name = "Black Pearl", catainId = CatainId(SeedData.aCatainId), catainName = "Catain",
+            name = "Black Pearl", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
         )
         ship.createNewShipping()
         val shipId = ship.id
@@ -126,7 +126,7 @@ class FakeDrivenPortsTest {
         val rumCargo = SeedData.allCargo().single { it.id == rum }
         val sugarCargo = SeedData.allCargo().single { it.name == "Sugar" }
         val ship = Ship(
-            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain",
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
             cargoAboard = listOf(rumCargo, rumCargo, sugarCargo), incoming = true,
         )
         fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(ship))
@@ -147,7 +147,7 @@ class FakeDrivenPortsTest {
         // a save replaces the Cargo aboard, as the adapter does
         fleet.saveNewShip(
             ShipRepositoryPort.InitialShipInformation.fromShip(
-                Ship(id = ship.id, name = "Salty Whisker", catainId = ship.catainId, catainName = "Catain")
+                Ship(id = ship.id, name = "Salty Whisker", catainId = ship.catainId, catainName = "Catain", homeHarbor = HarborName("Port Royal"))
             )
         )
         fleet.getShipDetails(ship.id)!!.cargoAboard shouldBe emptyList()
@@ -159,11 +159,11 @@ class FakeDrivenPortsTest {
         val fleet = InMemoryFleet(InMemoryCatains())
         val rumCargo = SeedData.allCargo().single { it.id == rum }
         val incoming = Ship(
-            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain",
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
             cargoAboard = listOf(rumCargo, rumCargo), incoming = true,
         )
         val refused = Ship(
-            name = "Refused Rover", catainId = CatainId(SeedData.aCatainId), catainName = "Catain",
+            name = "Refused Rover", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
             cargoAboard = listOf(rumCargo), incoming = false,
         )
         fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(incoming))

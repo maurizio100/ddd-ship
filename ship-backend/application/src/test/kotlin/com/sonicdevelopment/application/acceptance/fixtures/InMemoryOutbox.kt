@@ -44,6 +44,7 @@ class InMemoryOutbox : ShippingOutboxRepository, HarborOutboxRepositoryPort {
             cargoIds = ship.loadedCargo.map { it.id.id },
             originHarbor = originHarbor.name,
             destinationHarbor = shipping.destinationHarbor?.name,
+            homeHarbor = ship.homeHarbor.name,
         )
     }
 

@@ -147,6 +147,22 @@ class ArrivalManagementServiceTest {
     }
 
     @Test
+    fun `an arriving ship keeps the Home Harbor carried in the event, or takes the Origin Harbor without one`() {
+        val saved = mutableListOf<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+        val withoutHomeHarbor = EventId(UUID.randomUUID())
+        every { inbox.recordConsumedEvent(withoutHomeHarbor) } returns true
+
+        service.receiveShippingPublished(eventId, blackPearl.copy(homeHarbor = HarborName("Isla de Muerta")))
+        service.receiveShippingPublished(
+            withoutHomeHarbor,
+            blackPearl.copy(shipId = ShipId(UUID.randomUUID()), shippingId = ShippingId(UUID.randomUUID()), homeHarbor = null),
+        )
+
+        saved.map { it.homeHarbor } shouldBe listOf(HarborName("Isla de Muerta"), tortuga)
+    }
+
+    @Test
     fun `a Shipping that has already arrived does not arrive again, even after the ship left the fleet`() {
         // re-published under a new event id; the ship has sailed on, so it is in no fleet here
         every { arrivals.recordArrival(blackPearl.shippingId, blackPearl.shipId) } returns false

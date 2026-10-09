@@ -5,6 +5,7 @@ import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import java.util.*
@@ -23,11 +24,13 @@ fun aShip(
     loadedCargo: List<Cargo> = emptyList(),
     activeShipping: Shipping? = aShipping(),
     id: ShipId = ShipId(UUID.randomUUID()),
+    homeHarbor: HarborName = HarborName("Port Royal"),
 ) = Ship(
     id = id,
     name = name,
     catainId = CatainId(UUID.randomUUID()),
     catainName = "Furry Jones",
+    homeHarbor = homeHarbor,
     activeShipping = activeShipping,
     cargoLoad = loadedCargo.toMutableList(),
 )

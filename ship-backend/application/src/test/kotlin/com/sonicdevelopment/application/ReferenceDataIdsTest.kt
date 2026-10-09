@@ -48,7 +48,8 @@ class ReferenceDataIdsTest {
         val dataSource = DriverManagerDataSource(
             postgres.jdbcUrl.replaceAfterLast("/", databaseName), postgres.username, postgres.password
         )
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate()
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration")
+            .placeholders(mapOf("harbor_name" to "Test Harbor")).load().migrate()
         return JdbcTemplate(dataSource)
     }
 }

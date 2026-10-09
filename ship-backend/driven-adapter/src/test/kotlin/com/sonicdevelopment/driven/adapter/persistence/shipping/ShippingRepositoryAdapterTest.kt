@@ -61,7 +61,7 @@ class ShippingRepositoryAdapterTest {
 
     private fun aShipBeingPrepared(): Ship {
         val catainId = jdbcTemplate.queryForObject("SELECT catain_id FROM catains ORDER BY id LIMIT 1", UUID::class.java)!!
-        val ship = Ship(name = "Black Pearl", catainId = CatainId(catainId), catainName = "Furry Jones")
+        val ship = Ship(name = "Black Pearl", catainId = CatainId(catainId), catainName = "Furry Jones", homeHarbor = HarborName("Port Royal"))
         ships.saveNewShip(InitialShipInformation.fromShip(ship))
         ship.createNewShipping()
         shippings.createShipping(ship)

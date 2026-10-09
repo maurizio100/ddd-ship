@@ -86,6 +86,7 @@ class HarborInformationServiceTest {
         name = name,
         catainId = CatainId(UUID.randomUUID()),
         catainName = "Furry Jones",
+        homeHarbor = HarborName("Port Royal"),
         arrivedFrom = arrivedFrom?.let { HarborName(it) },
         cargoAboard = cargoAboard,
         incoming = incoming,

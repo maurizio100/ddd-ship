@@ -113,6 +113,7 @@ class ShipRepositoryAdapterTest {
                     name = "Black Pearl",
                     catainId = blackPearl.catainId,
                     catainName = blackPearl.catainName,
+                    homeHarbor = blackPearl.homeHarbor,
                     arrivedFrom = HarborName("Nassau"),
                 )
             )
@@ -126,6 +127,40 @@ class ShipRepositoryAdapterTest {
         val interceptor = aShip("Interceptor")
         flushAndClear()
         ships.getShipDetails(interceptor.id)!!.arrivedFrom shouldBe null
+    }
+
+    @Test
+    fun `saveNewShip round-trips the Home Harbor, for a new row and for a known Ship Id`() {
+        val ship = Ship(
+            name = "Black Pearl", catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Isla de Muerta"),
+        )
+        ships.saveNewShip(InitialShipInformation.fromShip(ship))
+        flushAndClear()
+
+        ships.getAllShips().single().homeHarbor shouldBe HarborName("Isla de Muerta")
+        val loaded = ships.getShipDetails(ship.id)!!
+        loaded.homeHarbor shouldBe HarborName("Isla de Muerta")
+
+        loaded.shipName = "Wicked Wench"
+        ships.saveNewShip(InitialShipInformation.fromShip(loaded))
+        ships.removeFromFleet(ship.id)
+        flushAndClear()
+        ships.saveNewShip(
+            InitialShipInformation.fromShip(
+                Ship(
+                    id = ship.id, name = "Wicked Wench", catainId = ship.catainId, catainName = ship.catainName,
+                    homeHarbor = HarborName("Tortuga"), arrivedFrom = HarborName("Nassau"),
+                )
+            )
+        )
+        flushAndClear()
+
+        rowsFor(ship.id) shouldBe 1
+        ships.getShipDetails(ship.id)!!.homeHarbor shouldBe HarborName("Tortuga")
+        jdbcTemplate.queryForObject(
+            "SELECT ship_home_harbor FROM ships WHERE ship_id = ?", String::class.java, ship.id.id
+        ) shouldBe "Tortuga"
     }
 
     @Test
@@ -206,7 +241,7 @@ class ShipRepositoryAdapterTest {
     @Test
     fun `a ship with Cargo aboard that is not Incoming round-trips as such`() {
         val refused = Ship(
-            name = "Refused Rover", catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            name = "Refused Rover", catainId = CatainId(seededCatainId()), catainName = "Furry Jones", homeHarbor = HarborName("Port Royal"),
             cargoAboard = listOf(rum()), incoming = false,
         )
         ships.saveNewShip(InitialShipInformation.fromShip(refused))
@@ -258,7 +293,7 @@ class ShipRepositoryAdapterTest {
             InitialShipInformation.fromShip(
                 Ship(
                     id = saltyWhisker.id, name = "Salty Whisker", catainId = saltyWhisker.catainId,
-                    catainName = saltyWhisker.catainName, cargoAboard = listOf(sugar()), incoming = true,
+                    catainName = saltyWhisker.catainName, homeHarbor = saltyWhisker.homeHarbor, cargoAboard = listOf(sugar()), incoming = true,
                 )
             )
         )
@@ -273,7 +308,7 @@ class ShipRepositoryAdapterTest {
     fun `saveNewShip with an unknown Cargo aboard fails`() {
         val ghost = Cargo(CargoId(UUID.randomUUID()), "Ghost Cargo", 1.0F)
         val ship = Ship(
-            name = "Salty Whisker", catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            name = "Salty Whisker", catainId = CatainId(seededCatainId()), catainName = "Furry Jones", homeHarbor = HarborName("Port Royal"),
             cargoAboard = listOf(ghost), incoming = true,
         )
 
@@ -317,7 +352,7 @@ class ShipRepositoryAdapterTest {
     @Test
     fun `unloadIncomingShip leaves a ship that is not Incoming alone`() {
         val refused = Ship(
-            name = "Refused Rover", catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            name = "Refused Rover", catainId = CatainId(seededCatainId()), catainName = "Furry Jones", homeHarbor = HarborName("Port Royal"),
             cargoAboard = listOf(rum()), incoming = false,
         )
         ships.saveNewShip(InitialShipInformation.fromShip(refused))
@@ -353,6 +388,7 @@ class ShipRepositoryAdapterTest {
             name = name,
             catainId = CatainId(seededCatainId()),
             catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"),
             arrivedFrom = HarborName("Tortuga"),
             cargoAboard = cargoAboard,
             incoming = true,
@@ -379,7 +415,7 @@ class ShipRepositoryAdapterTest {
     )!!
 
     private fun aShip(name: String): Ship {
-        val ship = Ship(name = name, catainId = CatainId(seededCatainId()), catainName = "Furry Jones")
+        val ship = Ship(name = name, catainId = CatainId(seededCatainId()), catainName = "Furry Jones", homeHarbor = HarborName("Port Royal"))
         ships.saveNewShip(InitialShipInformation.fromShip(ship))
         entityManager.flush()
         return ship
@@ -390,6 +426,7 @@ class ShipRepositoryAdapterTest {
             name = name,
             catainId = CatainId(seededCatainId()),
             catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"),
             arrivedFrom = HarborName(from),
         )
         ships.saveNewShip(InitialShipInformation.fromShip(ship))
@@ -408,7 +445,7 @@ class ShipRepositoryAdapterTest {
     }
 
     private fun renamed(ship: Ship, name: String) =
-        Ship(id = ship.id, name = name, catainId = ship.catainId, catainName = ship.catainName)
+        Ship(id = ship.id, name = name, catainId = ship.catainId, catainName = ship.catainName, homeHarbor = ship.homeHarbor)
 
     private fun seededCatainId(): UUID =
         jdbcTemplate.queryForObject("SELECT catain_id FROM catains ORDER BY id LIMIT 1", UUID::class.java)!!
