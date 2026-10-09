@@ -200,4 +200,22 @@ describe('harborReducers', () => {
     expect(state.refusingShipIds).toEqual(['other']);
     expect(state.refuseFailure).toBe('Salty Whisker is not an Incoming Ship anymore');
   });
+
+  it('refuseIncomingShip clears a previous unload refusal', () => {
+    const state = harborReducers(
+      { ...initialState, unloadRefusal: 'The Savings do not cover the Delivery Price of 115.00 $' },
+      HarborActions.refuseIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }),
+    );
+
+    expect(state.unloadRefusal).toBeNull();
+  });
+
+  it('unloadIncomingShip clears a previous refuse failure', () => {
+    const state = harborReducers(
+      { ...initialState, refuseFailure: 'Salty Whisker is not an Incoming Ship anymore' },
+      HarborActions.unloadIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }),
+    );
+
+    expect(state.refuseFailure).toBeNull();
+  });
 });

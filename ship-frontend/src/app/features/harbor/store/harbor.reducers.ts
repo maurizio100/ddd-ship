@@ -31,6 +31,7 @@ export const harborReducers = createReducer(
   on(HarborActions.unloadIncomingShip, (state, { shipId }) => ({
     ...state,
     unloadRefusal: null,
+    refuseFailure: null,
     unloadingShipIds: [...state.unloadingShipIds, shipId],
   })),
   on(HarborActions.unloadIncomingShipSuccess, (state, { shipId }) => ({
@@ -46,6 +47,7 @@ export const harborReducers = createReducer(
   on(HarborActions.refuseIncomingShip, (state, { shipId }) => ({
     ...state,
     refuseFailure: null,
+    unloadRefusal: null,
     refusingShipIds: [...state.refusingShipIds, shipId],
   })),
   on(HarborActions.refuseIncomingShipSuccess, (state, { shipId }) => ({
