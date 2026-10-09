@@ -13,6 +13,9 @@ class InMemorySavings : SavingsRepositoryPort {
     override fun getSavings(): Money = Money(BigDecimal(savings))
 
     @Synchronized
+    override fun pay(amount: Money): Boolean = TODO("STORY-025")
+
+    @Synchronized
     fun setSavings(decimal: String) {
         savings = decimal
     }

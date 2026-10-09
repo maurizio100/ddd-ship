@@ -19,6 +19,9 @@ class Money(amount: BigDecimal) {
     /** The amount as a decimal string with two decimals, e.g. `"1000.00"`. */
     fun toDecimalString(): String = amount.toPlainString()
 
+    /** This amount [quantity] times, exact to the cent. */
+    operator fun times(quantity: Int): Money = TODO("STORY-025")
+
     override fun equals(other: Any?): Boolean = other is Money && other.amount == amount
 
     override fun hashCode(): Int = amount.hashCode()

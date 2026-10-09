@@ -11,4 +11,6 @@ class SavingsRepositoryAdapter(
 
     /** The single row of `savings`, seeded with the Starting Savings by `V15`. */
     override fun getSavings(): Money = Money(savingsPersistenceEntityRepository.findAll().single().savingsAmount)
+
+    override fun pay(amount: Money): Boolean = TODO("STORY-025")
 }
