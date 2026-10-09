@@ -585,7 +585,7 @@ components:
 
     ShipOverviewResponse:
       type: object
-      required: [homeHarbor]
+      required: [homeHarbor, earnings]
       properties:
         id:
           type: string
@@ -608,6 +608,11 @@ components:
         incoming:
           type: boolean
           description: Whether the ship is an Incoming Ship; it cannot start a new Shipping until it is unloaded or refused
+        earnings:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "80.00"
+          description: The Earnings the ship carries until it reaches its Home Harbor, a decimal string with two decimals; "0.00" for none
 
     ShipDetailResponse:
       type: object

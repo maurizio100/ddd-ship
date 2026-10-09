@@ -7,6 +7,7 @@ import java.math.BigDecimal
 /**
  * The Savings in memory. A fresh Harbor holds the Starting Savings, standing in for the seed of `V15`.
  * [pay] mirrors the adapter's conditional update: it takes the amount only when the Savings cover it.
+ * [receive] adds the amount, as the adapter's atomic update does.
  */
 class InMemorySavings : SavingsRepositoryPort {
 
@@ -24,7 +25,9 @@ class InMemorySavings : SavingsRepositoryPort {
     }
 
     @Synchronized
-    override fun receive(amount: Money): Unit = TODO("STORY-049")
+    override fun receive(amount: Money) {
+        savings = (BigDecimal(savings) + amount.amount).toPlainString()
+    }
 
     @Synchronized
     fun setSavings(decimal: String) {

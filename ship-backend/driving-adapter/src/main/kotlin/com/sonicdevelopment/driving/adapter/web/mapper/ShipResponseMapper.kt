@@ -15,6 +15,7 @@ fun toShipResponse(ship: ShipDTO) =
         arrivedFrom = ship.arrivedFrom,
         incoming = ship.incoming,
         homeHarbor = ship.homeHarbor,
+        earnings = ship.earnings.toDecimalString(),
     )
 fun toShipDetailResponse(ship: ShipDetailDTO) =
     ShipDetailResponse(

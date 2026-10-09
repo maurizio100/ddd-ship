@@ -29,7 +29,7 @@ class ShipRepositoryAdapter(
 ): ShipRepositoryPort {
     /**
      * Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row.
-     * The Home Harbor, the Origin Harbor it arrived from, the Incoming flag and the Cargo aboard are written from the ship:
+     * The Home Harbor, the Origin Harbor it arrived from, the Incoming flag, the Earnings and the Cargo aboard are written from the ship:
      * an Arrival overwrites them, and a rename keeps them because the loaded ship carries them. The ship's
      * Cargo aboard rows are replaced, in one transaction with the ship row (joining the caller's, if any).
      */
@@ -49,6 +49,7 @@ class ShipRepositoryAdapter(
             known.arrivedFrom = ship.arrivedFrom?.name
             known.homeHarbor = ship.homeHarbor.name
             known.incoming = ship.incoming
+            known.earnings = ship.earnings.amount
             shipPersistenceEntityRepository.save(known)
         }
         cargoAboardRepository.deleteAllByShip_Id(saved.id!!)
@@ -62,7 +63,8 @@ class ShipRepositoryAdapter(
             catain = catain,
             arrivedFrom = ship.arrivedFrom?.name,
             homeHarbor = ship.homeHarbor.name,
-            incoming = ship.incoming
+            incoming = ship.incoming,
+            earnings = ship.earnings.amount,
         )
 
     /** Only a ship in the fleet is deleted; a ship that left keeps its row and its Shippings as history. */
@@ -96,7 +98,11 @@ class ShipRepositoryAdapter(
         shipPersistenceEntityRepository.unloadIncoming(shipId.id) == 1
 
     @Transactional(propagation = Propagation.MANDATORY)
-    override fun addEarnings(shipId: ShipId, amount: Money): Unit = TODO("STORY-049")
+    override fun addEarnings(shipId: ShipId, amount: Money) {
+        check(shipPersistenceEntityRepository.addEarnings(shipId.id, amount.amount) == 1) {
+            "Ship ${shipId.id} is not in the fleet, so it cannot earn $amount"
+        }
+    }
 
     @Transactional(propagation = Propagation.MANDATORY)
     override fun clearCargoAboard(shipId: ShipId) {
@@ -136,6 +142,7 @@ class ShipRepositoryAdapter(
                 arrivedFrom = arrivedFrom,
                 cargoAboard = cargoAboard,
                 incoming = shipPersistenceEntity.incoming,
+                earnings = Money(shipPersistenceEntity.earnings),
             )
         } ?: Ship(
             id = ShipId(shipPersistenceEntity.shipId),
@@ -146,6 +153,7 @@ class ShipRepositoryAdapter(
             arrivedFrom = arrivedFrom,
             cargoAboard = cargoAboard,
             incoming = shipPersistenceEntity.incoming,
+            earnings = Money(shipPersistenceEntity.earnings),
         )
     }
 

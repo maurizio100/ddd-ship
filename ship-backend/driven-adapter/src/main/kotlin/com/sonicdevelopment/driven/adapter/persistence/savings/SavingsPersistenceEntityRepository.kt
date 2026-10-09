@@ -19,4 +19,9 @@ interface SavingsPersistenceEntityRepository : JpaRepository<SavingsPersistenceE
         value = "UPDATE savings SET savings_amount = savings_amount - :amount WHERE savings_amount >= :amount"
     )
     fun pay(@Param("amount") amount: BigDecimal): Int
+
+    /** Puts [amount] into the Savings in one atomic step; returns the number of updated rows (1). */
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE savings SET savings_amount = savings_amount + :amount")
+    fun receive(@Param("amount") amount: BigDecimal): Int
 }

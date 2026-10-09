@@ -109,7 +109,11 @@ class Ship(
      * Delivery Price is added to its Earnings and `true` is returned. At its Home Harbor nothing changes and
      * `false` is returned: the caller credits the Delivery Price to the Savings at once.
      */
-    fun earn(deliveryPrice: Money, currentHarbor: HarborName): Boolean = TODO("STORY-049")
+    fun earn(deliveryPrice: Money, currentHarbor: HarborName): Boolean {
+        if (homeHarbor == currentHarbor) return false
+        earnings += deliveryPrice
+        return true
+    }
 
     /**
      * Refuses an Incoming Ship at [currentHarbor]. At its Home Harbor it only stops being Incoming: the Cargo

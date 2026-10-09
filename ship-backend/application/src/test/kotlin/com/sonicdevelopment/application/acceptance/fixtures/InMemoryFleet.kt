@@ -32,6 +32,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         val homeHarbor: HarborName,
         val cargoAboard: List<Cargo>,
         val incoming: Boolean,
+        val earnings: Money,
     )
 
     private data class ShippingRecord(
@@ -58,7 +59,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         // like the adapter, a save replaces the Cargo aboard and the Incoming flag
         ships[ship.shipId] = ShipRecord(
             ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom, ship.homeHarbor,
-            ship.cargoAboard.map { Cargo(it.id, it.name, it.weight) }, ship.incoming,
+            ship.cargoAboard.map { Cargo(it.id, it.name, it.weight) }, ship.incoming, ship.earnings,
         )
     }
 
@@ -98,7 +99,11 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
     }
 
     @Synchronized
-    override fun addEarnings(shipId: ShipId, amount: Money): Unit = TODO("STORY-049")
+    override fun addEarnings(shipId: ShipId, amount: Money) {
+        // like the adapter's atomic `UPDATE`: only a ship in the fleet earns, anything else fails
+        val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
+        ships[shipId] = record.copy(earnings = record.earnings + amount)
+    }
 
     @Synchronized
     override fun clearCargoAboard(shipId: ShipId) {
@@ -171,6 +176,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
             cargoLoad = active?.cargo?.map { Cargo(it.id, it.name, it.weight) }?.toMutableList() ?: mutableListOf(),
             cargoAboard = record.cargoAboard.map { Cargo(it.id, it.name, it.weight) },
             incoming = record.incoming,
+            earnings = record.earnings,
         )
     }
 }

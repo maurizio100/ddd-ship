@@ -2,6 +2,7 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 
 import com.sonicdevelopment.driven.adapter.persistence.catain.CatainPersistenceEntity
 import jakarta.persistence.*
+import java.math.BigDecimal
 import java.util.*
 
 @Entity
@@ -35,6 +36,10 @@ class ShipPersistenceEntity(
 
     /** Whether the ship is an Incoming Ship; its Cargo aboard is in `ships_cargos_aboard`. */
     @Column(name = "ship_incoming")
-    var incoming: Boolean = false
+    var incoming: Boolean = false,
+
+    /** The Earnings the ship carries until it reaches its Home Harbor; only grows through an atomic update. */
+    @Column(name = "ship_earnings")
+    var earnings: BigDecimal = BigDecimal.ZERO,
 ) {
 }

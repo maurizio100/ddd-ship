@@ -13,7 +13,7 @@ object ShippingEventConverter {
         return ShippingEvent(
             shipEventData = ShippingEvent.ShipEventData(
                 shipId = foundShip.id.id, shipName = foundShip.shipName, homeHarbor = foundShip.homeHarbor.name,
-                earnings = "0.00"
+                earnings = foundShip.earnings.toDecimalString()
             ),
             catain = ShippingEvent.CatainEventData(
                 catainId = foundShip.catainId.id, catainName = foundShip.catainName

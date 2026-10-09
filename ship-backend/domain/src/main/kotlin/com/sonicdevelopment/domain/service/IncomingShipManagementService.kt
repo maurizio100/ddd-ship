@@ -23,9 +23,11 @@ import org.springframework.stereotype.Service
 /**
  * Unloads an Incoming Ship in one transaction, in this order: it **pays** the Delivery Price first, so an
  * unloading the Savings cannot cover is refused before anything is written; then it puts every Cargo aboard
- * into the Stock; and it **clears** the ship last, with a conditional step that is re-checked under the ship's
- * row lock. Of two concurrent unloadings of the same ship only one clears it; the other fails there, after
- * paying, and its transaction rolls its payment and its Stock writes back.
+ * into the Stock; then the ship **earns** the Delivery Price: away from its Home Harbor it is added to the ship's
+ * Earnings ([ShipRepositoryPort.addEarnings]), at its Home Harbor it goes back into the Savings at once
+ * ([SavingsRepositoryPort.receive]); and it **clears** the ship last, with a conditional step that is re-checked
+ * under the ship's row lock. Of two concurrent unloadings of the same ship only one clears it; the other fails
+ * there, after paying, and its transaction rolls its payment, its Stock writes and its Earnings or credit back.
  *
  * Refuses an Incoming Ship in one transaction, in the order of a Release: it **clears** the ship first, with the
  * same conditional step, then writes the new Shipping, its Loaded Cargo, the Release to the Home Harbor, and the
@@ -63,6 +65,11 @@ class IncomingShipManagementService(
             throw SavingsDoNotCoverException(deliveryPrice, "The Savings do not cover the Delivery Price of $deliveryPrice")
         }
         cargo.forEach { stockRepositoryPort.putIntoStock(it.id, 1) }
+        if (ship.earn(deliveryPrice, currentHarbor)) {
+            shipRepositoryPort.addEarnings(ship.id, deliveryPrice)
+        } else {
+            savingsRepositoryPort.receive(deliveryPrice)
+        }
 
         if (!shipRepositoryPort.unloadIncomingShip(ship.id)) {
             throw ShipNotIncomingException("${ship.shipName} is not an Incoming Ship anymore")

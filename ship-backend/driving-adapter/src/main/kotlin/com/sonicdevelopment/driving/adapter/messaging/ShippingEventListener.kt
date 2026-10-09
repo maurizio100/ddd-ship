@@ -3,6 +3,7 @@ package com.sonicdevelopment.driving.adapter.messaging
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
@@ -51,6 +52,7 @@ class ShippingEventListener(
             originHarbor = toHarborName(event.shippingEventData.originHarbor),
             destinationHarbor = toHarborName(event.shippingEventData.destinationHarbor),
             homeHarbor = toHarborName(event.shipEventData.homeHarbor),
+            earnings = event.shipEventData.earnings?.takeIf { it.isNotBlank() }?.let { Money.of(it) } ?: Money.dollars(0),
         )
 
     private fun toShipArrivedDTO(event: ShipArrivedInboundEvent) =
