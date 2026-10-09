@@ -22,8 +22,8 @@ flowchart LR
 
 | Block | Responsibility | Interface | Bounded contexts |
 |---|---|---|---|
-| ship-frontend | UI: ships list, create ship, cargo loading, release, Shipping Summary. State in NgRx stores (`ships`, `catains`). Decided, not built: Angular Material with the pirate theme (EPIC-002, [decision 0001](../services/ship-frontend/decisions/0001-build-the-ui-on-angular-material-with-a-pirate-theme.md)) and a harbor management page for Stock, Savings, Market and Incoming Ships (EPIC-003). | Consumes REST `/web/*` and the SSE stream `/web/fleet-events` | Fleet, CargoLoading, Shipping, Trade (UI) |
-| ship-backend | All domain logic and persistence; writes the outbox; pushes fleet changes to the frontend. | REST `/web/ships`, `/web/ships/{id}/cargos`, `/web/ships/{id}/shippings`, `/web/cargos`, `/web/catains`, `/web/harbors`, `/web/market/purchases`; SSE `/web/fleet-events` (`ship-backend/openapi.yml`). Decided, not built: the current Harbor Name (STORY-015); Stock and Savings; unloading and refusing Incoming Ships (EPIC-003); Ship Class and Hiring Recruits ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)). | Fleet, CargoLoading, Shipping, Trade |
+| ship-frontend | UI on Angular Material with the pirate theme ([decision 0001](../services/ship-frontend/decisions/0001-build-the-ui-on-angular-material-with-a-pirate-theme.md)): ships list, create ship, cargo loading, release, Shipping Summary, and the harbor management page with Stock, Prices, Savings and the Market. State in NgRx stores (`ships`, `catains`, `harbor`). Decided, not built: Incoming Ships on the harbor management page (EPIC-003). | Consumes REST `/web/*` and the SSE stream `/web/fleet-events` | Fleet, CargoLoading, Shipping, Trade (UI) |
+| ship-backend | All domain logic and persistence; writes the outbox; pushes fleet changes to the frontend. | REST `/web/ships`, `/web/ships/{id}/cargos`, `/web/ships/{id}/shippings`, `/web/cargos`, `/web/catains`, `/web/harbors`, `/web/stock`, `/web/savings`, `/web/market/purchases`; SSE `/web/fleet-events` (`ship-backend/openapi.yml`). Decided, not built: unloading and refusing Incoming Ships (EPIC-003); Ship Class and Hiring Recruits ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)). | Fleet, CargoLoading, Shipping, Trade |
 | Kafka Connect (Debezium) | Turns outbox rows into events on `hexagonship-<aggregate_type>`. | Connector config in `kafka-connect/connectors/` | — (infrastructure) |
 | ship-terminal | Prints each departed ship. | Consumes `hexagonship-shipping` | HarborTerminal |
 
@@ -95,9 +95,8 @@ flowchart LR
 Per [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md),
 `driving-adapter` holds the **Kafka listeners** (spring-kafka) that map inbound events to the driving
 ports, and `driven-adapter` holds the **inbox adapter** that records consumed event ids and the store
-for the Known Harbors. Stock is persisted next to the Cargo catalog. Decided, not built (EPIC-003):
-Savings, Prices and a ship's Earnings and Home Harbor are persisted the same way, behind driven ports
-of the Trade concepts. Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): a ship's Ship Class and Crew are persisted with the
+for the Known Harbors. Stock is persisted next to the Cargo catalog; Prices and Savings are persisted the same way, behind
+driven ports of the Trade concepts. Decided, not built (EPIC-003): a ship's Earnings and Home Harbor. Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): a ship's Ship Class and Crew are persisted with the
 ship, and each Harbor's Recruit Pool next to it.
 
 The backend has no package-level split by bounded context yet; Fleet, CargoLoading and Shipping all
