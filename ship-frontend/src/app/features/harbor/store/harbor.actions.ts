@@ -54,3 +54,8 @@ export const loadIncomingShipsFailure = createAction(
 export const watchArrivals = createAction('[Harbor] Watch Arrivals');
 
 export const stopWatchingArrivals = createAction('[Harbor] Stop Watching Arrivals');
+
+export const unloadIncomingShip = createAction(
+  '[Harbor] Unload Incoming Ship',
+  props<{shipId: string}>()
+);
