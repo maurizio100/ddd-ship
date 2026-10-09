@@ -4,7 +4,7 @@ import { Savings } from '../models/savings';
 
 export interface HarborState {
   stock: StockedCargo[];
-  savings?: Savings | null;
+  savings: Savings | null;
   loading: boolean;
   error: unknown;
 }
@@ -16,3 +16,5 @@ export const selectStock = createSelector(selectHarborState, (state) => state.st
 export const selectStockLoading = createSelector(selectHarborState, (state) => state.loading);
 
 export const selectStockError = createSelector(selectHarborState, (state) => state.error);
+
+export const selectSavings = createSelector(selectHarborState, (): Savings | null => null);
