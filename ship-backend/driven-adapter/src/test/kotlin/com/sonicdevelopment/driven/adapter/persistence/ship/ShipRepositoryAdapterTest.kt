@@ -295,6 +295,59 @@ class ShipRepositoryAdapterTest {
         jdbcTemplate.queryForObject("SELECT count(*) FROM ships_cargos_aboard", Int::class.java) shouldBe 0
     }
 
+    @Test
+    fun `unloadIncomingShip clears the Incoming flag and the Cargo aboard and reports false the second time`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum(), rum(), sugar()))
+        val blackPearl = anIncomingShip("Black Pearl", listOf(sugar()))
+        // loaded into the persistence context before the clear, as the unloading service does
+        ships.getShipDetails(saltyWhisker.id)!!.isIncoming shouldBe true
+
+        ships.unloadIncomingShip(saltyWhisker.id) shouldBe true
+
+        val unloaded = ships.getShipDetails(saltyWhisker.id)!!
+        unloaded.isIncoming shouldBe false
+        unloaded.cargoAboard.shouldBeEmpty()
+        aboardRowsFor(saltyWhisker.id) shouldBe 0
+        ships.unloadIncomingShip(saltyWhisker.id) shouldBe false
+        // another Incoming Ship is left alone
+        ships.getShipDetails(blackPearl.id)!!.isIncoming shouldBe true
+        aboardRowsFor(blackPearl.id) shouldBe 1
+    }
+
+    @Test
+    fun `unloadIncomingShip leaves a ship that is not Incoming alone`() {
+        val refused = Ship(
+            name = "Refused Rover", catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            cargoAboard = listOf(rum()), incoming = false,
+        )
+        ships.saveNewShip(InitialShipInformation.fromShip(refused))
+        flushAndClear()
+
+        ships.unloadIncomingShip(refused.id) shouldBe false
+        flushAndClear()
+
+        ships.getShipDetails(refused.id)!!.cargoAboard.map { it.name } shouldBe listOf("Rum")
+        aboardRowsFor(refused.id) shouldBe 1
+    }
+
+    @Test
+    fun `unloadIncomingShip leaves an Incoming Ship that left the fleet alone`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum()))
+        ships.removeFromFleet(saltyWhisker.id)
+        flushAndClear()
+
+        ships.unloadIncomingShip(saltyWhisker.id) shouldBe false
+        aboardRowsFor(saltyWhisker.id) shouldBe 1
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun `unloadIncomingShip requires a transaction`() {
+        shouldThrow<IllegalTransactionStateException> {
+            ships.unloadIncomingShip(ShipId(UUID.randomUUID()))
+        }
+    }
+
     private fun anIncomingShip(name: String, cargoAboard: List<Cargo>): Ship {
         val ship = Ship(
             name = name,
