@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
+import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.model.enums.ShippingState
@@ -24,13 +25,15 @@ class Ship(
     /**
      * The Cargo aboard while the ship has no Shipping, one entry per Cargo instance; separate from the Loaded
      * Cargo of an Active Shipping. An Incoming Ship keeps the Cargo it arrived with here until it is unloaded
-     * or refused (STORY-045). Cargo aboard without [isIncoming] is a ship refused by its own Home Harbor
-     * (STORY-028, not built).
+     * ([unload] clears it together with [isIncoming]) or refused. Cargo aboard without [isIncoming] is a ship
+     * refused by its own Home Harbor (STORY-028, not built).
      */
-    val cargoAboard: List<Cargo> = cargoAboard.toList()
+    var cargoAboard: List<Cargo> = cargoAboard.toList()
+        private set
 
     /** Whether the ship is an Incoming Ship: it arrived here with Cargo aboard that is not yet unloaded or refused. */
-    val isIncoming: Boolean = incoming
+    var isIncoming: Boolean = incoming
+        private set
 
     init {
         require(!incoming || cargoAboard.isNotEmpty()) { "An Incoming Ship has Cargo aboard" }
@@ -76,7 +79,17 @@ class Ship(
         return true
     }
 
-    fun unload(): List<Cargo> = TODO("STORY-045")
+    /**
+     * Unloads an Incoming Ship: returns its Cargo aboard, one entry per Cargo instance, and clears the Cargo
+     * aboard and the Incoming flag together. Refused for a ship that is not Incoming.
+     */
+    fun unload(): List<Cargo> {
+        if (!isIncoming) throw ShipNotIncomingException("$shipName is not an Incoming Ship")
+        val unloaded = cargoAboard
+        cargoAboard = emptyList()
+        isIncoming = false
+        return unloaded
+    }
 
     fun createSailorsCode(): SailorsCode {
         return SailorsCode(currentWeight)

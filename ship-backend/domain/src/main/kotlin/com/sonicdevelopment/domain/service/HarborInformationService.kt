@@ -1,7 +1,5 @@
 package com.sonicdevelopment.domain.service
 
-import com.sonicdevelopment.domain.model.Cargo
-import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
@@ -41,15 +39,8 @@ class HarborInformationService(
                 name = ship.shipName,
                 arrivedFrom = ship.arrivedFrom?.name,
                 cargo = ship.cargoAboard.map { CargoDTO(it.id, it.name, it.weight) },
-                deliveryPrice = deliveryPrice(ship.cargoAboard, prices),
+                deliveryPrice = DeliveryPrice.of(ship.cargoAboard, prices),
             )
         }
-    }
-
-    /** The sum of the Prices of every Cargo aboard, each counted as often as it is aboard; `null` if one has none. */
-    private fun deliveryPrice(cargoAboard: List<Cargo>, prices: Map<CargoId, Money>): Money? {
-        var sum = Money.dollars(0)
-        for (cargo in cargoAboard) sum += prices[cargo.id] ?: return null
-        return sum
     }
 }

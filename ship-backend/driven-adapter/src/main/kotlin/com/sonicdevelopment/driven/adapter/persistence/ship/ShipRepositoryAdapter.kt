@@ -80,7 +80,13 @@ class ShipRepositoryAdapter(
         shipPersistenceEntityRepository.save(ship)
     }
 
-    override fun unloadIncomingShip(shipId: ShipId): Boolean = TODO("STORY-045")
+    /** The conditional `UPDATE` comes first; the Cargo aboard rows are deleted only if it cleared the ship. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun unloadIncomingShip(shipId: ShipId): Boolean {
+        if (shipPersistenceEntityRepository.unloadIncoming(shipId.id) == 0) return false
+        cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
+        return true
+    }
 
     override fun getAllShips(): List<Ship> {
         return shipPersistenceEntityRepository.findAllByInFleetTrue().map { toShip(it) }
