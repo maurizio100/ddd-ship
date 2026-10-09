@@ -4,7 +4,10 @@ import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
 
 interface HarborManagementPort {
-    /** Announces this Harbor to all other Harbors by publishing Harbor Opened. */
+    /**
+     * Opens this Harbor: rolls a Price for every Cargo that has none yet, then announces the Harbor to all
+     * other Harbors by publishing Harbor Opened.
+     */
     fun openHarbor()
 
     /** Handles the Harbor Opened event [eventId] of the Harbor [harborName]. */

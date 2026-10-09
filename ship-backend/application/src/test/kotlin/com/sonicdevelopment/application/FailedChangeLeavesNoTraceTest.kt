@@ -13,11 +13,14 @@ import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
+import com.sonicdevelopment.domain.ports.driven.HarborOutboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
+import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
+import com.sonicdevelopment.driven.adapter.persistence.outbox.HarborOutboxRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.outbox.ShippingOutboxRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.stock.StockRepositoryAdapter
 import io.kotest.assertions.throwables.shouldThrow
@@ -79,8 +82,22 @@ class FailedChangeLeavesNoTraceTest {
         }
     }
 
+    /** The real Harbor outbox, except that [publishHarborOpened] fails while [armed]. */
+    class FailingHarborOutbox(private val real: HarborOutboxRepositoryAdapter) : HarborOutboxRepositoryPort by real {
+        var armed = false
+
+        override fun publishHarborOpened(harborName: HarborName) {
+            check(!armed) { "The Harbor outbox write fails" }
+            real.publishHarborOpened(harborName)
+        }
+    }
+
     @TestConfiguration
     class FailingDrivenPorts {
+        @Bean
+        @Primary
+        fun failingHarborOutbox(real: HarborOutboxRepositoryAdapter) = FailingHarborOutbox(real)
+
         @Bean
         @Primary
         fun failingShippingOutbox(real: ShippingOutboxRepositoryAdapter) = FailingShippingOutbox(real)
@@ -108,12 +125,19 @@ class FailedChangeLeavesNoTraceTest {
     @Autowired
     lateinit var failingStock: FailingStock
 
+    @Autowired
+    lateinit var failingHarborOutbox: FailingHarborOutbox
+
+    @Autowired
+    lateinit var harborManagementPort: HarborManagementPort
+
     @BeforeEach
     fun everythingWorksAgain() {
         jdbcTemplate.truncateMutableTables()
         jdbcTemplate.resetStockToStartingStock()
         failingOutbox.armed = false
         failingStock.armed = false
+        failingHarborOutbox.armed = false
         failingStock.succeedingPuts = 0
         failingStock.putsThrough = 0
     }
@@ -167,6 +191,28 @@ class FailedChangeLeavesNoTraceTest {
         jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
             .forEach { it shouldBe STARTING_STOCK }
         count("shipping_outbox") shouldBe 0
+    }
+
+    @Test
+    fun `An opening whose Harbor Opened write fails leaves no Price and no outbox row`() {
+        val startupPrices = jdbcTemplate.queryForList("SELECT cargo_id, price_amount FROM prices")
+        try {
+            jdbcTemplate.update("DELETE FROM prices")
+            failingHarborOutbox.armed = true
+
+            shouldThrow<IllegalStateException> { harborManagementPort.openHarbor() }
+
+            count("prices") shouldBe 0
+            count("shipping_outbox") shouldBe 0
+        } finally {
+            // Leave the startup's Prices for the other tests sharing the database
+            jdbcTemplate.update("DELETE FROM prices")
+            startupPrices.forEach {
+                jdbcTemplate.update(
+                    "INSERT INTO prices (id, cargo_id, price_amount) VALUES (nextval('prices_seq'), ?, ?)", it["cargo_id"], it["price_amount"]
+                )
+            }
+        }
     }
 
     private fun shippingRowOf(shipId: UUID): Map<String, Any?> = jdbcTemplate.queryForMap(

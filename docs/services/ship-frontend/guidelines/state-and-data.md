@@ -45,3 +45,5 @@ changes that flow.
   in the feature's `models/` folder: `Ship`, `Cargo`, `ShippingSummary`, and request bodies as
   `<X>Request`.
 - Ids are the backend's UUID strings.
+- Money arrives as a decimal string with two decimals (`"1000.00"`) and is shown as `<amount> $`. Never
+  convert it to a number: a float would lose cents.

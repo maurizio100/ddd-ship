@@ -27,6 +27,26 @@
   color: var(--hs-muted);
 }
 
+.savings {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 8px 0 0;
+  color: var(--hs-ink);
+
+  &__label {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--hs-muted);
+  }
+
+  &__amount {
+    font-family: 'IM Fell English', serif;
+    font-size: 26px;
+  }
+}
+
 .crates {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
@@ -58,6 +78,11 @@
   &__name {
     font-family: 'IM Fell English', serif;
     font-size: 22px;
+  }
+
+  &__price {
+    font-size: 16px;
+    color: var(--hs-ink);
   }
 
   &__stock {

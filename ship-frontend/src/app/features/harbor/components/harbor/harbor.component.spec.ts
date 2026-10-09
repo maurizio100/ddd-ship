@@ -3,17 +3,18 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 
 import { HarborComponent } from './harbor.component';
 import { StockedCargo } from '../../models/stocked-cargo';
+import { Savings } from '../../models/savings';
 import * as HarborActions from '../../store/harbor.actions';
-import { aStockedCargo } from '../../../../../testing/fixtures';
+import { aSavings, aStockedCargo } from '../../../../../testing/fixtures';
 
 describe('HarborComponent (The harbor management page shows the Harbor\'s Stock)', () => {
   let fixture: ComponentFixture<HarborComponent>;
   let store: MockStore;
 
-  function render(stock: StockedCargo[]): void {
+  function render(stock: StockedCargo[], savings: Savings | null = null): void {
     TestBed.configureTestingModule({
       imports: [HarborComponent],
-      providers: [provideMockStore({ initialState: { harbor: { stock, loading: false, error: null } } })],
+      providers: [provideMockStore({ initialState: { harbor: { stock, savings, loading: false, error: null } } })],
     });
     store = TestBed.inject(MockStore);
     spyOn(store, 'dispatch');
@@ -61,5 +62,42 @@ describe('HarborComponent (The harbor management page shows the Harbor\'s Stock)
     render([aStockedCargo({ name: 'Rum', quantity: 2 })]);
 
     expect(rows()).toEqual([{ name: 'Rum', quantity: '2' }]);
+  });
+
+  const text = (testId: string): string | undefined => all(testId)[0]?.textContent?.trim();
+
+  it('A Harbor opened for the first time holds its Starting Savings', () => {
+    render([aStockedCargo()], aSavings({ amount: '1000.00' }));
+
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.loadSavings());
+    expect(text('harbor-savings')).toBe('1000.00 $');
+  });
+
+  it('A Harbor opened for the first time rolls a Price for every Cargo', () => {
+    render(
+      [
+        aStockedCargo({ cargoId: 'c0a8f3a2-0000-4000-8000-000000000001', name: 'Ale', price: '42.00' }),
+        aStockedCargo({ cargoId: 'c0a8f3a2-0000-4000-8000-000000000002', name: 'Rum', price: '57.00' }),
+        aStockedCargo({ cargoId: 'c0a8f3a2-0000-4000-8000-000000000003', name: 'Silk', price: '30.00' }),
+      ],
+      aSavings(),
+    );
+
+    const prices = all('harbor-stock-row').map((row) =>
+      row.querySelector('[data-testid="harbor-stock-price"]')?.textContent?.trim(),
+    );
+    expect(prices).toEqual(['42.00 $', '57.00 $', '30.00 $']);
+  });
+
+  it('A Harbor opening again keeps its Savings', () => {
+    render([aStockedCargo()], aSavings({ amount: '640.50' }));
+
+    expect(text('harbor-savings')).toBe('640.50 $');
+  });
+
+  it('shows a dash for a Cargo without a Price', () => {
+    render([aStockedCargo({ name: 'Rum', price: null })], aSavings());
+
+    expect(all('harbor-stock-row')[0].querySelector('[data-testid="harbor-stock-price"]')?.textContent?.trim()).toBe('—');
   });
 });

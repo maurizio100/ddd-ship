@@ -7,6 +7,7 @@ import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import io.kotest.matchers.shouldBe
@@ -117,5 +118,38 @@ class FakeDrivenPortsTest {
         fleet.updateCargoLoad(CargoPersistencePort.CargoLoadInformation.fromShip(unloading))
 
         fleet.getShipDetails(shipId)!!.loadedCargo.map { it.id } shouldBe listOf(rum)
+    }
+
+    @Test
+    fun `rememberPrice keeps the first Price and reports false after`() {
+        val prices = InMemoryPrices(InMemoryCargoCatalog())
+
+        prices.rememberPrice(rum, Money.of("42.00")) shouldBe true
+        prices.rememberPrice(rum, Money.of("57.00")) shouldBe false
+
+        prices.getPrices() shouldBe mapOf(rum to Money.of("42.00"))
+        prices.reset()
+        prices.getPrices() shouldBe emptyMap()
+    }
+
+    @Test
+    fun `rememberPrice ignores a Cargo outside the catalog`() {
+        val prices = InMemoryPrices(InMemoryCargoCatalog())
+
+        prices.rememberPrice(CargoId(UUID.randomUUID()), Money.of("42.00")) shouldBe false
+
+        prices.getPrices() shouldBe emptyMap()
+    }
+
+    @Test
+    fun `the Savings start at the Starting Savings`() {
+        val savings = InMemorySavings()
+        savings.getSavings() shouldBe Money.of(STARTING_SAVINGS)
+
+        savings.setSavings("640.50")
+        savings.getSavings().toDecimalString() shouldBe "640.50"
+
+        savings.reset()
+        savings.getSavings().toDecimalString() shouldBe STARTING_SAVINGS
     }
 }

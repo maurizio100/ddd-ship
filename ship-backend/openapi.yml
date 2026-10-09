@@ -269,7 +269,7 @@ paths:
   /web/stock:
     get:
       summary: Get the Stock of this Harbor
-      description: Every catalog Cargo with the quantity this Harbor's Stock holds, including Cargo with Stock 0.
+      description: Every catalog Cargo with the quantity this Harbor's Stock holds, including Cargo with Stock 0, and its Price at this Harbor.
       operationId: getStock
       tags: [Stock]
       responses:
@@ -330,6 +330,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KnownHarbors'
+
+  /web/savings:
+    get:
+      summary: Get the Savings of this Harbor
+      description: The money this Harbor holds. A Harbor opens for the first time with Starting Savings of 1000.00.
+      operationId: getSavings
+      tags: [Harbors]
+      responses:
+        '200':
+          description: The Savings of this Harbor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Savings'
 
   /web/fleet-events:
     get:
@@ -478,7 +492,7 @@ components:
 
     StockedCargo:
       type: object
-      required: [cargoId, name, quantity]
+      required: [cargoId, name, quantity, price]
       properties:
         cargoId:
           type: string
@@ -489,6 +503,24 @@ components:
           type: integer
           minimum: 0
           description: How many of this Cargo the Harbor's Stock holds, 0 included
+        price:
+          type: string
+          nullable: true
+          pattern: '^\d+\.\d{2}$'
+          example: '42.00'
+          description: >-
+            The Price of this Cargo at this Harbor in dollars, as a decimal string with two decimals, never a
+            JSON number. `null` only before the Harbor's first opening has rolled one.
+
+    Savings:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '1000.00'
+          description: The Savings in dollars, as a decimal string with two decimals, never a JSON number
 
     ProblemDetail:
       type: object

@@ -147,20 +147,21 @@ Crew home the same way.
 
 ## 6.5 Harbor startup and discovery
 
-Per [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md). Built by STORY-003.
+Per [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md). Built by STORY-003; the Prices are rolled by STORY-024.
 
 ```mermaid
 sequenceDiagram
     participant H as Harbor backend
     participant DB as PostgreSQL
     participant K as Kafka
+    H->>DB: roll a Price for every Cargo that has none
     H->>DB: insert outbox row (harbor-opened, Harbor Name)
     DB->>K: Debezium to hexagonship-harbor (compacted)
     K->>H: read hexagonship-harbor from the beginning
     H->>DB: store Known Harbors
 ```
 
-A Release then offers the Known Harbors other than the current one as Destination Harbor.
+The Price rolls and the outbox row are written in one transaction: a failed roll aborts startup. A Release then offers the Known Harbors other than the current one as Destination Harbor.
 
 ## 6.6 Fleet changes pushed to the browser
 

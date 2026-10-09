@@ -81,7 +81,8 @@ driven.adapter
 - The backend must start with Kafka unreachable. Where no Kafka runs (app-only Compose, k8s),
   `SPRING_KAFKA_LISTENER_AUTO_STARTUP=false` keeps the listeners idle. Don't add anything that blocks
   startup on the broker, such as `NewTopic` beans or a missing-topics check. Work done on startup
-  (opening the Harbor) only writes to the outbox and never talks to Kafka.
+  (opening the Harbor) rolls the Prices that are missing and writes to the outbox in one transaction,
+  and never talks to Kafka.
 - The consumer group is `ship-backend-<Harbor Name>`, derived from `harbor.name` (`HARBOR_NAME`),
   which every instance must set
   ([ADR-0003](../../../adr/0003-run-each-ship-backend-instance-as-one-harbor.md)).
