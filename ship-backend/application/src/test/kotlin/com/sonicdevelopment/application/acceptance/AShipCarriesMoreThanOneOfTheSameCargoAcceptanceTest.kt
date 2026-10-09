@@ -108,10 +108,12 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
             val rumId = SeedData.cargoIdOf("Rum")
             val sugarId = SeedData.cargoIdOf("Sugar")
             val eventId = UUID.randomUUID()
+            val shipId = UUID.randomUUID()
 
             // When the ship arrives at "Tortuga"
             shippingEventListener.onShippingEvent(
                 aShippingPublishedRecord(
+                    shipId = shipId,
                     catainId = SeedData.aCatainId,
                     cargoIds = listOf(rumId, rumId, sugarId),
                     originHarbor = "Nassau",
@@ -120,9 +122,13 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
                 )
             )
 
-            // Then the Stock of "Tortuga" grows by 2 Rum and 1 Sugar
-            stockOf("Rum") shouldBe 5
-            stockOf("Sugar") shouldBe 4
+            // Then the ship is an Incoming Ship at "Tortuga" with its 2 Rum and 1 Sugar still aboard (STORY-044)
+            val incoming = incomingShips().single { it["shipId"] == shipId.toString() }
+            (incoming["cargo"] as List<*>).map { (it as Map<*, *>)["name"] as String }.sorted() shouldBe
+                listOf("Rum", "Rum", "Sugar")
+            // And the Stock of "Tortuga" is unchanged: the Cargo stays aboard until it is unloaded
+            stockOf("Rum") shouldBe 3
+            stockOf("Sugar") shouldBe 3
         }
     }
 
@@ -164,6 +170,12 @@ class AShipCarriesMoreThanOneOfTheSameCargoAcceptanceTest {
         /** The Stock of [cargoName] as the User sees it among the Available Cargo; 0 when it isn't offered. */
         fun stockOf(cargoName: String): Int =
             (availableCargo().singleOrNull { it["name"] == cargoName }?.get("stock") as Int?) ?: 0
+
+        fun incomingShips(): List<Map<*, *>> {
+            val response = restTemplate.getForEntity("/web/incoming-ships", List::class.java)
+            response.statusCode shouldBe HttpStatus.OK
+            return response.body!!.map { it as Map<*, *> }
+        }
 
         fun ship(shipId: UUID): Map<*, *> {
             val response = restTemplate.getForEntity("/web/ships/$shipId", Map::class.java)

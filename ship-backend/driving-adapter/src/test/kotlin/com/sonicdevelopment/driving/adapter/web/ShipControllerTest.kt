@@ -56,6 +56,20 @@ class ShipControllerTest {
         }
     }
 
+    @Test
+    fun `the ships overview carries whether a ship is an Incoming Ship`() {
+        every { shipInformationPort.getAllShips() } returns listOf(
+            ShipDTO(blackPearl, "Black Pearl", "Whiskers", ShippingState.IDLE, arrivedFrom = "Tortuga", incoming = true),
+            ShipDTO(interceptor, "Interceptor", "Whiskers", ShippingState.IDLE),
+        )
+
+        mockMvc.get("/web/ships").andExpect {
+            status { isOk() }
+            jsonPath("$[0].incoming") { value(true) }
+            jsonPath("$[1].incoming") { value(false) }
+        }
+    }
+
     private fun aShipDetail(id: ShipId, arrivedFrom: String?) =
         ShipDetailDTO(id, "Black Pearl", emptyList(), 0.0F, 15.0F, arrivedFrom = arrivedFrom)
 }

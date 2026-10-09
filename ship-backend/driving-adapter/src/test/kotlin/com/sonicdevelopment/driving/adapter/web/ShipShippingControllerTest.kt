@@ -1,6 +1,7 @@
 package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
+import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.UnknownHarborException
 import com.sonicdevelopment.domain.model.enums.ShippingState
@@ -22,6 +23,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActionsDsl
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.put
 import java.util.*
 
@@ -90,6 +92,20 @@ class ShipShippingControllerTest {
             jsonPath("$.status") { value(409) }
             jsonPath("$.title") { value("Ship not being prepared") }
             jsonPath("$.detail") { value("Black Pearl is not being prepared") }
+        }
+    }
+
+    @Test
+    fun `a refused new Shipping is a 409 Problem Detail`() {
+        every { shippingManagementPort.createShipping(ShipId(shipId)) } throws
+            NewShippingRefusedException("Salty Whisker must be unloaded or refused first")
+
+        mockMvc.post("/web/ships/$shipId/shippings").andExpect {
+            status { isConflict() }
+            content { contentType(MediaType.APPLICATION_PROBLEM_JSON) }
+            jsonPath("$.status") { value(409) }
+            jsonPath("$.title") { value("New Shipping refused") }
+            jsonPath("$.detail") { value("Salty Whisker must be unloaded or refused first") }
         }
     }
 

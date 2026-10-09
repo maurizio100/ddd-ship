@@ -121,6 +121,40 @@ class FakeDrivenPortsTest {
     }
 
     @Test
+    fun `the fleet keeps the Cargo aboard a ship and its Incoming flag, the same Cargo more than once, and a rename keeps both`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val rumCargo = SeedData.allCargo().single { it.id == rum }
+        val sugarCargo = SeedData.allCargo().single { it.name == "Sugar" }
+        val ship = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain",
+            cargoAboard = listOf(rumCargo, rumCargo, sugarCargo), incoming = true,
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(ship))
+
+        val stored = fleet.getShipDetails(ship.id)!!
+        stored.isIncoming shouldBe true
+        stored.cargoAboard.map { it.id } shouldBe listOf(rum, rum, sugarCargo.id)
+        fleet.getAllShips().single().isIncoming shouldBe true
+
+        // a rename saves the loaded ship, which carries its Cargo aboard and its flag
+        stored.shipName = "Salty Whiskers"
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(stored))
+        val renamed = fleet.getShipDetails(ship.id)!!
+        renamed.shipName shouldBe "Salty Whiskers"
+        renamed.isIncoming shouldBe true
+        renamed.cargoAboard.map { it.id } shouldBe listOf(rum, rum, sugarCargo.id)
+
+        // a save replaces the Cargo aboard, as the adapter does
+        fleet.saveNewShip(
+            ShipRepositoryPort.InitialShipInformation.fromShip(
+                Ship(id = ship.id, name = "Salty Whisker", catainId = ship.catainId, catainName = "Catain")
+            )
+        )
+        fleet.getShipDetails(ship.id)!!.cargoAboard shouldBe emptyList()
+        fleet.getShipDetails(ship.id)!!.isIncoming shouldBe false
+    }
+
+    @Test
     fun `rememberPrice keeps the first Price and reports false after`() {
         val prices = InMemoryPrices(InMemoryCargoCatalog())
 

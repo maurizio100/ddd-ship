@@ -162,8 +162,12 @@ class TheVoyageEndsAtTheOriginHarborAcceptanceTest {
             ships.single()["shippingState"] shouldBe "IDLE"
             // And its voyage to "Port Royal" is done
             shippingStateOfBlackPearlsVoyage() shouldBe "DONE"
-            // And its Cargo was unloaded once, and the Arrival announced once
-            rumInStock() shouldBe rumBefore + 1
+            // And it is an Incoming Ship once, with its Rum aboard once and the Stock unchanged (STORY-044),
+            // and the Arrival announced once
+            rumInStock() shouldBe rumBefore
+            val incoming = incomingShips().filter { it["shipId"] == blackPearlId.toString() }
+            incoming.size shouldBe 1
+            (incoming.single()["cargo"] as List<*>).map { (it as Map<*, *>)["name"] } shouldBe listOf("Rum")
             fakes.outbox.shipArrived().count { it.shippingId == returnShippingId } shouldBe 1
         }
 
@@ -198,7 +202,10 @@ class TheVoyageEndsAtTheOriginHarborAcceptanceTest {
         private val blackPearlId: UUID = UUID.randomUUID()
         private val blackPearlShippingId: UUID = UUID.randomUUID()
 
-        /** Background: "Black Pearl" was Released at "Tortuga" to "Port Royal", loaded with "Rum". */
+        /**
+         * Background: "Black Pearl" was Released at "Tortuga" to "Port Royal". It carries no Cargo, so it joins
+         * the fleet as an ordinary ship, not an Incoming Ship (STORY-044), and can sail back.
+         */
         @BeforeEach
         fun blackPearlIsReleasedAtTortugaToPortRoyal() {
             blackPearlReleasedAtTortuga()
@@ -212,7 +219,7 @@ class TheVoyageEndsAtTheOriginHarborAcceptanceTest {
                     shipName = "Black Pearl",
                     catainId = SeedData.aCatainId,
                     shippingId = blackPearlShippingId,
-                    cargoIds = listOf(SeedData.cargoIdOf("Rum")),
+                    cargoIds = emptyList(),
                     originHarbor = "Tortuga",
                     destinationHarbor = "Port Royal",
                     eventId = eventId,
@@ -243,8 +250,10 @@ class TheVoyageEndsAtTheOriginHarborAcceptanceTest {
             // When Tortuga's Release of "Black Pearl" to "Port Royal" is published again under a new event id
             blackPearlReleasedAtTortuga()
 
-            // Then "Black Pearl" does not arrive again: not in the fleet, no Cargo unloaded, no second Ship Arrived
+            // Then "Black Pearl" does not arrive again: not in the fleet, not an Incoming Ship, no Stock change,
+            // no second Ship Arrived
             availableShips().none { it["id"] == blackPearlId.toString() } shouldBe true
+            incomingShips().size shouldBe 0
             rumInStock() shouldBe rumBefore
             fakes.outbox.shipArrived().count { it.shippingId == blackPearlShippingId } shouldBe 1
         }
@@ -286,6 +295,12 @@ class TheVoyageEndsAtTheOriginHarborAcceptanceTest {
 
         /** How much "Rum" this Harbor has in its Stock. */
         fun rumInStock(): Int = fakes.stock.getStock()[CargoId(SeedData.cargoIdOf("Rum"))]!!
+
+        fun incomingShips(): List<Map<*, *>> {
+            val response = restTemplate.getForEntity("/web/incoming-ships", List::class.java)
+            response.statusCode shouldBe HttpStatus.OK
+            return response.body!!.map { it as Map<*, *> }
+        }
 
         fun availableShips(): List<Map<*, *>> {
             val response = restTemplate.getForEntity("/web/ships", List::class.java)
