@@ -60,9 +60,12 @@ export const unloadIncomingShip = createAction(
   props<{shipId: string}>()
 );
 
-export const unloadIncomingShipSuccess = createAction('[Harbor] Unload Incoming Ship Success');
+export const unloadIncomingShipSuccess = createAction(
+  '[Harbor] Unload Incoming Ship Success',
+  props<{shipId: string}>()
+);
 
 export const unloadIncomingShipFailure = createAction(
   '[Harbor] Unload Incoming Ship Failure',
-  props<{error: unknown; refusal: string}>()
+  props<{shipId: string; error: unknown; refusal: string}>()
 );

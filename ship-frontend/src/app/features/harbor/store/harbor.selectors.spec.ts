@@ -5,6 +5,7 @@ import {
   selectStock,
   selectStockError,
   selectStockLoading,
+  selectUnloadingShipIds,
   selectUnloadRefusal,
 } from './harbor.selectors';
 import { aSavings, aStockedCargo, anIncomingShipListing } from '../../../../testing/fixtures';
@@ -22,6 +23,7 @@ describe('harbor selectors', () => {
       error: 'boom',
       purchaseRefusal: 'The Savings do not cover 100.00 $',
       unloadRefusal: 'The Savings do not cover the Delivery Price of 115.00 $',
+      unloadingShipIds: ['s1'],
     },
   };
 
@@ -34,4 +36,5 @@ describe('harbor selectors', () => {
   it('selectUnloadRefusal reads the unload refusal', () =>
     expect(selectUnloadRefusal(root)).toBe('The Savings do not cover the Delivery Price of 115.00 $'));
   it('selectIncomingShips reads the Incoming Ships', () => expect(selectIncomingShips(root)).toEqual(incomingShips));
+  it('selectUnloadingShipIds reads unloadingShipIds', () => expect(selectUnloadingShipIds(root)).toEqual(['s1']));
 });

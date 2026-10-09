@@ -240,7 +240,7 @@ describe('HarborComponent (Unload an Incoming Ship and pay the Delivery Price)',
   let fixture: ComponentFixture<HarborComponent>;
   let store: MockStore;
 
-  function render(incomingShips: IncomingShip[], unloadRefusal: string | null = null): void {
+  function render(incomingShips: IncomingShip[], unloadRefusal: string | null = null, unloadingShipIds: string[] = []): void {
     TestBed.configureTestingModule({
       imports: [HarborComponent],
       providers: [
@@ -254,6 +254,7 @@ describe('HarborComponent (Unload an Incoming Ship and pay the Delivery Price)',
               error: null,
               purchaseRefusal: null,
               unloadRefusal,
+              unloadingShipIds,
             },
           },
         }),
@@ -287,6 +288,7 @@ describe('HarborComponent (Unload an Incoming Ship and pay the Delivery Price)',
         error: null,
         purchaseRefusal: null,
         unloadRefusal: null,
+        unloadingShipIds: [],
       },
     });
     fixture.detectChanges();
@@ -320,5 +322,17 @@ describe('HarborComponent (Unload an Incoming Ship and pay the Delivery Price)',
     render([anIncomingShipListing()]);
 
     expect(all('harbor-unload-refusal')).toEqual([]);
+  });
+
+  it('disables Unload for a ship whose unloading is in flight, and only for that ship', () => {
+    const salty = anIncomingShipListing();
+    const other = anIncomingShipListing({ shipId: 'b1a2c3d4-0000-4000-8000-000000000002', name: 'Pepper Paw' });
+    render([salty, other], null, [salty.shipId]);
+
+    const buttons = all('harbor-unload') as HTMLButtonElement[];
+    expect(buttons[0].disabled).toBeTrue();
+    expect(buttons[1].disabled).toBeFalse();
+    buttons[0].click();
+    expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ type: HarborActions.unloadIncomingShip.type }));
   });
 });

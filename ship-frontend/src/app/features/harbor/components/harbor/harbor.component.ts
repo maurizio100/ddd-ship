@@ -8,6 +8,7 @@ import {
   selectPurchaseRefusal,
   selectSavings,
   selectStock,
+  selectUnloadingShipIds,
   selectUnloadRefusal,
 } from '../../store/harbor.selectors';
 import { StockedCargo } from '../../models/stocked-cargo';
@@ -27,6 +28,7 @@ export class HarborComponent implements OnInit, OnDestroy {
   purchaseRefusal = this.store.selectSignal(selectPurchaseRefusal);
   incomingShips = this.store.selectSignal(selectIncomingShips);
   unloadRefusal = this.store.selectSignal(selectUnloadRefusal);
+  unloadingShipIds = this.store.selectSignal(selectUnloadingShipIds);
 
   /** The quantity the User entered per Cargo; a Cargo without an entry buys 1. */
   private readonly quantities = signal<Record<string, number>>({});
@@ -68,9 +70,9 @@ export class HarborComponent implements OnInit, OnDestroy {
     this.store.dispatch(HarborActions.buyCargo({ cargoId: cargo.cargoId, quantity: this.quantityOf(cargo) }));
   }
 
-  /** An Incoming Ship whose Delivery Price cannot be computed yet cannot be unloaded. */
+  /** An Incoming Ship cannot be unloaded while its Delivery Price is unknown or its unloading is in flight. */
   canUnload(ship: IncomingShip): boolean {
-    return ship.deliveryPrice !== null;
+    return ship.deliveryPrice !== null && !this.unloadingShipIds().includes(ship.shipId);
   }
 
   unload(ship: IncomingShip): void {

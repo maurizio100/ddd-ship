@@ -191,7 +191,7 @@ describe('HarborEffects', () => {
     actions$.next(HarborActions.unloadIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
 
     expect(incomingShipsService.unload).toHaveBeenCalledWith('b1a2c3d4-0000-4000-8000-000000000001');
-    expect(emitted).toEqual([HarborActions.unloadIncomingShipSuccess()]);
+    expect(emitted).toEqual([HarborActions.unloadIncomingShipSuccess({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' })]);
   });
 
   it('unloadIncomingShip$ emits unloadIncomingShipFailure with the refusal from the Problem Details', () => {
@@ -207,6 +207,7 @@ describe('HarborEffects', () => {
 
     expect(emitted).toEqual([
       HarborActions.unloadIncomingShipFailure({
+        shipId: 'b1a2c3d4-0000-4000-8000-000000000001',
         error,
         refusal: 'The Savings do not cover the Delivery Price of 115.00 $',
       }),
@@ -222,7 +223,7 @@ describe('HarborEffects', () => {
     actions$.next(HarborActions.unloadIncomingShip({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
 
     expect(emitted).toEqual([
-      HarborActions.unloadIncomingShipFailure({ error, refusal: 'The Incoming Ship could not be unloaded' }),
+      HarborActions.unloadIncomingShipFailure({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001', error, refusal: 'The Incoming Ship could not be unloaded' }),
     ]);
   });
 
@@ -230,8 +231,17 @@ describe('HarborEffects', () => {
     const emitted: Action[] = [];
     effects.refreshAfterUnloading$.subscribe((action) => emitted.push(action));
 
-    actions$.next(HarborActions.unloadIncomingShipSuccess());
+    actions$.next(HarborActions.unloadIncomingShipSuccess({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001' }));
 
     expect(emitted).toEqual([HarborActions.loadIncomingShips(), HarborActions.loadStock(), HarborActions.loadSavings()]);
+  });
+
+  it('refreshIncomingShipsAfterRefusedUnloading$ reloads the Incoming Ships after a refused unloading', () => {
+    const emitted: Action[] = [];
+    effects.refreshIncomingShipsAfterRefusedUnloading$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.unloadIncomingShipFailure({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001', error: 'boom', refusal: 'nope' }));
+
+    expect(emitted).toEqual([HarborActions.loadIncomingShips()]);
   });
 });

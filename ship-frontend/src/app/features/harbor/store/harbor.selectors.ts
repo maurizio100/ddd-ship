@@ -13,6 +13,8 @@ export interface HarborState {
   purchaseRefusal: string | null;
   /** Why the last unloading of an Incoming Ship was refused, in the backend's words; null when it was not. */
   unloadRefusal: string | null;
+  /** The Incoming Ships whose unloading is in flight; their Unload button stays disabled. */
+  unloadingShipIds: string[];
 }
 
 export const selectHarborState = createFeatureSelector<HarborState>('harbor');
@@ -30,3 +32,5 @@ export const selectIncomingShips = createSelector(selectHarborState, (state): In
 export const selectPurchaseRefusal = createSelector(selectHarborState, (state) => state.purchaseRefusal);
 
 export const selectUnloadRefusal = createSelector(selectHarborState, (state) => state.unloadRefusal);
+
+export const selectUnloadingShipIds = createSelector(selectHarborState, (state) => state.unloadingShipIds ?? []);

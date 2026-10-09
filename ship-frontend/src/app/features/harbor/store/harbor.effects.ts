@@ -113,9 +113,9 @@ export class HarborEffects {
       ofType(HarborActions.unloadIncomingShip),
       concatMap(({ shipId }) =>
         this.incomingShipsService.unload(shipId).pipe(
-          map(() => HarborActions.unloadIncomingShipSuccess()),
+          map(() => HarborActions.unloadIncomingShipSuccess({ shipId })),
           catchError((error: HttpErrorResponse) =>
-            of(HarborActions.unloadIncomingShipFailure({ error, refusal: error.error?.detail ?? UNLOAD_FAILED })),
+            of(HarborActions.unloadIncomingShipFailure({ shipId, error, refusal: error.error?.detail ?? UNLOAD_FAILED })),
           ),
         ),
       ),
@@ -127,6 +127,14 @@ export class HarborEffects {
     this.actions$.pipe(
       ofType(HarborActions.unloadIncomingShipSuccess),
       switchMap(() => [HarborActions.loadIncomingShips(), HarborActions.loadStock(), HarborActions.loadSavings()]),
+    ),
+  );
+
+  /** A refused unloading may mean another User unloaded the ship first: read the Incoming Ships back. */
+  refreshIncomingShipsAfterRefusedUnloading$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.unloadIncomingShipFailure),
+      map(() => HarborActions.loadIncomingShips()),
     ),
   );
 }
