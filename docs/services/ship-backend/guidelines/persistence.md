@@ -126,6 +126,26 @@
 - Putting into Stock is `INSERT … ON CONFLICT (cargo_id) DO UPDATE`, so a Cargo without a row gets one.
 - It is not in the Debezium connector's `table.include.list` and is never published.
 
+## Prices
+
+- `prices` holds this Harbor's Price of each Cargo: one row per Cargo (`uq_prices_cargo_id`), with
+  `price_amount NUMERIC(8,2)` and `ck_prices_price_amount_not_negative`.
+- Prices are rolled in code by `openHarbor`, not seeded by a migration: the roll is a domain rule
+  (`PriceRoll`), and each Harbor rolls its own.
+- It is written only through `PriceRepositoryPort.rememberPrice`, in the caller's transaction
+  (`Propagation.MANDATORY`) with `INSERT … ON CONFLICT (cargo_id) DO NOTHING`. A Price is never re-rolled
+  or overwritten.
+- It is not in the Debezium connector's `table.include.list` and is never published.
+
+## Savings
+
+- `savings` holds this Harbor's Savings in one row, `savings_amount NUMERIC(12,2)` with
+  `ck_savings_savings_amount_not_negative`.
+- The Starting Savings are seeded by `V15__prices_and_savings.sql`, like the Starting Stock. Don't seed
+  them from code or check for an empty table.
+- It is written only through `SavingsRepositoryPort`, in the caller's transaction.
+- It is not in the Debezium connector's `table.include.list` and is never published.
+
 ## Binary data
 
 - Binary data (Catain Images) goes to MinIO, never into the database.

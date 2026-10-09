@@ -10,6 +10,8 @@
 - A command on a ship returns the updated ship (`ShipDetailResponse`) so the client doesn't need a
   second request.
 - `ship-backend/openapi.yml` is the contract and is updated in the same change as the endpoint.
+- Money in REST JSON is a decimal string with two decimals (`"1000.00"`), never a JSON number, which
+  would become a float in the frontend ([ADR-0008](../../../adr/0008-carry-earnings-home-with-the-ship.md)).
 - `GET /web/fleet-events` is a `text/event-stream` (Server-Sent Events), not a resource. Its event names
   (`ship-arrived`, `ship-left`) and their data schemas are documented in `openapi.yml` like any endpoint.
   It answers with `Cache-Control: no-cache` and `X-Accel-Buffering: no`.
