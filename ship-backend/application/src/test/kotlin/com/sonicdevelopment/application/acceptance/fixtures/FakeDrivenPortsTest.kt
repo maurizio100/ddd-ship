@@ -185,6 +185,29 @@ class FakeDrivenPortsTest {
     }
 
     @Test
+    fun `endIncoming clears only the Incoming flag, and clearCargoAboard empties the Cargo aboard`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val rumCargo = SeedData.allCargo().single { it.id == rum }
+        val incoming = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+            cargoAboard = listOf(rumCargo, rumCargo), incoming = true,
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(incoming))
+
+        fleet.endIncoming(incoming.id) shouldBe true
+
+        val ended = fleet.getShipDetails(incoming.id)!!
+        ended.isIncoming shouldBe false
+        ended.cargoAboard.map { it.id } shouldBe listOf(rum, rum)
+        fleet.endIncoming(incoming.id) shouldBe false
+        fleet.endIncoming(ShipId(UUID.randomUUID())) shouldBe false
+
+        fleet.clearCargoAboard(incoming.id)
+
+        fleet.getShipDetails(incoming.id)!!.cargoAboard shouldBe emptyList()
+    }
+
+    @Test
     fun `rememberPrice keeps the first Price and reports false after`() {
         val prices = InMemoryPrices(InMemoryCargoCatalog())
 

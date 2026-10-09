@@ -20,6 +20,7 @@ import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
+import com.sonicdevelopment.domain.ports.driving.harbor.RefusalDTO
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -48,6 +49,12 @@ class IncomingShipManagementServiceTest {
     private val service = IncomingShipManagementService(
         shipRepositoryPort, priceRepositoryPort, savingsRepositoryPort, stockRepositoryPort,
         shippingRepositoryPort, cargoPersistencePort, quoteRepositoryPort, shippingOutboxRepository, tortuga,
+    )
+
+    private val serviceAtPortRoyal = IncomingShipManagementService(
+        shipRepositoryPort, priceRepositoryPort, savingsRepositoryPort, stockRepositoryPort,
+        shippingRepositoryPort, cargoPersistencePort, quoteRepositoryPort, shippingOutboxRepository,
+        HarborName("Port Royal"),
     )
 
     private val rum = aCargo(name = "Rum")
@@ -155,9 +162,9 @@ class IncomingShipManagementServiceTest {
         val shipSlot = slot<Ship>()
         every { shippingOutboxRepository.broadcastShipping(capture(shipSlot), tortuga) } returns Unit
 
-        val sailsTo = service.refuseIncomingShip(saltyWhiskerId)
+        val refusal = service.refuseIncomingShip(saltyWhiskerId)
 
-        sailsTo shouldBe HarborName("Port Royal")
+        refusal shouldBe RefusalDTO(HarborName("Port Royal"))
         verifyOrder {
             shipRepositoryPort.unloadIncomingShip(saltyWhiskerId)
             shippingRepositoryPort.createShipping(any())
@@ -172,6 +179,32 @@ class IncomingShipManagementServiceTest {
         verify(exactly = 0) { savingsRepositoryPort.pay(any()) }
         verify(exactly = 0) { stockRepositoryPort.putIntoStock(any(), any()) }
         verify(exactly = 0) { priceRepositoryPort.getPrices() }
+    }
+
+    @Test
+    fun `a Home Harbor refusing its own ship only ends the Incoming state and writes nothing else`() {
+        every { shipRepositoryPort.endIncoming(saltyWhiskerId) } returns true
+
+        val refusal = serviceAtPortRoyal.refuseIncomingShip(saltyWhiskerId)
+
+        refusal shouldBe RefusalDTO(null)
+        verify(exactly = 1) { shipRepositoryPort.endIncoming(saltyWhiskerId) }
+        verify(exactly = 0) { shipRepositoryPort.unloadIncomingShip(any()) }
+        verify(exactly = 0) { shippingRepositoryPort.createShipping(any()) }
+        verify(exactly = 0) { cargoPersistencePort.updateCargoLoad(any()) }
+        verify(exactly = 0) { quoteRepositoryPort.getQuoteForSailorsCode(any()) }
+        verify(exactly = 0) { shippingRepositoryPort.updateActiveShipping(any()) }
+        verify(exactly = 0) { shippingOutboxRepository.broadcastShipping(any(), any()) }
+        verify(exactly = 0) { savingsRepositoryPort.pay(any()) }
+        verify(exactly = 0) { stockRepositoryPort.putIntoStock(any(), any()) }
+    }
+
+    @Test
+    fun `a Home Harbor refusal that loses the ship to a concurrent unloading throws ShipNotIncomingException`() {
+        every { shipRepositoryPort.endIncoming(saltyWhiskerId) } returns false
+
+        shouldThrow<ShipNotIncomingException> { serviceAtPortRoyal.refuseIncomingShip(saltyWhiskerId) }
+            .message shouldBe "Salty Whisker is not an Incoming Ship anymore"
     }
 
     @Test

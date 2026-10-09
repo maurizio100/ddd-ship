@@ -2,7 +2,6 @@ package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
 import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
-import com.sonicdevelopment.domain.exception.ShipAtItsHomeHarborException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -12,6 +11,7 @@ import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborInformationPort
 import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipManagementPort
+import com.sonicdevelopment.domain.ports.driving.harbor.RefusalDTO
 import io.mockk.every
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -118,9 +118,21 @@ class IncomingShipControllerTest {
     }
 
     @Test
-    fun `POST refusal refuses the Incoming Ship and answers 204`() {
+    fun `POST refusal that sends the ship home answers 204`() {
         val saltyWhisker = UUID.randomUUID()
-        every { incomingShipManagementPort.refuseIncomingShip(ShipId(saltyWhisker)) } returns HarborName("Port Royal")
+        every { incomingShipManagementPort.refuseIncomingShip(ShipId(saltyWhisker)) } returns
+            RefusalDTO(HarborName("Port Royal"))
+
+        mockMvc.post("/web/incoming-ships/$saltyWhisker/refusal").andExpect {
+            status { isNoContent() }
+            content { string("") }
+        }
+    }
+
+    @Test
+    fun `POST refusal at the Home Harbor that keeps the ship answers 204`() {
+        val saltyWhisker = UUID.randomUUID()
+        every { incomingShipManagementPort.refuseIncomingShip(ShipId(saltyWhisker)) } returns RefusalDTO(null)
 
         mockMvc.post("/web/incoming-ships/$saltyWhisker/refusal").andExpect {
             status { isNoContent() }
@@ -149,19 +161,6 @@ class IncomingShipControllerTest {
             content { contentTypeCompatibleWith("application/problem+json") }
             jsonPath("$.title") { value("Not an Incoming Ship") }
             jsonPath("$.detail") { value("Salty Whisker is not an Incoming Ship") }
-        }
-    }
-
-    @Test
-    fun `POST refusal of a ship at its Home Harbor answers 409`() {
-        every { incomingShipManagementPort.refuseIncomingShip(any()) } throws
-            ShipAtItsHomeHarborException("Salty Whisker is at its Home Harbor")
-
-        mockMvc.post("/web/incoming-ships/${UUID.randomUUID()}/refusal").andExpect {
-            status { isConflict() }
-            content { contentTypeCompatibleWith("application/problem+json") }
-            jsonPath("$.title") { value("Ship at its Home Harbor") }
-            jsonPath("$.detail") { value("Salty Whisker is at its Home Harbor") }
         }
     }
 }
