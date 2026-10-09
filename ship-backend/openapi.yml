@@ -345,6 +345,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/Savings'
 
+  /web/market/purchases:
+    post:
+      summary: Buy Cargo at the Market
+      description: >-
+        Buys `quantity` of the Cargo at its Price: the Harbor pays Price × quantity from its Savings and
+        the Cargo goes into its Stock, in one transaction. Read the new Stock and Savings from
+        `/web/stock` and `/web/savings`.
+      operationId: buyCargo
+      tags: [Harbors]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+      responses:
+        '204':
+          description: The Cargo was bought
+        '400':
+          description: cargoId is missing, or quantity is missing, not a whole number or below 1
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Cargo not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The purchase is refused and neither the Stock nor the Savings change: the Savings do not
+            cover Price × quantity (title "Savings do not cover", `detail` names the cost, e.g. "The
+            Savings do not cover 100.00 $"), or the Cargo has no Price yet (title "Cargo has no Price").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /web/fleet-events:
     get:
       summary: Stream this Harbor's fleet changes as they happen
@@ -409,6 +449,19 @@ components:
         cargoId:
           type: string
           format: uuid
+
+    PurchaseRequest:
+      type: object
+      required: [cargoId, quantity]
+      properties:
+        cargoId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 2
 
     ReleaseShippingRequest:
       type: object
