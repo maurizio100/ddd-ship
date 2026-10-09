@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, NEVER, Observable, of, switchMap } from 'rxjs';
+import { Action } from '@ngrx/store';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 
@@ -20,4 +21,6 @@ export class HarborEffects {
       ),
     ),
   );
+
+  loadSavings$ = createEffect((): Observable<Action> => NEVER);
 }
