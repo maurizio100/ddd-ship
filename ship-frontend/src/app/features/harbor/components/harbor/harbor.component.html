@@ -13,6 +13,26 @@
     }
   </header>
 
+  <section class="incoming" aria-labelledby="incoming-ships-heading">
+    <h2 id="incoming-ships-heading">Incoming Ships</h2>
+    @if (incomingShips().length === 0) {
+      <p class="incoming__empty" data-testid="harbor-incoming-ships-empty">No Incoming Ships</p>
+    } @else {
+      <ul class="incoming__ships" aria-label="Incoming Ships">
+        @for (ship of incomingShips(); track ship.shipId) {
+          <li class="incoming__ship" data-testid="harbor-incoming-ship">
+            <span class="incoming__name" data-testid="harbor-incoming-ship-name">{{ ship.name }}</span>
+            <span class="incoming__cargo" data-testid="harbor-incoming-ship-cargo">{{ cargoSummary(ship) }}</span>
+            <span class="incoming__price">
+              <span class="incoming__price-label">Delivery Price</span>
+              <span data-testid="harbor-incoming-ship-delivery-price">{{ ship.deliveryPrice === null ? '—' : ship.deliveryPrice + ' $' }}</span>
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
   <ul class="crates" aria-label="Stock">
     @for (cargo of stock(); track cargo.cargoId) {
       <li class="crate" data-testid="harbor-stock-row">

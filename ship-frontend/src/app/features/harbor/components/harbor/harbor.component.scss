@@ -56,6 +56,59 @@
   font-weight: 600;
 }
 
+.incoming {
+  margin-bottom: 24px;
+  color: var(--hs-ink);
+
+  h2 {
+    margin: 0 0 8px;
+    font-family: 'IM Fell English', serif;
+    font-size: 28px;
+  }
+
+  &__empty {
+    margin: 0;
+    font-style: italic;
+    color: var(--hs-muted);
+  }
+
+  &__ships {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__ship {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 16px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 2px solid var(--hs-border);
+    background: var(--hs-raised);
+  }
+
+  &__name {
+    font-family: 'IM Fell English', serif;
+    font-size: 22px;
+  }
+
+  &__price {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  &__price-label {
+    font-style: italic;
+    color: var(--hs-muted);
+  }
+}
+
 .crates {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
