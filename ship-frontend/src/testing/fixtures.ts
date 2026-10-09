@@ -39,6 +39,7 @@ export function aShip(overrides: Partial<Ship> = {}): Ship {
     weight: 0,
     maxweight: 15,
     shippingState: ShippingState.PREPARING,
+    homeHarbor: 'Port Royal',
     arrivedFrom: null,
     ...overrides,
   };
