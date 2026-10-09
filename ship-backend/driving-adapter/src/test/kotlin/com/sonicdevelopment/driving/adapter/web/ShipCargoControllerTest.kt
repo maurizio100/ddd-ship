@@ -2,7 +2,10 @@ package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
+import com.sonicdevelopment.domain.exception.RefusedCargoException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
+import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
+import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoLoadManagementPort
@@ -14,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActionsDsl
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.post
 import java.util.*
 
@@ -74,6 +78,33 @@ class ShipCargoControllerTest {
             status { isNotFound() }
             content { contentType(MediaType.APPLICATION_PROBLEM_JSON) }
             jsonPath("$.status") { value(404) }
+        }
+    }
+
+    @Test
+    fun `DELETE cargos answers 409 Problem Details when the Cargo was refused by the Home Harbor`() {
+        every { cargoLoadManagementPort.removeCargo(ShipId(shipId), CargoId(cargoId)) } throws
+            RefusedCargoException("Rum aboard Salty Whisker was refused here and can only be delivered to another Harbor")
+
+        mockMvc.delete("/web/ships/$shipId/cargos/$cargoId").andExpect {
+            status { isConflict() }
+            content { contentType(MediaType.APPLICATION_PROBLEM_JSON) }
+            jsonPath("$.title") { value("Refused Cargo") }
+            jsonPath("$.detail") { value("Rum aboard Salty Whisker was refused here and can only be delivered to another Harbor") }
+        }
+    }
+
+    @Test
+    fun `DELETE cargos answers the ship detail with the Cargo aboard`() {
+        val rum = CargoDTO(CargoId(cargoId), "Rum", 5.5F)
+        every { cargoLoadManagementPort.removeCargo(ShipId(shipId), CargoId(UUID.fromString("00000000-0000-0000-0000-000000000001"))) } returns
+            ShipDetailDTO(ShipId(shipId), "Salty Whisker", emptyList(), 11.0F, 15.0F, null, "Port Royal", listOf(rum, rum))
+
+        mockMvc.delete("/web/ships/$shipId/cargos/00000000-0000-0000-0000-000000000001").andExpect {
+            status { isOk() }
+            jsonPath("$.cargo.length()") { value(0) }
+            jsonPath("$.cargoAboard.length()") { value(2) }
+            jsonPath("$.cargoAboard[0].name") { value("Rum") }
         }
     }
 

@@ -350,6 +350,39 @@ class ShipRepositoryAdapterTest {
     }
 
     @Test
+    fun `endIncoming clears the Incoming flag, keeps the Cargo aboard and reports false the second time`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum(), rum()))
+        ships.getShipDetails(saltyWhisker.id)!!.isIncoming shouldBe true
+
+        ships.endIncoming(saltyWhisker.id) shouldBe true
+
+        val ended = ships.getShipDetails(saltyWhisker.id)!!
+        ended.isIncoming shouldBe false
+        ended.cargoAboard.map { it.name } shouldBe listOf("Rum", "Rum")
+        aboardRowsFor(saltyWhisker.id) shouldBe 2
+        ships.endIncoming(saltyWhisker.id) shouldBe false
+    }
+
+    @Test
+    fun `clearCargoAboard deletes the Cargo aboard of that ship only`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum(), rum()))
+        val blackPearl = anIncomingShip("Black Pearl", listOf(sugar()))
+
+        ships.clearCargoAboard(saltyWhisker.id)
+        flushAndClear()
+
+        aboardRowsFor(saltyWhisker.id) shouldBe 0
+        aboardRowsFor(blackPearl.id) shouldBe 1
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun `endIncoming and clearCargoAboard require a transaction`() {
+        shouldThrow<IllegalTransactionStateException> { ships.endIncoming(ShipId(UUID.randomUUID())) }
+        shouldThrow<IllegalTransactionStateException> { ships.clearCargoAboard(ShipId(UUID.randomUUID())) }
+    }
+
+    @Test
     fun `unloadIncomingShip leaves a ship that is not Incoming alone`() {
         val refused = Ship(
             name = "Refused Rover", catainId = CatainId(seededCatainId()), catainName = "Furry Jones", homeHarbor = HarborName("Port Royal"),

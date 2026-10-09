@@ -26,6 +26,7 @@ import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
 import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipManagementPort
+import com.sonicdevelopment.domain.ports.driving.harbor.RefusalDTO
 import com.sonicdevelopment.domain.ports.driving.market.MarketPort
 import com.sonicdevelopment.driven.adapter.persistence.outbox.HarborOutboxRepositoryAdapter
 import com.sonicdevelopment.driven.adapter.persistence.outbox.ShippingOutboxRepositoryAdapter
@@ -385,7 +386,7 @@ class FailedChangeLeavesNoTraceTest {
     fun `A refusal and an unloading of the same ship, only the first takes effect`() {
         val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
         countingShipRepository.concurrentChange = {
-            incomingShipManagementPort.refuseIncomingShip(saltyWhisker) shouldBe HarborName("Tortuga")
+            incomingShipManagementPort.refuseIncomingShip(saltyWhisker) shouldBe RefusalDTO(HarborName("Tortuga"))
         }
 
         shouldThrow<ShipNotIncomingException> { incomingShipManagementPort.unloadIncomingShip(saltyWhisker) }
@@ -413,6 +414,38 @@ class FailedChangeLeavesNoTraceTest {
         count("shippings") shouldBe shippingsBefore
         shippingPublishedRows() shouldBe 0
         shipIncoming(saltyWhisker) shouldBe false
+    }
+
+    @Test
+    fun `A Release of a ship with Cargo aboard whose outbox write fails leaves the Cargo aboard, the Shipping PREPARING and no outbox row`() {
+        val rum = CargoId(SeedData.cargoIdOf("Rum"))
+        val arrival = ShippingPublishedDTO(
+            shipId = ShipId(UUID.randomUUID()),
+            shipName = "Salty Whisker",
+            catainId = CatainId(SeedData.aCatainId),
+            shippingId = ShippingId(UUID.randomUUID()),
+            cargoIds = listOf(rum, rum),
+            originHarbor = HarborName("Tortuga"),
+            destinationHarbor = HarborName("Port Royal"),
+            homeHarbor = HarborName("Port Royal"),
+        )
+        arrivalManagementPort.receiveShippingPublished(EventId(UUID.randomUUID()), arrival)
+        incomingShipManagementPort.refuseIncomingShip(arrival.shipId) shouldBe RefusalDTO(null)
+        shippingManagementPort.createShipping(arrival.shipId)
+        jdbcTemplate.givenKnownHarbors("Tortuga")
+        val before = shippingRowOf(arrival.shipId.id)
+        before["shipping_state"] shouldBe "PREPARING"
+        count("ships_cargos_aboard") shouldBe 2
+        val outboxBefore = count("shipping_outbox")
+        failingOutbox.armed = true
+
+        shouldThrow<IllegalStateException> {
+            shippingManagementPort.releaseShipping(arrival.shipId, HarborName("Tortuga"))
+        }
+
+        shippingRowOf(arrival.shipId.id) shouldBe before
+        count("ships_cargos_aboard") shouldBe 2
+        count("shipping_outbox") shouldBe outboxBefore
     }
 
     private fun shippingPublishedRows() = jdbcTemplate.queryForObject(

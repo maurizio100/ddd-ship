@@ -1,7 +1,7 @@
 package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
-import com.sonicdevelopment.domain.exception.ShipAtItsHomeHarborException
+import com.sonicdevelopment.domain.exception.RefusedCargoException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
@@ -26,11 +26,12 @@ class Ship(
 ) {
 
     /**
-     * The Cargo aboard while the ship has no Shipping, one entry per Cargo instance; separate from the Loaded
-     * Cargo of an Active Shipping. An Incoming Ship keeps the Cargo it arrived with here until it is unloaded
-     * ([unload] clears it together with [isIncoming]) or refused ([refuse] moves it into the Loaded Cargo of the
-     * voyage home). Cargo aboard without [isIncoming] is a ship
-     * refused by its own Home Harbor (STORY-028, not built).
+     * The Cargo aboard, one entry per Cargo instance; separate from the Loaded Cargo of an Active Shipping. It
+     * exists while the ship is not at sea: an Incoming Ship keeps the Cargo it arrived with here until it is
+     * unloaded ([unload] clears it together with [isIncoming]) or refused away from home ([refuse] moves it
+     * into the Loaded Cargo of the voyage home). Cargo aboard without [isIncoming] was refused by the ship's
+     * own Home Harbor: it stays aboard beside a `PREPARING` Shipping, cannot be unloaded into the Stock
+     * ([removeCargo]) and becomes Loaded Cargo on [release].
      */
     var cargoAboard: List<Cargo> = cargoAboard.toList()
         private set
@@ -48,7 +49,9 @@ class Ship(
             field = if(isValidName(newShipName)) newShipName else field
         }
 
-    /** Starts a new Shipping; refused for an Incoming Ship and for a ship whose Active Shipping is not `DONE`. */
+    /**
+     * Starts a new Shipping; Cargo aboard that the Home Harbor refused stays aboard beside it. Refused for an Incoming Ship and for a ship whose Active Shipping is not `DONE`.
+     */
     fun createNewShipping() {
         if (isIncoming) throw NewShippingRefusedException("$shipName must be unloaded or refused first")
 
@@ -68,6 +71,7 @@ class Ship(
     fun release(shippingQuote: ShippingQuote, destinationHarbor: HarborName) {
         val preparing = activeShipping?.takeIf { it.shippingState == ShippingState.PREPARING }
             ?: throw ShippingNotPreparingException("$shipName is not being prepared")
+        moveCargoAboardIntoLoadedCargo()
         preparing.release(shippingQuote, destinationHarbor)
     }
 
@@ -96,18 +100,24 @@ class Ship(
     }
 
     /**
-     * Refuses an Incoming Ship at [currentHarbor], which is not its Home Harbor: starts a new Shipping, moves
-     * every Cargo aboard into its Loaded Cargo, and clears the Cargo aboard and the Incoming flag together. The
-     * ship is then ready to be Released to its Home Harbor. Changes nothing when it is refused.
+     * Refuses an Incoming Ship at [currentHarbor]. At its Home Harbor it only stops being Incoming: the Cargo
+     * aboard stays aboard and no Shipping is started. Anywhere else it starts a new Shipping, moves every Cargo
+     * aboard into its Loaded Cargo, and clears the Cargo aboard and the Incoming flag together, so that the ship
+     * is ready to be Released to its Home Harbor. Changes nothing when it is refused.
      */
     fun refuse(currentHarbor: HarborName) {
         if (!isIncoming) throw ShipNotIncomingException("$shipName is not an Incoming Ship")
-        if (homeHarbor == currentHarbor) throw ShipAtItsHomeHarborException("$shipName is at its Home Harbor")
 
-        activeShipping = Shipping(ShippingId(UUID.randomUUID()))
-        cargoAboard.forEach { addCargo(it) }
-        cargoAboard = emptyList()
+        if (homeHarbor != currentHarbor) {
+            activeShipping = Shipping(ShippingId(UUID.randomUUID()))
+            moveCargoAboardIntoLoadedCargo()
+        }
         isIncoming = false
+    }
+
+    private fun moveCargoAboardIntoLoadedCargo() {
+        cargoLoad.addAll(cargoAboard)
+        cargoAboard = emptyList()
     }
 
     fun createSailorsCode(): SailorsCode {
@@ -140,7 +150,13 @@ class Ship(
 
     /** Unloads one instance of [cargo]; returns whether it was on board. The Current Weight changes only if it was. */
     fun removeCargo(cargo: Cargo): Boolean {
-        val loaded = cargoLoad.firstOrNull { it.id == cargo.id } ?: return false
+        val loaded = cargoLoad.firstOrNull { it.id == cargo.id }
+        if (loaded == null) {
+            if (cargoAboard.any { it.id == cargo.id }) {
+                throw RefusedCargoException("${cargo.name} aboard $shipName was refused here and can only be delivered to another Harbor")
+            }
+            return false
+        }
         cargoLoad.remove(loaded)
 
         if (currentWeight < cargo.weight) {
@@ -157,5 +173,5 @@ class Ship(
     val maxWeight: Float
         get() = MAX_WEIGHT
 
-    private fun calculateWeight() = cargoLoad.sumOf{ it.weight.toDouble() }.toFloat()
+    private fun calculateWeight() = (cargoLoad + cargoAboard).sumOf { it.weight.toDouble() }.toFloat()
 }

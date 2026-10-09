@@ -7,7 +7,8 @@ outbox. A ship Released to this Harbor arrives by itself: on consuming its Shipp
 backend takes it into the fleet with its Cargo aboard (an Incoming Ship), and writes Ship Arrived to the outbox.
 On the harbor management page the User unloads an Incoming Ship: the backend pays its Delivery Price from
 the Savings and puts its Cargo into the Stock. Or the User refuses it: nothing is paid, and the backend
-Releases it to its Home Harbor with its Cargo aboard.
+Releases it to its Home Harbor with its Cargo aboard, or, at its own Home Harbor, keeps it in the fleet with
+that Cargo aboard to be delivered to another Harbor.
 When it consumes Ship Arrived for a ship it Released, it sets that Shipping to `DONE` and the ship
 leaves its fleet.
 It does not publish to Kafka itself (Debezium does that), and it renders no UI.

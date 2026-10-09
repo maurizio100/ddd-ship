@@ -3,8 +3,8 @@ package com.sonicdevelopment.driving.adapter.web
 import com.sonicdevelopment.domain.exception.CargoHasNoPriceException
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
+import com.sonicdevelopment.domain.exception.RefusedCargoException
 import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
-import com.sonicdevelopment.domain.exception.ShipAtItsHomeHarborException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
@@ -47,8 +47,8 @@ class ProblemDetailsExceptionHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(ShipNotIncomingException::class)
     fun shipNotIncoming(exception: ShipNotIncomingException) = conflict("Not an Incoming Ship", exception)
 
-    @ExceptionHandler(ShipAtItsHomeHarborException::class)
-    fun shipAtItsHomeHarbor(exception: ShipAtItsHomeHarborException) = conflict("Ship at its Home Harbor", exception)
+    @ExceptionHandler(RefusedCargoException::class)
+    fun refusedCargo(exception: RefusedCargoException) = conflict("Refused Cargo", exception)
 
     private fun conflict(title: String, exception: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.message).apply { this.title = title }

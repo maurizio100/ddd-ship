@@ -1,7 +1,7 @@
 package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
-import com.sonicdevelopment.domain.exception.ShipAtItsHomeHarborException
+import com.sonicdevelopment.domain.exception.RefusedCargoException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
@@ -170,7 +170,7 @@ class ShipTest {
 
     @Test
     fun `a ship with Cargo aboard that is not Incoming can get a new Shipping`() {
-        // a ship refused by its own Home Harbor keeps its Cargo aboard as an ordinary ship (STORY-028)
+        // a ship refused by its own Home Harbor keeps its Cargo aboard as an ordinary ship
         val rum = aCargo(name = "Rum")
         val ship = anIdleShip(cargoAboard = listOf(rum, rum), incoming = false)
 
@@ -214,7 +214,7 @@ class ShipTest {
 
     @Test
     fun `a ship that is not Incoming cannot be unloaded and keeps its Cargo aboard`() {
-        // Cargo aboard without the flag: refused by its own Home Harbor (STORY-028)
+        // Cargo aboard without the flag: refused by its own Home Harbor
         val rum = aCargo(name = "Rum")
         val ship = anIdleShip(cargoAboard = listOf(rum), incoming = false)
 
@@ -271,17 +271,102 @@ class ShipTest {
     }
 
     @Test
-    fun `an Incoming Ship at its Home Harbor cannot be refused and changes nothing`() {
+    fun `an Incoming Ship refused at its Home Harbor is no longer Incoming, keeps its Cargo aboard and gets no Shipping`() {
         val rum = aCargo(name = "Rum")
-        val ship = anIdleShip(cargoAboard = listOf(rum), incoming = true)
+        val ship = anIdleShip(cargoAboard = listOf(rum, rum), incoming = true)
 
-        shouldThrow<ShipAtItsHomeHarborException> { ship.refuse(HarborName("Port Royal")) }
-            .message shouldBe "Salty Whisker is at its Home Harbor"
+        ship.refuse(HarborName("Port Royal"))
+
+        ship.isIncoming shouldBe false
+        ship.cargoAboard shouldBe listOf(rum, rum)
         ship.activeShipping shouldBe null
         ship.loadedCargo shouldBe emptyList()
-        ship.cargoAboard shouldBe listOf(rum)
-        ship.isIncoming shouldBe true
     }
+
+    @Test
+    fun `a ship that is not Incoming cannot be refused at its Home Harbor either`() {
+        val ship = anIdleShip(cargoAboard = listOf(aCargo(name = "Rum")), incoming = false)
+
+        shouldThrow<ShipNotIncomingException> { ship.refuse(HarborName("Port Royal")) }
+        ship.cargoAboard.size shouldBe 1
+    }
+
+    @Test
+    fun `a ship refused away from home keeps the weight of its Cargo, counted once`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val ship = anIdleShip(cargoAboard = listOf(rum, rum), incoming = true)
+        ship.weight shouldBe 11.0F
+
+        ship.refuse(HarborName("Tortuga"))
+
+        ship.weight shouldBe 11.0F
+    }
+
+    @Test
+    fun `the Current Weight counts the Cargo aboard and a load beyond the Max Weight is refused`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val ship = homeRefusedShip(rum, rum)
+        ship.weight shouldBe 11.0F
+
+        shouldThrow<ShipTooHeavyException> { ship.addCargo(aCargo(name = "Anvil", weight = 4.5F)) }
+        ship.loadedCargo shouldBe emptyList()
+
+        ship.addCargo(aCargo(name = "Silk", weight = 4.0F))
+        ship.weight shouldBe 15.0F
+    }
+
+    @Test
+    fun `a Cargo only aboard cannot be removed and nothing changes`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val ship = homeRefusedShip(rum, rum)
+
+        shouldThrow<RefusedCargoException> { ship.removeCargo(rum) }
+            .message shouldBe "Rum aboard Salty Whisker was refused here and can only be delivered to another Harbor"
+
+        ship.cargoAboard shouldBe listOf(rum, rum)
+        ship.weight shouldBe 11.0F
+    }
+
+    @Test
+    fun `a loaded Cargo that is also aboard is removed from the Loaded Cargo`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val ship = homeRefusedShip(rum)
+        ship.addCargo(rum)
+
+        ship.removeCargo(rum) shouldBe true
+
+        ship.loadedCargo shouldBe emptyList()
+        ship.cargoAboard shouldBe listOf(rum)
+        ship.weight shouldBe 5.5F
+    }
+
+    @Test
+    fun `a Cargo neither loaded nor aboard is still silently not removed`() {
+        val ship = homeRefusedShip(aCargo(name = "Rum"))
+
+        ship.removeCargo(aCargo(name = "Silk")) shouldBe false
+    }
+
+    @Test
+    fun `releasing a ship with Cargo aboard moves it into the Loaded Cargo`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val silk = aCargo(name = "Silk", weight = 1.0F)
+        val ship = homeRefusedShip(rum, rum)
+        ship.addCargo(silk)
+
+        ship.release(ShippingQuote("Fair winds"), HarborName("Tortuga"))
+
+        ship.loadedCargo shouldBe listOf(silk, rum, rum)
+        ship.cargoAboard shouldBe emptyList()
+        ship.weight shouldBe 12.0F
+        ship.shippingState() shouldBe ShippingState.SHIPPING
+    }
+
+    private fun homeRefusedShip(vararg cargo: Cargo) =
+        anIdleShip(cargoAboard = cargo.toList(), incoming = true).apply {
+            refuse(HarborName("Port Royal"))
+            createNewShipping()
+        }
 
     private fun anIdleShip(cargoAboard: List<Cargo> = emptyList(), incoming: Boolean = false) = Ship(
         name = "Salty Whisker",

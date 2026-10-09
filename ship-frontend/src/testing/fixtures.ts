@@ -36,6 +36,7 @@ export function aShip(overrides: Partial<Ship> = {}): Ship {
     name: 'Black Pearl',
     catain: 'Furry Jones',
     cargo: [],
+    cargoAboard: [],
     weight: 0,
     maxweight: 15,
     shippingState: ShippingState.PREPARING,

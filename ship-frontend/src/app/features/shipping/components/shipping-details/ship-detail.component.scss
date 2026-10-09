@@ -260,3 +260,38 @@
     max-height: 110px;
   }
 }
+
+.refused {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+
+  &__chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 6px;
+    border-radius: 9999px;
+    background: var(--hs-card);
+    color: var(--hs-ink);
+  }
+
+  &__picture {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  &__name {
+    font-weight: 600;
+  }
+
+  &__note {
+    margin: 0 0 16px;
+    font-style: italic;
+  }
+}

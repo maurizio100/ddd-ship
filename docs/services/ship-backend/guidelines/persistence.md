@@ -29,9 +29,10 @@
   always check the column type.
 - `ships_cargos` holds a ship's Loaded Cargo. Despite its name, its `ship_id` column references
   `shippings(id)`.
-- Cargo aboard a ship that has no Shipping (an Incoming Ship) goes in `ships_cargos_aboard`
+- Cargo aboard a ship that is not at sea (an Incoming Ship, or one its Home Harbor refused) goes in `ships_cargos_aboard`
   (`ship_id` references `ships(id)`), one row per Cargo instance, never in `ships_cargos`. `saveNewShip`
   replaces a ship's rows there in the same transaction as the ship row, and `delete` removes them first.
+  A Release moves them into `ships_cargos` and deletes them (`clearCargoAboard`) in its own transaction.
 - Every table has a primary key. A table that can hold the same pair twice gets a surrogate `id`
   (`ships_cargos` since V14, `ships_cargos_aboard` since V16), so every table has a replica identity
   whatever the Debezium publication covers. PostgreSQL rejects `DELETE` on a published table without one.
@@ -89,7 +90,8 @@
   followed by deleting its `ships_cargos_aboard` rows only when it updated a row. It runs in the caller's
   transaction (`Propagation.MANDATORY`). It is the last write of an unloading and the first write of a
   refusal, so 0 rows means a concurrent unloading or refusal won: the caller throws and its other writes
-  roll back. Never clear the flag with `saveNewShip` (read-modify-write).
+  roll back. A Home Harbor refusing its own ship uses `endIncoming`, the same `UPDATE` without deleting
+  the Cargo aboard rows. Never clear the flag with `saveNewShip` (read-modify-write).
 
 ## Arrivals
 

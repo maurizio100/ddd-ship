@@ -16,6 +16,7 @@ import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipManagementPort
+import com.sonicdevelopment.domain.ports.driving.harbor.RefusalDTO
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
@@ -31,6 +32,9 @@ import org.springframework.stereotype.Service
  * Shipping Published. The conditional step comes first so that, of a refusal and an unloading of the same ship,
  * only the one that clears it takes effect: a refusal that loses writes nothing, and an unloading that loses
  * rolls back. Nothing is paid and the Stock is not touched.
+ *
+ * A Home Harbor refusing its own ship only takes the conditional step [ShipRepositoryPort.endIncoming], which
+ * keeps the Cargo aboard: no Shipping, Cargo load, Release or Shipping Published is written.
  */
 @Service
 class IncomingShipManagementService(
@@ -67,9 +71,16 @@ class IncomingShipManagementService(
     }
 
     @Transactional
-    override fun refuseIncomingShip(shipId: ShipId): HarborName? {
+    override fun refuseIncomingShip(shipId: ShipId): RefusalDTO? {
         val ship = shipRepositoryPort.getShipDetails(shipId) ?: return null
         ship.refuse(currentHarbor)
+
+        if (ship.homeHarbor == currentHarbor) {
+            if (!shipRepositoryPort.endIncoming(ship.id)) {
+                throw ShipNotIncomingException("${ship.shipName} is not an Incoming Ship anymore")
+            }
+            return RefusalDTO(sailsTo = null)
+        }
 
         if (!shipRepositoryPort.unloadIncomingShip(ship.id)) {
             throw ShipNotIncomingException("${ship.shipName} is not an Incoming Ship anymore")
@@ -79,6 +90,6 @@ class IncomingShipManagementService(
         ship.release(quoteRepositoryPort.getQuoteForSailorsCode(ship.createSailorsCode()), ship.homeHarbor)
         shippingRepositoryPort.updateActiveShipping(ship)
         shippingOutboxRepository.broadcastShipping(ship, currentHarbor)
-        return ship.homeHarbor
+        return RefusalDTO(sailsTo = ship.homeHarbor)
     }
 }

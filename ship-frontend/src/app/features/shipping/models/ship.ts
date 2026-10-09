@@ -5,6 +5,8 @@ export interface Ship {
   name: string;
   catain: string;
   cargo: Cargo[];
+  /** Cargo this Harbor refused aboard its own ship: it cannot be unloaded here, and it sails with the next Release. */
+  cargoAboard: Cargo[];
   weight: number;
   maxweight: number;
   shippingState: ShippingState | null;
