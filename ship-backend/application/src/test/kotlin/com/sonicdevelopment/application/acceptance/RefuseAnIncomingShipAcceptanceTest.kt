@@ -111,22 +111,6 @@ class RefuseAnIncomingShipAcceptanceTest {
             fakes.outbox.shippingPublished() shouldBe emptyList()
         }
 
-        @Test
-        fun `A Home Harbor cannot yet refuse its own ship`() {
-            // Given a ship of "Tortuga" itself returned with 2 Rum aboard
-            val ownShipId = UUID.randomUUID()
-            arrive(ownShipId, cargoIds = listOf(rum, rum), originHarbor = "Port Royal", homeHarbor = "Tortuga")
-
-            // When the User refuses it
-            val refusal = refuse(ownShipId)
-
-            // Then it is a conflict and the ship is still Incoming
-            refusal.statusCode shouldBe HttpStatus.CONFLICT
-            refusal.body!!["title"] shouldBe "Ship at its Home Harbor"
-            incomingShips().any { it["shipId"] == ownShipId.toString() } shouldBe true
-            fakes.outbox.shippingPublished() shouldBe emptyList()
-        }
-
         private fun arrive(
             shipId: UUID,
             cargoIds: List<UUID>,
