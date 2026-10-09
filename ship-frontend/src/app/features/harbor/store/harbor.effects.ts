@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, concatMap, map, of, switchMap } from 'rxjs';
+import { catchError, concatMap, map, Observable, of, switchMap } from 'rxjs';
+import { Action } from '@ngrx/store';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
@@ -54,6 +55,10 @@ export class HarborEffects {
       ),
     ),
   );
+
+  loadIncomingShips$ = createEffect((): Observable<Action> => of());
+
+  watchArrivals$ = createEffect((): Observable<Action> => of());
 
   /** The backend owns the money: after a purchase the Stock and the Savings are read back, never computed here. */
   refreshAfterPurchase$ = createEffect(() =>
