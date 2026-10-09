@@ -36,7 +36,6 @@ class Ship(
         require(!incoming || cargoAboard.isNotEmpty()) { "An Incoming Ship has Cargo aboard" }
     }
 
-
     var shipName = name?.let { if(isValidName(it)) it else throw IllegalArgumentException() } ?: throw IllegalArgumentException()
         set(newShipName) {
             field = if(isValidName(newShipName)) newShipName else field

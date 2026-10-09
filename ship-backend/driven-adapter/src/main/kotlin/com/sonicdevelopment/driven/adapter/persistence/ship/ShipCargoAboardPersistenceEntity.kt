@@ -12,7 +12,7 @@ class ShipCargoAboardPersistenceEntity(
     @Column(name = "id")
     var id: Long? = null,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ship_id")
     var ship: ShipPersistenceEntity,
 
