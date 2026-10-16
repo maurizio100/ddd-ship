@@ -8,7 +8,7 @@ backend takes it into the fleet with its Cargo aboard (an Incoming Ship), and wr
 On the harbor management page the User unloads an Incoming Ship: the backend pays its Delivery Price from
 the Savings, puts its Cargo into the Stock, and adds the Delivery Price to the ship's Earnings (or, at the
 ship's own Home Harbor, puts it back into the Savings at once); the Earnings travel with the ship in
-Shipping Published. Or the User refuses it: nothing is paid, and the backend
+Shipping Published; when the ship arrives at its Home Harbor, its Earnings go into the Savings. Or the User refuses it: nothing is paid, and the backend
 Releases it to its Home Harbor with its Cargo aboard, or, at its own Home Harbor, keeps it in the fleet with
 that Cargo aboard to be delivered to another Harbor.
 When it consumes Ship Arrived for a ship it Released, it sets that Shipping to `DONE` and the ship

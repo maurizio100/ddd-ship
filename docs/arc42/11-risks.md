@@ -23,3 +23,10 @@ decisions** — each needs a call from the project owner (fix, accept, or turn i
 | R-14 | Debt | Weight is a binary float while money is an exact decimal (ADR-0008). | `Cargo.weight`, `Ship.currentWeight` | Two numeric conventions in one model; Weight sums can drift in the last digit. |
 | R-15 | Debt | Catain Images are not in the repository: Compose and k8s only create the bucket, the images were uploaded by hand, and Catain Purrbossa's image id points at no image. | `V3__catains.sql`, `k8s/21-minio.yaml` | A new Harbor shows no Catain Images; STORY-017 fixes it. |
 | R-16 | Risk | The Crew rides with the ship and Recruit Pools differ per Harbor: a lost or stranded ship takes its Crew with it, every Harbor keeps copies of foreign Crew Members, and `shipping-published` grows with the Crew. | [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md) | Accepted as part of the game, like R-13. Recruit images, if any, have no shared source (cf. R-15). |
+
+## High-risk areas
+
+- **Arrival handling** (`ArrivalManagementService.receiveShippingPublished`): it consumes an at-least-once
+  Kafka event and moves money (Earnings into the Savings). Every state change must stay after the inbox and
+  `arrivals` guards and inside the one transaction with the Ship Arrived outbox row; a write moved above a
+  guard credits the Savings twice on redelivery or re-publication.
