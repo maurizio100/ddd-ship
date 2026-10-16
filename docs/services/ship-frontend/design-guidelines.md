@@ -60,8 +60,8 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
   navigation pills (Fleet; Harbor once the harbor management page exists).
 - **Page header** — italic `muted` kicker line above an IM Fell English heading.
 - **Fleet** — a responsive grid of ship cards: ship picture, status chip (In port / Preparing / At
-  sea), the Catain portrait in a brass ring overlapping the picture, Ship Name, "under <Catain>",
-  "Home Harbor <Harbor>", "Arrived from <Harbor>" when set, and the card's actions. Arrival notices are an `ink` bar with a
+  sea), the Catain portrait in a brass ring overlapping the picture, Ship Name, "under `<Catain>`",
+  "Home Harbor `<Harbor>`", "Arrived from `<Harbor>`" when set, and the card's actions. Arrival notices are an `ink` bar with a
   dismiss button above the grid.
 - **Create ship** — Ship Name field, then the Catain grid as radio cards with large portraits; the
   selected Catain is lifted, framed in `oxblood` and badged. It stays a real radio group.
