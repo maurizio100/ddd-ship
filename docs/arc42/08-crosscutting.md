@@ -19,7 +19,7 @@ Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-rec
 - Binary data (Catain Images) lives in MinIO, not in the database.
 - Each Harbor's **Stock** lives in its own database, in `stocks` (one row per catalog Cargo). `V7__stocks.sql` seeds the Starting Stock (3 of every Cargo); Flyway applies it once per database, i.e. when the Harbor opens for the first time. The Stock is changed only through `StockRepositoryPort`, inside the caller's transaction, and never drops below 0 (a conditional `UPDATE … WHERE stock_quantity > 0` backed by a `CHECK` constraint). It is not published.
 - Each Harbor also has an inbox of consumed event ids in `inbox_events` (`V5`, [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and its Known Harbors in `known_harbors` (`V6`, [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
-- **Money** (decided, not built, EPIC-003, [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): dollars to two decimals, an exact decimal in the domain, `NUMERIC(…, 2)` in PostgreSQL and a decimal string in event JSON, never a binary float. Each Harbor's **Savings** (Starting Savings 1000.00 $) change only through a port inside the caller's transaction and never drop below 0, like the Stock. **Prices** are per Harbor: rolled once when the Harbor first opens (whole dollars, 30.00 $ to 60.00 $, decided 2026-10-07, STORY-024) and kept; a Delivery Price uses the paying Harbor's Prices. A ship's Earnings and Home Harbor are stored with the ship and travel in `shipping-published`.
+- **Money** (built by STORY-024, EPIC-003, [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): dollars to two decimals, an exact decimal in the domain, `NUMERIC(…, 2)` in PostgreSQL and a decimal string in event JSON, never a binary float. In REST JSON money is a decimal string with two decimals, never a JSON number (see [api-design.md](../services/ship-backend/guidelines/api-design.md)). Each Harbor's **Savings** (Starting Savings 1000.00 $) change only through a port inside the caller's transaction and never drop below 0, like the Stock. **Prices** are per Harbor: rolled once when the Harbor first opens (whole dollars, 30.00 $ to 60.00 $, decided 2026-10-07, STORY-024) and kept; a Delivery Price uses the paying Harbor's Prices. A ship's Earnings and Home Harbor are stored with the ship and travel in `shipping-published`.
 - **Crew** (decided, not built, [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): each Harbor's **Recruit Pool** is runtime data filled at that Harbor, not a migration seed, and differs between Harbors by design — one of two exceptions to identical seeds, together with the Prices; the Cargo catalog and Catain roster keep that rule. A ship's Crew is stored with the ship, travels in `shipping-published`, and is replaced, not merged, when the ship arrives. The **Hiring Fee** follows the Money rules above.
 
 ## 8.3 Transactions and event publication
@@ -27,7 +27,7 @@ Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-rec
 `ShippingManagementService.releaseShipping` (`@Transactional`) commits the shipping state change and
 the `shipping_outbox` insert together. `CargoLoadManagementService.addCargo` and `removeCargo` are
 transactional too: a load takes one Cargo out of the Stock and an unload of Loaded Cargo puts one back,
-in the same transaction as the cargo load, so a rejected load (Max Weight, already loaded, out of
+in the same transaction as the cargo load, so a rejected load (Max Weight, out of
 Stock) rolls back and leaves the Stock unchanged. Publication to Kafka is
 asynchronous and at-least-once via Debezium; consumers must tolerate duplicates.
 See [ADR-0002](../adr/0002-transactional-outbox-via-debezium.md).
@@ -37,11 +37,15 @@ a second kind of transaction boundary is the handling of a consumed event. The i
 change and any outbox row it causes (for example `ship-arrived`) commit together; an event id already
 in the inbox is skipped, so redelivery has no effect.
 
-Decided, not built (EPIC-003, [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md),
-[ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): unloading an Incoming Ship and buying at
-the Market are REST-driven transactions that change the Stock and the Savings together; a refusal
-writes the return `shipping-published` outbox row in the same transaction. Crediting Earnings at the
-Home Harbor happens inside the Arrival's inbox transaction.
+Buying at the Market (STORY-025) is a REST-driven transaction that pays from the Savings with one
+conditional update and puts the Cargo into the Stock; a purchase the Savings cannot cover writes nothing.
+Unloading an Incoming Ship (STORY-045, [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md))
+is a REST-driven transaction that changes the Savings, the Stock and the ship together in the same way,
+clearing the ship last with a conditional update. Refusing an Incoming Ship
+([ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md)) clears the ship first with the same
+conditional update, then writes the return Shipping and its `shipping-published` outbox row in the same
+transaction; of an unloading and a refusal of the same ship only one takes effect. Decided, not built:
+crediting Earnings at the Home Harbor happens inside the Arrival's inbox transaction ([ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)).
 
 Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): Hiring a Recruit is a REST-driven transaction that takes the Hiring Fee from
 the Savings and adds the Crew Member together (6.8). Storing an arriving ship's Crew happens inside the
@@ -57,7 +61,7 @@ events ([ADR-0006](../adr/0006-push-fleet-changes-to-the-frontend-with-server-se
 
 - One global handler, `ProblemDetailsExceptionHandler` (`@RestControllerAdvice` in `driving-adapter`), renders errors as RFC 9457 Problem Details (`application/problem+json`).
 - Missing resources: driving adapters map `null` from a port to `404` (`ResponseStatusException`, "Unable to find resource"), rendered as Problem Details.
-- Cargo loading rule violations (`ShipTooHeavyException`, `ItemAlreadyLoadedException`, `CargoOutOfStockException`) propagate from the domain and are answered with `409`; `detail` is the exception's message in domain language. A load without `cargoId` is a `400`.
+- Cargo loading rule violations (`ShipTooHeavyException`, `CargoOutOfStockException`) propagate from the domain and are answered with `409`; `detail` is the exception's message in domain language. A load without `cargoId` is a `400`.
 - Other violations (`IllegalArgumentException` / `IllegalStateException`, e.g. a second Shipping, unknown Catain) are not mapped yet and surface as `500`.
 
 ## 8.5 Configuration

@@ -53,7 +53,8 @@ class ShipsCargosPrimaryKeyMigrationTest {
     }
 
     private fun migrateToLatest(dataSource: DataSource) {
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate()
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration")
+            .placeholders(mapOf("harbor_name" to "Test Harbor")).load().migrate()
     }
 
     /** A new database migrated up to V11, the schema the live Harbors had before `ships_cargos` got its key. */
@@ -64,7 +65,8 @@ class ShipsCargosPrimaryKeyMigrationTest {
         val dataSource = DriverManagerDataSource(
             postgres.jdbcUrl.replaceAfterLast("/", databaseName), postgres.username, postgres.password
         )
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("11").load().migrate()
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration")
+            .placeholders(mapOf("harbor_name" to "Test Harbor")).target("11").load().migrate()
         return dataSource
     }
 }

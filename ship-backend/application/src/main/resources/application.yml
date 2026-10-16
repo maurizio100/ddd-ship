@@ -1,4 +1,8 @@
 spring:
+  flyway:
+    placeholders:
+      # This Harbor's name, for migrations that backfill it (V17).
+      harbor_name: ${harbor.name}
   datasource:
     url: jdbc:postgresql://hexagonship-db-postgres:5432/hexagonship
     username: hexagonship_user

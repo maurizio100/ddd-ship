@@ -110,5 +110,41 @@ describe('CargosComponent', () => {
       expect(shippingService.unloadCargo).toHaveBeenCalledWith(ship, loaded);
       expect(shipUpdates).toEqual([updated]);
     });
+
+    it('renders two chips for the same Cargo id without a duplicate-track error', () => {
+      spyOn(console, 'warn');
+      const loaded = aCargo({ id: 'rum', name: 'Rum' });
+      const ship = aShip({ cargo: [loaded], weight: 5.5 });
+      render(ship, true);
+      expect(all('loaded-cargo').length).toBe(1);
+
+      // The ship's cargo array is mutated in place, as ship-detail.component does after a load; the
+      // same Cargo id now appears twice, which a `track cargo.id` list cannot tell apart on update.
+      ship.cargo.push(loaded);
+      fixture.detectChanges();
+
+      const chips = all('loaded-cargo');
+      expect(chips.length).toBe(2);
+      expect(chips.map((c) => within(c, 'cargo-name').textContent!.trim())).toEqual(['Rum', 'Rum']);
+      expect(console.warn).not.toHaveBeenCalledWith(jasmine.stringMatching('NG0955'));
+    });
+
+    it('unloading one of several loaded instances of the same Cargo removes only one chip', () => {
+      const loaded = aCargo({ id: 'rum', name: 'Rum' });
+      const ship = aShip({ cargo: [loaded, loaded], weight: 11 });
+      const updated = aShip({ cargo: [loaded], weight: 5.5 });
+      shippingService.unloadCargo.and.returnValue(of(updated));
+      const component = render(ship, true);
+      const shipUpdates: Ship[] = [];
+      component.shipUpdated.subscribe((s) => shipUpdates.push(s));
+
+      const chips = all('loaded-cargo');
+      expect(chips.length).toBe(2);
+      const remove = chips[0].querySelector('button') as HTMLButtonElement;
+      remove.click();
+
+      expect(shippingService.unloadCargo).toHaveBeenCalledWith(ship, loaded);
+      expect(shipUpdates).toEqual([updated]);
+    });
   });
 });

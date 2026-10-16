@@ -126,8 +126,8 @@ paths:
         '409':
           description: >-
             The load is rejected and neither the ship nor the Stock changes: the ship would exceed its
-            Max Weight (title "Ship too heavy"), the Cargo is already loaded (title "Cargo already loaded"),
-            or the Harbor's Stock holds none of it (title "Cargo out of Stock"). `detail` names the Cargo.
+            Max Weight (title "Ship too heavy"), or the Harbor's Stock holds none of it (title "Cargo out
+            of Stock"). `detail` names the Cargo.
           content:
             application/problem+json:
               schema:
@@ -160,6 +160,14 @@ paths:
                 $ref: '#/components/schemas/ShipDetailResponse'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            The Cargo is aboard but was refused by this Harbor, the ship's Home Harbor (title "Refused Cargo"):
+            it can only be delivered to another Harbor. Nothing changes.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /web/ships/{shipId}/shippings/{shippingId}:
     parameters:
@@ -210,11 +218,21 @@ paths:
                 $ref: '#/components/schemas/ShippingResponse'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            The new Shipping is refused (title "New Shipping refused"): the ship is an Incoming Ship
+            (`detail` "<Ship Name> must be unloaded or refused first"), or it already has an Active Shipping
+            (`detail` "<Ship Name> already has an Active Shipping"). Nothing is written.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
     put:
       summary: Release a shipping to a Destination Harbor
       description: >-
         Releases the ship's Shipping to the Destination Harbor, which must be one of this Harbor's Known
-        Harbors (`GET /web/harbors`). The Shipping Published event names this Harbor as Origin Harbor.
+        Harbors (`GET /web/harbors`). The Shipping Published event names this Harbor as Origin Harbor. Cargo
+        aboard the ship (refused by this Harbor, its Home Harbor) sails as Loaded Cargo and is no longer aboard.
       operationId: releaseShipping
       tags: [Shippings]
       requestBody:
@@ -266,6 +284,22 @@ paths:
                 items:
                   $ref: '#/components/schemas/AvailableCargoResponse'
 
+  /web/stock:
+    get:
+      summary: Get the Stock of this Harbor
+      description: Every catalog Cargo with the quantity this Harbor's Stock holds, including Cargo with Stock 0, and its Price at this Harbor.
+      operationId: getStock
+      tags: [Stock]
+      responses:
+        '200':
+          description: The whole catalog with quantities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StockedCargo'
+
   /web/catains:
     get:
       summary: Get all captains
@@ -314,6 +348,154 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KnownHarbors'
+
+  /web/savings:
+    get:
+      summary: Get the Savings of this Harbor
+      description: The money this Harbor holds. A Harbor opens for the first time with Starting Savings of 1000.00.
+      operationId: getSavings
+      tags: [Harbors]
+      responses:
+        '200':
+          description: The Savings of this Harbor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Savings'
+
+  /web/incoming-ships:
+    get:
+      summary: List the Incoming Ships of this Harbor
+      description: >-
+        The ships in this Harbor's fleet that arrived with Cargo aboard and are not yet unloaded or refused,
+        each with its Cargo aboard and its Delivery Price, computed from this Harbor's Prices when the list
+        is read. A ship that arrived with no Cargo is not an Incoming Ship.
+      operationId: getIncomingShips
+      tags: [Harbors]
+      responses:
+        '200':
+          description: The Incoming Ships, possibly none
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IncomingShip'
+
+  /web/incoming-ships/{shipId}/unloading:
+    post:
+      summary: Unload an Incoming Ship and pay its Delivery Price
+      description: >-
+        In one transaction the Harbor pays the ship's Delivery Price from its Savings, every Cargo aboard
+        goes into its Stock, and the ship is no longer an Incoming Ship, with no Cargo aboard. A refused
+        unloading changes nothing. Read the new Incoming Ships, Stock and Savings from
+        `/web/incoming-ships`, `/web/stock` and `/web/savings`.
+      operationId: unloadIncomingShip
+      tags: [Harbors]
+      parameters:
+        - name: shipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: The ship was unloaded and its Delivery Price paid
+        '404':
+          description: Ship not found in this Harbor's fleet
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The unloading is refused and nothing changes: the ship is not an Incoming Ship, or no longer
+            one (title "Not an Incoming Ship"), a Cargo aboard has no Price yet (title "Cargo has no
+            Price"), or the Savings do not cover the Delivery Price (title "Savings do not cover", e.g.
+            `detail` "The Savings do not cover the Delivery Price of 115.00 $").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /web/incoming-ships/{shipId}/refusal:
+    post:
+      summary: Refuse an Incoming Ship; it sails back to its Home Harbor, or stays when this is its Home Harbor
+      description: >-
+        In one transaction the ship is no longer an Incoming Ship. Away from its Home Harbor it is Released to
+        its Home Harbor on a new Shipping that carries every Cargo aboard as its Loaded Cargo; its Shipping
+        Published names this Harbor as Origin Harbor. At its Home Harbor it stays in the fleet with its Cargo
+        aboard (`cargoAboard` of `/web/ships/{shipId}`), nothing is published, and that Cargo can only be
+        delivered to another Harbor. Nothing is paid and the Stock is unchanged, whether or not the Savings could
+        cover the Delivery Price. The ship is shown at sea in `/web/ships` until its Home Harbor answers with
+        Ship Arrived, then it leaves this Harbor's fleet. Read the new Incoming Ships from `/web/incoming-ships`.
+      operationId: refuseIncomingShip
+      tags: [Harbors]
+      parameters:
+        - name: shipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: The ship sails to its Home Harbor, or stays in this fleet when this is its Home Harbor, with its Cargo aboard; nothing was paid
+        '404':
+          description: Ship not found in this Harbor's fleet
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The refusal is refused and nothing changes: the ship is not an Incoming Ship, or no longer one
+            (title "Not an Incoming Ship").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /web/market/purchases:
+    post:
+      summary: Buy Cargo at the Market
+      description: >-
+        Buys `quantity` of the Cargo at its Price: the Harbor pays Price × quantity from its Savings and
+        the Cargo goes into its Stock, in one transaction. Read the new Stock and Savings from
+        `/web/stock` and `/web/savings`.
+      operationId: buyCargo
+      tags: [Harbors]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+      responses:
+        '204':
+          description: The Cargo was bought
+        '400':
+          description: cargoId is missing, or quantity is missing, not a whole number or below 1
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Cargo not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The purchase is refused and neither the Stock nor the Savings change: the Savings do not
+            cover Price × quantity (title "Savings do not cover", `detail` names the cost, e.g. "The
+            Savings do not cover 100.00 $"), or the Cargo has no Price yet (title "Cargo has no Price").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /web/fleet-events:
     get:
@@ -380,6 +562,19 @@ components:
           type: string
           format: uuid
 
+    PurchaseRequest:
+      type: object
+      required: [cargoId, quantity]
+      properties:
+        cargoId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 2
+
     ReleaseShippingRequest:
       type: object
       required: [destinationHarbor]
@@ -390,6 +585,7 @@ components:
 
     ShipOverviewResponse:
       type: object
+      required: [homeHarbor, earnings]
       properties:
         id:
           type: string
@@ -405,9 +601,22 @@ components:
           type: string
           nullable: true
           description: Harbor Name of the Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here
+        homeHarbor:
+          type: string
+          nullable: false
+          description: Harbor Name of the Harbor where the ship was registered; never changes
+        incoming:
+          type: boolean
+          description: Whether the ship is an Incoming Ship; it cannot start a new Shipping until it is unloaded or refused
+        earnings:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "80.00"
+          description: The Earnings the ship carries until it reaches its Home Harbor, a decimal string with two decimals; "0.00" for none
 
     ShipDetailResponse:
       type: object
+      required: [homeHarbor]
       properties:
         id:
           type: string
@@ -418,6 +627,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CargoResponse'
+        cargoAboard:
+          type: array
+          items:
+            $ref: '#/components/schemas/CargoResponse'
+          description: >-
+            One entry per Cargo instance refused by this Harbor, the ship's Home Harbor; it cannot be unloaded
+            while preparing and becomes Loaded Cargo on Release
         weight:
           type: number
           format: float
@@ -430,6 +646,10 @@ components:
           type: string
           nullable: true
           description: Harbor Name of the Origin Harbor of the ship's latest Arrival at this Harbor; null for a ship registered here
+        homeHarbor:
+          type: string
+          nullable: false
+          description: Harbor Name of the Harbor where the ship was registered; never changes
 
     CargoResponse:
       type: object
@@ -459,6 +679,65 @@ components:
           type: integer
           minimum: 1
           description: How many of this Cargo the Harbor's Stock holds
+
+    StockedCargo:
+      type: object
+      required: [cargoId, name, quantity, price]
+      properties:
+        cargoId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        quantity:
+          type: integer
+          minimum: 0
+          description: How many of this Cargo the Harbor's Stock holds, 0 included
+        price:
+          type: string
+          nullable: true
+          pattern: '^\d+\.\d{2}$'
+          example: '42.00'
+          description: >-
+            The Price of this Cargo at this Harbor in dollars, as a decimal string with two decimals, never a
+            JSON number. `null` only before the Harbor's first opening has rolled one.
+
+    IncomingShip:
+      type: object
+      required: [shipId, name, arrivedFrom, cargo, deliveryPrice]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        arrivedFrom:
+          type: string
+          nullable: true
+          description: Harbor Name of the Origin Harbor the ship arrived from
+        cargo:
+          type: array
+          description: The Cargo aboard, one entry per Cargo instance (2 Rum are two entries)
+          items:
+            $ref: '#/components/schemas/CargoResponse'
+        deliveryPrice:
+          type: string
+          nullable: true
+          pattern: '^\d+\.\d{2}$'
+          example: '115.00'
+          description: >-
+            The Delivery Price in dollars: the sum of this Harbor's Prices of every Cargo aboard, as a decimal
+            string with two decimals, never a JSON number. `null` while a Cargo aboard has no Price here.
+
+    Savings:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '1000.00'
+          description: The Savings in dollars, as a decimal string with two decimals, never a JSON number
 
     ProblemDetail:
       type: object

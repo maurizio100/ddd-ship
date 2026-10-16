@@ -10,8 +10,21 @@ data. It never calls ship-backend and has no database.
 - **Building block:** ship-terminal ([05-building-blocks.md](../../arc42/05-building-blocks.md), Level 1)
 - **Code lives in:** `ship-terminal/`
 - **Tech:** Kotlin 2.1 (plain JVM app, no Spring), kafka-clients, Jackson, Maven
-- **Build & test:** `cd ship-terminal && mvn test`
+- **Build & test:** see *How to run* below
 - **Talks to:** Kafka (topic `hexagonship-shipping`, group `ship-terminal`)
+
+## How to run
+
+From `ship-terminal/` (JDK 17 or later and a local Maven; there is no wrapper). These are the commands the
+delivery agents run.
+
+| Task | Command |
+|---|---|
+| Build | `mvn package` |
+| All tests | `mvn test` |
+| One test class | `mvn -q test -Dtest=<TestClass>` |
+| Lint | none configured |
+| Start | `mvn -q compile exec:java -Dexec.mainClass=org.example.MainKt` (consumes from Kafka at `localhost:9094`, so start `docker-compose-kafka.yml` first) |
 
 ## Documents in this folder
 

@@ -1,5 +1,6 @@
 package com.sonicdevelopment.application
 
+import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.core.ConsumerFactory
+import java.math.BigDecimal
 import java.util.*
 
 @SpringBootTest(
@@ -43,6 +45,9 @@ class ShipBackendStartupTest {
 
     @Autowired
     lateinit var listenerRegistry: KafkaListenerEndpointRegistry
+
+    @Autowired
+    lateinit var harborManagementPort: HarborManagementPort
 
     @Test
     fun `starts and reports ready without a reachable Kafka`() {
@@ -83,4 +88,51 @@ class ShipBackendStartupTest {
         flyway.info().applied().map { it.version.version } shouldContain "6"
         jdbcTemplate.queryForObject("SELECT to_regclass('public.known_harbors') IS NOT NULL", Boolean::class.java) shouldBe true
     }
+
+    @Test
+    fun `rolls a Price for every Cargo on startup`() {
+        val cargos = jdbcTemplate.queryForObject("SELECT count(*) FROM cargos", Long::class.java)
+        val prices = jdbcTemplate.queryForMap("SELECT count(*) AS n, count(DISTINCT cargo_id) AS cargos FROM prices")
+        val amounts = jdbcTemplate.queryForList("SELECT price_amount FROM prices", BigDecimal::class.java)
+
+        prices["n"] shouldBe cargos
+        prices["cargos"] shouldBe cargos
+        amounts.forEach {
+            it.remainder(BigDecimal.ONE).signum() shouldBe 0
+            (it >= BigDecimal(30) && it <= BigDecimal(60)) shouldBe true
+        }
+    }
+
+    @Test
+    fun `opening again keeps the Prices and the Savings`() {
+        val outboxBefore = jdbcTemplate.queryForList("SELECT message_id FROM shipping_outbox", UUID::class.java)
+        try {
+            jdbcTemplate.update("UPDATE savings SET savings_amount = 640.50")
+            val pricesBefore = allPrices()
+
+            // A restart: Flyway migrates, then the Harbor opens again
+            flyway.migrate()
+            harborManagementPort.openHarbor()
+
+            allPrices() shouldBe pricesBefore
+            jdbcTemplate.queryForObject("SELECT savings_amount FROM savings", BigDecimal::class.java) shouldBe
+                BigDecimal("640.50")
+        } finally {
+            // Leave the startup state for the other tests: the Starting Savings and only the startup's Harbor Opened
+            jdbcTemplate.update("UPDATE savings SET savings_amount = 1000.00")
+            jdbcTemplate.queryForList("SELECT message_id FROM shipping_outbox", UUID::class.java)
+                .filterNot { it in outboxBefore }
+                .forEach { jdbcTemplate.update("DELETE FROM shipping_outbox WHERE message_id = ?", it) }
+        }
+    }
+
+    @Test
+    fun `migrates the Starting Savings`() {
+        flyway.info().applied().map { it.version.version } shouldContain "15"
+        jdbcTemplate.queryForList("SELECT savings_amount FROM savings", BigDecimal::class.java) shouldBe
+            listOf(BigDecimal("1000.00"))
+    }
+
+    private fun allPrices(): List<Map<String, Any>> =
+        jdbcTemplate.queryForList("SELECT cargo_id, price_amount FROM prices ORDER BY cargo_id")
 }

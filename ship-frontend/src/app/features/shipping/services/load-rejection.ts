@@ -11,8 +11,6 @@ export function loadRejectionMessage(error: HttpErrorResponse, cargo: Cargo, max
   switch (error.error?.title) {
     case 'Ship too heavy':
       return `${cargo.name} would exceed the Max Weight of ${maxWeight.toFixed(1)}`;
-    case 'Cargo already loaded':
-      return `${cargo.name} is already loaded`;
     case 'Cargo out of Stock':
       return `${cargo.name} is out of Stock`;
     default:

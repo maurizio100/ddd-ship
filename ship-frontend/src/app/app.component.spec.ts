@@ -16,7 +16,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideMaterialSymbols(),
-        provideRouter([{path: 'ships', children: []}, {path: 'ships/:id/cargo', children: []}]),
+        provideRouter([{path: 'ships', children: []}, {path: 'ships/:id/cargo', children: []}, {path: 'harbor', children: []}]),
         {provide: HarborNameService, useValue: {getHarborName: () => harborName}}
       ]
     }).compileComponents();
@@ -31,11 +31,23 @@ describe('AppComponent', () => {
     expect(byTestId('wordmark')?.textContent?.trim()).toBe('Hexagonship');
   });
 
-  it('shows a Fleet navigation link to the ships list and no Harbor entry', () => {
+  it('shows a Fleet navigation link to the ships list', () => {
     const fleet = byTestId('nav-fleet') as HTMLAnchorElement;
     expect(fleet.textContent?.trim()).toBe('Fleet');
     expect(fleet.getAttribute('href')).toBe('/ships');
-    expect(fixture.nativeElement.querySelector('nav')?.textContent).not.toContain('Harbor');
+  });
+
+  it('shows a Harbor navigation link to the harbor page', () => {
+    const harbor = byTestId('nav-harbor') as HTMLAnchorElement;
+    expect(harbor.textContent?.trim()).toBe('Harbor');
+    expect(harbor.getAttribute('href')).toBe('/harbor');
+  });
+
+  it('marks the Harbor pill active on the harbor route', async () => {
+    await TestBed.inject(Router).navigateByUrl('/harbor');
+    fixture.detectChanges();
+    expect(byTestId('nav-harbor')?.classList).toContain('active');
+    expect(byTestId('nav-fleet')?.classList).not.toContain('active');
   });
 
   it('marks the Fleet pill active on the ships list route', async () => {

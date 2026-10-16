@@ -1,55 +1,64 @@
 # Context: Shipping
 
-The voyage of a ship. A ship gets a new Shipping, is prepared (loaded), and is then Released: it
-receives a Sailors Code and a Shipping Quote, puts to sea, and its departure is announced to the rest
-of the world as a Shipping Published event.
+The voyage of a ship. A ship gets a new Shipping, is prepared (loaded), and is then Released to a
+Destination Harbor: it receives a Sailors Code and a Shipping Quote, puts to sea, and its departure is
+announced to the rest of the world as a Shipping Published event. Each ship-backend instance is one
+Harbor; the Destination Harbor handles the Arrival and answers with Ship Arrived, which ends the
+voyage at the Origin Harbor.
 
 Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the folder beside this file.
 
+## Strategic classification
+- **Domain:** Core — the voyage between Harbors and its events are what the project exists to try out (outbox, Kafka, at-least-once delivery).
+- **Business model:** Engagement — Releasing a ship and seeing it arrive elsewhere is the heart of the game.
+- **Evolution:** Custom built — built for Hexagonship; still extended by each epic.
+
 ## Participants
-- User — starts a new shipping for a ship and Releases it ("Start Journey" was the former UI label, replaced by Release in STORY-021).
-- Kafka (via the transactional outbox and Debezium) — carries the Shipping Published event out.
+- User — starts a new Shipping for a ship, Releases it, and refuses Incoming Ships.
+- Kafka (via the transactional outbox and Debezium) — carries Harbor Opened, Shipping Published and Ship Arrived between Harbors.
 
 ## Behaviour
-- Create a new Shipping for a ship; allowed only when it has no Active Shipping or the previous one is `DONE` (`Ship.createNewShipping`). The new Shipping starts in `PREPARING`.
-- Release the Active Shipping to a Destination Harbor: the User picks it from the Known Harbors, and a Harbor that is not one of them is rejected before anything changes (the ship is still being prepared). A Harbor with no Known Harbors offers no choice, so its ships cannot be Released. A ship can only be Released while its Shipping is `PREPARING`: a ship already at sea (or without a Shipping) is rejected with `ShippingNotPreparingException` before anything is written, so one Shipping is published once. Otherwise derive a Sailors Code from the Current Weight and the current minute, look up the matching Shipping Quote, set the state to `SHIPPING` with the Destination Harbor, and write a Shipping Published event naming the current Harbor as Origin Harbor and the Destination Harbor to the outbox in the same transaction (`ShippingManagementService.releaseShipping`). *Built by STORY-005.*
-- Show the Shipping Summary after release: "{ship} left the harbor together with {Catain}!", bound for the Destination Harbor, plus the Sailors Code; the ships list then shows "{ship} is at sea".
-- End the voyage: when the Origin Harbor learns from Ship Arrived that its ship has arrived, the Shipping becomes `DONE` and the ship leaves the Origin Harbor's fleet (`ArrivalManagementService.receiveShipArrived`). The ship's record and its Shippings are kept, so the Shipping stays readable as `DONE`. *Built by STORY-007.*
-- ⚠ needs review: the Sailors Code is `mod 14` (0–13) while 15 Shipping Quotes are seeded (0–14); the last quote is unreachable.
-
-### Planned: voyages between Harbors (harbor-voyages ideation, 2026-10-03)
-Not implemented yet unless marked as built. Each ship-backend instance is one Harbor; ships sail from one Harbor to another.
 - On startup a Harbor publishes Harbor Opened with its Harbor Name; every Harbor keeps the Known Harbors it has heard of.
-- Release names a Destination Harbor — one of the Known Harbors, not the current one. Shipping Published carries the Origin Harbor and the Destination Harbor. *Built by STORY-005.*
-- Arrival: the Destination Harbor receives the Shipping Published addressed to it and, without a User action, unloads the ship's Cargo into its Stock (Unloading on Arrival, CargoLoading) and takes the ship into its fleet (Fleet). It then publishes Ship Arrived. *Built by STORY-006* (the Destination side; the Origin side below by STORY-007).
-- The Origin Harbor receives Ship Arrived, sets the Shipping to `DONE` and removes the ship from its fleet. Only the ship's Active Shipping with the reported Shipping id, still at sea, ends, so a late Ship Arrived never ends a later voyage. The ship's row is kept as history. *Built by STORY-007.*
-- A return trip is an ordinary new Shipping at the Destination Harbor, Released back to the former Origin Harbor (or anywhere else). *Built by STORY-007* (the former Origin Harbor takes the same Ship Id back into its fleet).
-- Events are delivered at least once: a repeated Shipping Published must not unload Cargo twice (*built by STORY-006*), and a repeated Ship Arrived must not fail (*built by STORY-007*).
+- Create a new Shipping for a ship; it starts in `PREPARING`.
+- Release the Active Shipping to a Destination Harbor the User picks from the Known Harbors. A Harbor with no Known Harbors offers no choice, so its ships cannot be Released. Releasing derives a Sailors Code from the Current Weight and the current minute, looks up the matching Shipping Quote, sets the state to `SHIPPING` with the Destination Harbor, and writes Shipping Published, naming this Harbor as Origin Harbor, to the outbox in the same transaction.
+- Show the Shipping Summary after release: "{ship} left the harbor together with {Catain}!", bound for the Destination Harbor, plus the Sailors Code; the ships list then shows "{ship} is at sea".
+- Arrival: the Destination Harbor receives the Shipping Published addressed to it and, without a User action, takes the ship into its fleet (Fleet) with its Cargo still aboard, as an Incoming Ship if it carries any, and publishes Ship Arrived.
+- End the voyage: when the Origin Harbor learns from Ship Arrived that its ship has arrived, the Shipping becomes `DONE` and the ship leaves the Origin Harbor's fleet. The Shipping stays readable as `DONE`.
+- A return trip is an ordinary new Shipping at the Destination Harbor, Released back to the former Origin Harbor (or anywhere else).
+- Refuse an Incoming Ship away from its Home Harbor, whether or not the Savings could pay its Delivery Price: nothing is paid and the Stock is unchanged. In one transaction the ship stops being Incoming, gets a new Shipping with its Cargo aboard as Loaded Cargo, and is Released to its Home Harbor like any Release. At its Home Harbor it arrives as an Incoming Ship.
+- Refuse an Incoming Ship at its own Home Harbor: the ship only stops being Incoming and stays in the fleet with its Cargo aboard; no Shipping is started, nothing is paid, the Stock is unchanged and nothing is published. That Cargo sails with the ship on its next Release to another Harbor.
+
+## Inbound communication
+| From | Message | Kind |
+|------|---------|------|
+| Shipping (another Harbor) | Harbor Opened | Event |
+| Shipping (another Harbor) | Shipping Published, addressed to this Harbor | Event |
+| Shipping (another Harbor) | Ship Arrived, for a ship this Harbor Released | Event |
+
+## Outbound communication
+| To | Message | Kind |
+|----|---------|------|
+| Shipping (other Harbors) | Harbor Opened | Event |
+| Shipping (other Harbors) | Shipping Published | Event |
+| Shipping (the Origin Harbor) | Ship Arrived | Event |
+| HarborTerminal | Shipping Published | Event |
+| Fleet | Take the arrived ship into the fleet | Command |
+| Fleet | Remove the ship that arrived elsewhere from the fleet | Command |
+| Trade | Pay the Delivery Price of an unloaded Incoming Ship | Command |
+| Trade | Credit the Earnings of a ship arriving at its Home Harbor | Command |
+
+## Business decisions
+- A new Shipping is allowed only when the ship has no Active Shipping or the previous one is `DONE`, and never for an Incoming Ship until it is unloaded or refused.
+- Only a `PREPARING` Shipping can be Released, so one Shipping is published once. A `SHIPPING` Shipping always has a Destination Harbor; a `PREPARING` one has none. `DONE` is reached only from `SHIPPING`.
+- The Destination Harbor must be one of the Known Harbors; anything else is rejected before anything changes. A Harbor is never one of its own Known Harbors, so a ship cannot sail to the Harbor it is in, and a Harbor that opens again is still known only once.
+- A Harbor takes in only ships Released to it.
+- One Release arrives at most once: a redelivered event (same event id) and a re-publication of the same Shipping (new event id) change nothing, even after the ship sailed on and left the fleet. An Arrival whose Catain or Cargo is unknown changes nothing.
+- A ship already in the fleet arrives only if it is still at sea from here (it came back before this Harbor learned of its earlier Arrival elsewhere): that earlier voyage ends and the ship stays in the fleet. A ship in the fleet that is not at sea is skipped.
+- A Ship Arrived ends at most one voyage: only the Active Shipping with the reported Shipping id, still at sea. A late or repeated Ship Arrived never ends a later voyage and never fails.
+- A ship has Cargo aboard only while it is not at sea; the Current Weight counts the Cargo aboard and the Loaded Cargo. An Incoming Ship always has Cargo aboard, a ship that arrives with no Cargo is not Incoming, and a ship at sea never has Cargo aboard.
+- An Incoming Ship is unloaded or refused at most once: of an unloading and a refusal of the same ship, at most one takes effect.
+- Cargo a Home Harbor refused stays aboard and cannot be unloaded into the Stock while preparing; it becomes Loaded Cargo on the next Release.
+
+## Assumptions and open questions
+- ⚠ needs review: the Sailors Code is `mod 14` (0–13) while 15 Shipping Quotes are seeded (0–14); the last quote is unreachable.
 - Open: what a Harbor does with a Shipping Published addressed to a Harbor that never answers (no Ship Arrived).
-
-## Tactical model
-
-> Status: not yet discovered
-> The tactical model emerges during implementation. Each story that
-> touches this context adds or modifies entries below via the
-> `implement-story` skill. Do not pre-populate from the discovery
-> source — tactical choices are made at code time, not at analysis time.
-
-### Aggregates
-- **Ship** (Shared Kernel root with Fleet and CargoLoading, ADR-0001) — `release(shippingQuote, destinationHarbor)` Releases the Active Shipping to the named Destination Harbor. *Modified by STORY-005.* `endShipping(shippingId): Boolean` ends the voyage when the ship has arrived at its Destination Harbor: only if the Active Shipping has that id and is `SHIPPING`; otherwise it returns `false` and changes nothing. Leaving the fleet is not model state but a repository concern (`ShipRepositoryPort.removeFromFleet`): a ship that left is not found through the fleet queries. *Modified by STORY-007.* `arrivedFrom: HarborName?` is the Origin Harbor of the Arrival that last took the ship into this Harbor's fleet: set only when the ship is built for an Arrival (`ArrivalManagementService`), `null` for a ship registered here, kept by a rename, and replaced by the next Arrival. No invariant beyond that of `HarborName`. *Modified by STORY-013.*
-
-### Entities (non-aggregate roots)
-- **Shipping** — one voyage of a `Ship`, reached only through it; identity `ShippingId` (UUID). Holds the Shipping State, the Shipping Quote and the Destination Harbor (`HarborName`), the last two set together on Release. Invariant: a `SHIPPING` Shipping always has a Destination Harbor; a `PREPARING` one has none; only a `PREPARING` Shipping can be Released (`Ship.release` throws `ShippingNotPreparingException` otherwise; *Modified by STORY-005 review*). *Introduced by STORY-005.* `end()` sets it to `DONE`; `DONE` is reached only from `SHIPPING`, through `Ship.endShipping`. *Modified by STORY-007.*
-
-### Value objects
-- **ArrivalRepositoryPort** (driven port, not a model element) — records each Arrival a Harbor has handled by the Origin's Shipping id, insert-if-absent, so a Release arrives at most once (`arrivals` table). *Introduced by STORY-007 review.*
-- **EventId** — identity of an event consumed from another Harbor: the publishing Harbor's outbox `message_id` (UUID). A Harbor records each consumed EventId through the driven port `InboxRepositoryPort`, in the same transaction as the state change the event causes, so a redelivered event never takes effect twice (ADR-0004). Technical identity, not a ubiquitous-language term. *Introduced by STORY-001.*
-- **ShippingPublishedDTO** — driving-port DTO of `ArrivalManagementPort`: Ship Id, Ship Name, Catain id, Shipping id, Cargo ids, and the Origin and Destination Harbor (both nullable: events published before STORY-005 carry none). *Introduced by STORY-006.*
-- **ShipArrivedDTO** — driving-port DTO of `ArrivalManagementPort.receiveShipArrived`: Ship Id, Shipping id, and the Origin and Destination Harbor (both nullable `HarborName`). *Introduced by STORY-007.*
-- **HarborName** — the unique name a Harbor is known by among all Harbors; must not be blank. The current Harbor's name comes from `harbor.name` (one Harbor per ship-backend instance, ADR-0003). Equality by name. *Introduced by STORY-003.*
-
-### Domain services
-- **HarborManagementService** (implements `HarborManagementPort`) — `openHarbor` writes Harbor Opened with the current Harbor Name to the outbox through `HarborOutboxRepositoryPort`, once per startup. `learnAboutHarbor` records the EventId through `InboxRepositoryPort` first (an already consumed event has no effect), ignores the Harbor's own name, and adds any other Harbor to the Known Harbors through `KnownHarborRepositoryPort`, which stores each Harbor Name at most once. Invariants: a Harbor is never one of its own Known Harbors; a Harbor that opens again (new EventId) is still known only once. Known Harbors is a set of Harbor Names, not an aggregate. *Introduced by STORY-003.*
-- **HarborInformationService** (implements `HarborInformationPort`) — gives the current Harbor Name and its Known Harbors, ordered by name. *Introduced by STORY-003.*
-- **ShippingManagementService** (implements `ShippingManagementPort`) — `releaseShipping` accepts only a Known Harbor as Destination Harbor (read through `KnownHarborRepositoryPort`) and throws `UnknownHarborException` before any write otherwise. Since a Harbor is never one of its own Known Harbors, this also rules out sailing to the current Harbor. It then Releases the ship, saves the Shipping and writes Shipping Published with the current Harbor as Origin Harbor, in one transaction. *Introduced by STORY-005.*
-- **ArrivalManagementService** (implements `ArrivalManagementPort`) — handles Shipping Published, consumed from `hexagonship-shipping` by `ShippingEventListener`. In one transaction and in this order: records the EventId through `InboxRepositoryPort` (an already consumed event has no effect); ignores an event whose Destination Harbor is not the current Harbor (another Harbor's ship, or an event without one); skips a ship whose Ship Id is already in this Harbor's fleet; resolves the Catain and every Loaded Cargo by id and fails with `IllegalStateException` before any change if one is unknown; puts one of each Loaded Cargo into the Stock (`StockRepositoryPort.putIntoStock`); takes the ship into the fleet with its Ship Id, Ship Name and Catain and no Shipping or Loaded Cargo; and writes Ship Arrived through `ShippingOutboxRepository.announceShipArrived`. Ship Arrived is `event_type = 'ship-arrived'`, `aggregate_type = 'shipping'` (topic `hexagonship-shipping`), keyed by the Shipping id like the Shipping Published it answers; payload `ShipArrivedEvent` {shipId, shipName, shippingId, originHarbor, destinationHarbor}. Two guards: the inbox drops a redelivery (same EventId); the Ship Id in the fleet is the business key that drops a re-publication under a new EventId, since a ship at sea is in no fleet until it arrives. Invariants: an Arrival takes effect at most once per ship; a Harbor never takes in a ship Released to another Harbor. *Introduced by STORY-006.* The business key for a re-publication is now the Origin's Shipping id: after the Destination Harbor check, the Arrival is recorded through `ArrivalRepositoryPort.recordArrival` (in the caller's transaction), and an Arrival whose Shipping has already arrived is skipped, even after the ship sailed on and left the fleet. A ship already in the fleet arrives only if it is still at sea from here (it came back before this Harbor learned of its earlier Arrival elsewhere): that earlier voyage ends (`Ship.endShipping`, `DONE`) and the ship stays in the fleet, so the late Ship Arrived for it is a no-op. A ship in the fleet that is not at sea is skipped (an Arrival handled before the Arrivals were recorded). Invariant: one Release arrives at most once. *Modified by STORY-007 review.* `receiveShipArrived` is the Origin side, for Ship Arrived on the same topic. In one transaction and in this order: records the EventId (an already consumed event has no effect); ignores an event whose Origin Harbor is not the current Harbor; ignores a ship not in this Harbor's fleet (it already left, or was deleted); asks the ship to `endShipping` the reported Shipping and stops if it does not end; persists `DONE` (`ShippingRepositoryPort.updateActiveShipping`); and takes the ship out of the fleet (`ShipRepositoryPort.removeFromFleet`, in the caller's transaction). The "already in the fleet" guard of the Destination side reads only ships in the fleet, so a ship that left and comes back is taken in again under its Ship Id. Invariants: a Ship Arrived ends at most one voyage, never a later one, and never fails on a repetition. *Modified by STORY-007.* The Destination side takes the ship into the fleet with `arrivedFrom` = the Shipping Published's Origin Harbor, replacing the Origin Harbor of an earlier Arrival. *Modified by STORY-013.*

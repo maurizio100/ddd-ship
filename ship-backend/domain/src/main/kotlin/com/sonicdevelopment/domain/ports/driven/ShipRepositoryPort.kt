@@ -1,21 +1,35 @@
 package com.sonicdevelopment.domain.ports.driven
 
+import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 
 interface ShipRepositoryPort {
+    /**
+     * Saves the ship by its Ship Id, in the fleet. Its Incoming flag is written from [InitialShipInformation.incoming]
+     * and its Cargo aboard is replaced by [InitialShipInformation.cargoAboard].
+     */
     fun saveNewShip(ship: InitialShipInformation)
 
     class InitialShipInformation private constructor(
         val shipId: ShipId,
         val shipName: String,
         val catainId: CatainId,
-        val arrivedFrom: HarborName?
+        val arrivedFrom: HarborName?,
+        val homeHarbor: HarborName,
+        val cargoAboard: List<Cargo>,
+        val incoming: Boolean,
+        /** The Earnings the ship carries until it reaches its Home Harbor. */
+        val earnings: Money,
     ) {
         companion object {
-            fun fromShip(ship: Ship) = InitialShipInformation(ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom)
+            fun fromShip(ship: Ship) = InitialShipInformation(
+                ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom, ship.homeHarbor, ship.cargoAboard, ship.isIncoming,
+                ship.earnings,
+            )
         }
     }
     fun getAllShips(): List<Ship>
@@ -25,4 +39,25 @@ interface ShipRepositoryPort {
 
     /** The ship leaves this Harbor's fleet; its Shippings are kept; runs in the caller's transaction. */
     fun removeFromFleet(shipId: ShipId)
+
+    /**
+     * The conditional step that ends an Incoming Ship's wait, used by both unloading and refusal: clears the
+     * Incoming flag and the Cargo aboard of an Incoming Ship in the fleet under the ship's row lock; returns
+     * `false`, and changes nothing, when the ship is not Incoming (anymore) or not in the fleet. Runs in the
+     * caller's transaction.
+     */
+    fun unloadIncomingShip(shipId: ShipId): Boolean
+
+    /**
+     * The conditional step of a Home Harbor's refusal of its own ship: clears the Incoming flag of an Incoming
+     * Ship in the fleet under the ship's row lock and keeps its Cargo aboard; returns `false`, and changes
+     * nothing, when the ship is not Incoming (anymore) or not in the fleet. Runs in the caller's transaction.
+     */
+    fun endIncoming(shipId: ShipId): Boolean
+
+    /** Adds [amount] to the Earnings of a ship in the fleet in one atomic step; runs in the caller's transaction. */
+    fun addEarnings(shipId: ShipId, amount: Money)
+
+    /** Deletes the ship's Cargo aboard; runs in the caller's transaction. */
+    fun clearCargoAboard(shipId: ShipId)
 }

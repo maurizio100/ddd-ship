@@ -4,9 +4,9 @@ import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
 import com.sonicdevelopment.domain.model.enums.ShippingState
-import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
@@ -29,6 +29,10 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         val catainId: CatainId,
         val inFleet: Boolean,
         val arrivedFrom: HarborName?,
+        val homeHarbor: HarborName,
+        val cargoAboard: List<Cargo>,
+        val incoming: Boolean,
+        val earnings: Money,
     )
 
     private data class ShippingRecord(
@@ -52,7 +56,11 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
     @Synchronized
     override fun saveNewShip(ship: ShipRepositoryPort.InitialShipInformation) {
         catains.findCatainById(ship.catainId) ?: throw IllegalStateException("Unknown Catain ${ship.catainId}")
-        ships[ship.shipId] = ShipRecord(ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom)
+        // like the adapter, a save replaces the Cargo aboard and the Incoming flag
+        ships[ship.shipId] = ShipRecord(
+            ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom, ship.homeHarbor,
+            ship.cargoAboard.map { Cargo(it.id, it.name, it.weight) }, ship.incoming, ship.earnings,
+        )
     }
 
     @Synchronized
@@ -72,6 +80,34 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
     @Synchronized
     override fun removeFromFleet(shipId: ShipId) {
         ships[shipId]?.let { ships[shipId] = it.copy(inFleet = false) }
+    }
+
+    /** Like the adapter's conditional `UPDATE`: only an Incoming Ship in the fleet is cleared, and only once. */
+    @Synchronized
+    override fun unloadIncomingShip(shipId: ShipId): Boolean {
+        val record = ships[shipId]?.takeIf { it.inFleet && it.incoming } ?: return false
+        ships[shipId] = record.copy(incoming = false, cargoAboard = emptyList())
+        return true
+    }
+
+    /** Like the adapter's conditional `UPDATE`: clears only the Incoming flag and keeps the Cargo aboard. */
+    @Synchronized
+    override fun endIncoming(shipId: ShipId): Boolean {
+        val record = ships[shipId]?.takeIf { it.inFleet && it.incoming } ?: return false
+        ships[shipId] = record.copy(incoming = false)
+        return true
+    }
+
+    @Synchronized
+    override fun addEarnings(shipId: ShipId, amount: Money) {
+        // like the adapter's atomic `UPDATE`: only a ship in the fleet earns, anything else fails
+        val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
+        ships[shipId] = record.copy(earnings = record.earnings + amount)
+    }
+
+    @Synchronized
+    override fun clearCargoAboard(shipId: ShipId) {
+        ships[shipId]?.let { ships[shipId] = it.copy(cargoAboard = emptyList()) }
     }
 
     @Synchronized
@@ -132,12 +168,15 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
             name = record.shipName,
             catainId = record.catainId,
             catainName = catain.catainName,
+            homeHarbor = record.homeHarbor,
             arrivedFrom = record.arrivedFrom,
             activeShipping = active?.let {
                 Shipping(it.shippingId, it.quote, it.state, it.destinationHarbor)
             },
-            cargoLoad = active?.cargo?.associate { CargoId(it.id.id) to Cargo(it.id, it.name, it.weight) }
-                ?.toMutableMap() ?: mutableMapOf(),
+            cargoLoad = active?.cargo?.map { Cargo(it.id, it.name, it.weight) }?.toMutableList() ?: mutableListOf(),
+            cargoAboard = record.cargoAboard.map { Cargo(it.id, it.name, it.weight) },
+            incoming = record.incoming,
+            earnings = record.earnings,
         )
     }
 }

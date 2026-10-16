@@ -1,7 +1,8 @@
 # ship-frontend
 
 The Hexagonship web UI: the list of Available Ships, creating a ship with its Catain, loading and
-unloading Cargo, Releasing a ship, and the Shipping Summary. It holds the UI state in NgRx stores and
+unloading Cargo (and showing the Cargo a Home Harbor refused aboard the ship), Releasing a ship, the Shipping Summary, and the harbor management page with the Stock, the
+Savings, the Market and the Incoming Ships, which it unloads or refuses. It holds the UI state in NgRx stores and
 gets all its data from ship-backend over REST. It has no domain rules of its own: the backend
 decides whether a load or a Release is allowed. The harbor terminal is not part of it.
 
@@ -26,6 +27,18 @@ environment variable:
   forwarded headers (`Host`, `X-Forwarded-For`, `X-Forwarded-Proto`).
 - **The fleet-events stream** (`/web/fleet-events`) has its own unbuffered `location` in nginx, and its
   own Ingress on k8s (see `guidelines/architecture.md`).
+
+## How to run
+
+From `ship-frontend/` (Node and npm; `npm ci` once). These are the commands the delivery agents run.
+
+| Task | Command |
+|---|---|
+| Build | `npm run build` (`npm run build:check` also fails if the development backend URL `localhost:8080` is still in the bundle) |
+| All tests | `npm test -- --watch=false --browsers=ChromeHeadless` (plain `npm test` watches forever) |
+| One spec file | `npm test -- --watch=false --browsers=ChromeHeadless --include <path/to/file.spec.ts>` |
+| Lint | none configured |
+| Start the dev server | `npm start` (needs a running ship-backend) |
 
 ## Documents in this folder
 

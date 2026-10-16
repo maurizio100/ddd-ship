@@ -37,7 +37,7 @@ sequenceDiagram
     BE-->>FE: ship details (weight / max weight)
 ```
 
-A rejected load (too heavy, already loaded, out of Stock) changes nothing and is answered with `409` (8.4).
+A rejected load (too heavy, out of Stock) changes nothing and is answered with `409` (8.4).
 The User loads Cargo by dragging it onto the ship, or with the Load button on its card. Decided, not built:
 a ship may carry several of the same Cargo (STORY-022).
 
@@ -81,7 +81,9 @@ Destination Harbor records each handled Arrival by the Origin's Shipping id (`ar
 re-published Release under a new event id has no effect, even after the ship has sailed on and left its
 fleet. On the Origin side only the ship's Active Shipping with the reported Shipping id, still at sea,
 ends, so a re-published or late `ship-arrived` never ends a later voyage. The ship leaves the fleet but
-keeps its row, and a later Arrival of the same Ship Id takes it back in.
+keeps its row, and a later Arrival of the same Ship Id takes it back in. The arriving ship keeps the Home
+Harbor carried in `shipping-published`; an event without one (from a Harbor that does not send it yet)
+gives it the Origin Harbor as Home Harbor.
 
 A return trip does not rely on order. If the returning ship's Release reaches the former Origin Harbor
 before the `ship-arrived` of its earlier voyage (possible on a round trip through three or more Harbors,
@@ -106,8 +108,7 @@ sequenceDiagram
     B->>DBB: skip if Shipping id already in arrivals, else insert arrivals row
     B->>DBB: skip if Ship Id in fleet and not at sea
     B->>DBB: if Ship Id in fleet at sea - end that earlier voyage (DONE)
-    B->>DBB: Unloading on Arrival - add Cargo to Stock
-    B->>DBB: take ship (Ship Id, name, Catain) into fleet
+    B->>DBB: take ship (Ship Id, name, Catain, Home Harbor) into fleet with its Cargo aboard (an Incoming Ship if any)
     B->>DBB: insert outbox row (ship-arrived)
     end
     K->>A: ship-arrived (consume, group of Harbor A)
@@ -125,18 +126,17 @@ sequenceDiagram
 Once each of these transactions commits, the Harbor pushes the change to its Users' open fleet pages
 (6.6).
 
-### Decided, not built yet: Incoming Ships and Earnings (EPIC-003)
+The Stock is unchanged by an Arrival; it changes only when a User buys at the Market (STORY-025) or unloads an
+Incoming Ship (6.7, [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md), built by STORY-045). A ship that
+arrives with no Cargo joins as an ordinary ship.
 
-Per [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md) and
-[ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md), the Destination transaction changes in two
-places; everything else above stays, including `ship-arrived` in the same transaction:
+### Earnings at the Home Harbor
 
-- *Unloading on Arrival – add Cargo to Stock* is replaced by *take the ship into the fleet as an
-  Incoming Ship, its Cargo (with quantities) still aboard*. The Stock changes only when a User unloads
-  it (6.7).
-- If this Harbor is the ship's Home Harbor, the Earnings carried in `shipping-published` go into the
-  Savings and the ship's Earnings become zero, in the same inbox transaction, so a redelivered event
-  credits nothing twice.
+Per [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md), if this Harbor is the ship's Home Harbor,
+the Earnings carried in `shipping-published` go into the Savings and the ship's Earnings become zero, before
+the ship is saved and in the same inbox transaction as `ship-arrived`. The credit sits behind the inbox and
+`arrivals` guards, so a redelivered or re-published event credits nothing twice. Elsewhere the ship joins
+the fleet with the Earnings carried in `shipping-published` (none for an event without them).
 
 ### Decided, not built yet: the Crew sails with the ship
 
@@ -147,20 +147,21 @@ Crew home the same way.
 
 ## 6.5 Harbor startup and discovery
 
-Per [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md). Built by STORY-003.
+Per [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md). Built by STORY-003; the Prices are rolled by STORY-024.
 
 ```mermaid
 sequenceDiagram
     participant H as Harbor backend
     participant DB as PostgreSQL
     participant K as Kafka
+    H->>DB: roll a Price for every Cargo that has none
     H->>DB: insert outbox row (harbor-opened, Harbor Name)
     DB->>K: Debezium to hexagonship-harbor (compacted)
     K->>H: read hexagonship-harbor from the beginning
     H->>DB: store Known Harbors
 ```
 
-A Release then offers the Known Harbors other than the current one as Destination Harbor.
+The Price rolls and the outbox row are written in one transaction: a failed roll aborts startup. A Release then offers the Known Harbors other than the current one as Destination Harbor.
 
 ## 6.6 Fleet changes pushed to the browser
 
@@ -202,14 +203,21 @@ sequenceDiagram
 The registry of open streams is in memory per instance (R-11). A disconnected tab reconnects by itself
 after 3 s; events in between are not replayed.
 
-Decided, not built (EPIC-003): the harbor management page reacts to the same `ship-arrived` event by
-refetching its Incoming Ships.
+The harbor management page reacts to the same `ship-arrived` event, and to every (re)connect, by
+refetching its Incoming Ships (`GET /web/incoming-ships`, STORY-044).
 
-## 6.7 Unload or refuse an Incoming Ship (decided, not built yet)
+## 6.7 Unload or refuse an Incoming Ship (built)
 
 Per [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md) and
 [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md) (EPIC-003, STORY-026 to STORY-029). Both
-are REST-driven, each in one DB transaction at the Destination Harbor.
+are REST-driven, each in one DB transaction at the Destination Harbor. Unloading is built by STORY-045
+(`POST /web/incoming-ships/{id}/unloading`): it pays, stocks, lets the ship earn the Delivery Price (added to
+its Earnings away from its Home Harbor, put back into the Savings at once at its Home Harbor, each one atomic
+increment), and then clears the ship with a conditional update, so of two concurrent unloadings of the same
+ship the second fails and rolls its payment, its Stock writes and its Earnings or credit back. Refusing is built
+(`POST /web/incoming-ships/{id}/refusal`): it clears the ship first with the same conditional update, so
+of an unloading and a refusal of the same ship only one takes effect. Away from the Home Harbor it then
+Releases the ship to its Home Harbor like any Release; at the Home Harbor it only ends the Incoming state.
 
 ```mermaid
 sequenceDiagram
@@ -226,23 +234,36 @@ sequenceDiagram
         BE->>BE: Delivery Price = sum of the Prices of all Cargo aboard
         BE->>DB: take the Delivery Price from the Savings (refused if they fall short, nothing written)
         BE->>DB: put the Cargo into the Stock
-        BE->>DB: add the Delivery Price to the ship's Earnings
+        alt away from the ship's Home Harbor
+            BE->>DB: add the Delivery Price to the ship's Earnings
+        else at the ship's Home Harbor
+            BE->>DB: put the Delivery Price back into the Savings
         end
-    else refuse
+        BE->>DB: clear the Incoming flag and the Cargo aboard (only if still Incoming)
+        end
+    else refuse away from the Home Harbor
         FE->>BE: refuse the Incoming Ship
         rect rgb(240,240,240)
         Note over BE,DB: one DB transaction
-        BE->>DB: new Shipping to the ship's Home Harbor, Cargo and Earnings aboard
-        BE->>DB: ship leaves the fleet
-        BE->>DB: insert outbox row (shipping-published to the Home Harbor)
+        BE->>DB: clear the Incoming flag and the Cargo aboard (only if still Incoming)
+        BE->>DB: new Shipping to the Home Harbor, Cargo aboard as Loaded Cargo; ship at sea
+        BE->>DB: insert outbox row (shipping-published to the Home Harbor, with the ship's Earnings)
         end
         DB->>K: Debezium, then Arrival at the Home Harbor as in 6.4
+    else refuse at the Home Harbor
+        FE->>BE: refuse the Incoming Ship
+        rect rgb(240,240,240)
+        Note over BE,DB: one DB transaction
+        BE->>DB: clear only the Incoming flag (only if still Incoming); the Cargo aboard stays
+        end
     end
 ```
 
-At its Home Harbor an unloaded ship's Earnings go into the Savings at once. A ship its own Home
-Harbor refuses does not sail: it stays in the fleet as an ordinary ship with its Cargo aboard,
-nothing is paid, and that Cargo cannot be unloaded into the Stock while preparing (R-12, STORY-028).
+A refused ship stays in this Harbor's fleet, at sea, and leaves it when the Home Harbor's
+`ship-arrived` comes back, as in 6.5. At its Home Harbor the Delivery Price paid for an unloaded ship goes
+back into the Savings at once, and the ship's Earnings stay as they are. A ship its own Home Harbor refuses does not sail: it stays in the fleet as an ordinary ship with its Cargo aboard,
+nothing is paid, and that Cargo cannot be unloaded into the Stock while preparing (R-12). On its next Release the
+Cargo aboard becomes the Loaded Cargo of the Shipping, in the same transaction.
 
 ## 6.8 Hire a Recruit (decided, not built yet)
 

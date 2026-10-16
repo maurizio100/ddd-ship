@@ -13,6 +13,21 @@ const REPO_URL = 'https://github.com/maurizio100/ddd-ship'
 const docsRoot = fileURLToPath(new URL('../../docs/', import.meta.url))
 
 /* ------------------------------------------------------------------ *
+ * README.md is each folder's page. Every docs folder is entered through
+ * its README.md — the agents read it as the folder's index, and a forge
+ * shows it when you browse the folder. VitePress wants index.md for a
+ * folder's own URL, so README.md is served as index.md at build time
+ * (docs/arc42/README.md -> /arc42/); the file is never renamed. The one
+ * index.md on disk is docs/index.md, the portal's home page.
+ * ------------------------------------------------------------------ */
+
+const README_RE = /\/README\.md$/i
+
+function rewriteReadme(id: string): string {
+  return id.replace(README_RE, '/index.md')
+}
+
+/* ------------------------------------------------------------------ *
  * Sidebar generation — scans the docs tree so every new markdown file
  * shows up automatically. Group titles come from folder names; page
  * titles come from each file's first H1.
@@ -50,16 +65,12 @@ const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
 
 function buildItems(absDir: string, urlPrefix: string): DefaultTheme.SidebarItem[] {
   const entries = fs.readdirSync(absDir, { withFileTypes: true })
+  const hasReadme = entries.some((e) => e.isFile() && e.name === 'README.md')
 
   const files = entries
-    .filter((e) => e.isFile() && e.name.endsWith('.md') && e.name !== 'index.md')
+    .filter((e) => e.isFile() && e.name.endsWith('.md') && e.name !== 'README.md')
     .map((e) => e.name)
-    .sort((a, b) => {
-      // README/overview first, then natural (numeric-aware) order
-      const ra = a.toLowerCase().startsWith('readme') ? 0 : 1
-      const rb = b.toLowerCase().startsWith('readme') ? 0 : 1
-      return ra - rb || collator.compare(a, b)
-    })
+    .sort((a, b) => collator.compare(a, b)) // natural (numeric-aware) order
 
   const dirs = entries
     .filter((e) => e.isDirectory() && !e.name.startsWith('.') && !e.name.startsWith('_'))
@@ -68,13 +79,13 @@ function buildItems(absDir: string, urlPrefix: string): DefaultTheme.SidebarItem
 
   const items: DefaultTheme.SidebarItem[] = []
 
-  // A section's own index.md becomes its landing item. Without this, a section
-  // holding nothing but an index page yields no items, so section() drops it
-  // and the nav link falls back to '/' — which is what an empty, freshly
+  // A folder's README.md becomes its landing item. Without this, a section
+  // holding nothing but its README yields no items, so section() drops it and
+  // the nav link falls back to '/' — which is what an empty, freshly
   // scaffolded section looks like.
-  if (entries.some((e) => e.isFile() && e.name === 'index.md')) {
+  if (hasReadme) {
     items.push({
-      text: pageTitle(path.join(absDir, 'index.md')),
+      text: pageTitle(path.join(absDir, 'README.md')),
       link: urlPrefix,
     })
   }
@@ -126,11 +137,32 @@ export default withMermaid({
   description: 'Pet project for trying out Hexagonal Architecture, Domain-Driven Design and the Transactional Outbox pattern with Kafka Connect/Debezium',
   // Markdown content is the sibling ../docs dir; only the site tooling lives here.
   srcDir: docsRoot,
+  rewrites: rewriteReadme,
   base: BASE,
   lang: 'en',
   cleanUrls: true,
   lastUpdated: true,
   ignoreDeadLinks: true,
+
+  // Relative links are written against the files on disk (`../services/api/README.md`),
+  // which is what a forge and the docs checker resolve. With the rewrite above the
+  // page lives at the folder's URL, so point those links at the folder's index.md.
+  markdown: {
+    config(md) {
+      md.core.ruler.push('readme-links', (state) => {
+        for (const block of state.tokens) {
+          for (const tok of block.children ?? []) {
+            if (tok.type !== 'link_open') continue
+            const href = tok.attrGet('href')
+            if (!href || /^[a-z]+:|^\/|^#/i.test(href)) continue
+            const [file, hash] = href.split('#', 2)
+            if (!/(^|\/)README\.md$/i.test(file)) continue
+            tok.attrSet('href', file.replace(/README\.md$/i, 'index.md') + (hash ? `#${hash}` : ''))
+          }
+        }
+      })
+    },
+  },
 
   // Mermaid pulls in CommonJS leaf deps (fastdom, strictdom, …). Force Vite to
   // pre-bundle the whole cluster so its ESM `import x from 'cjs-pkg'` calls get

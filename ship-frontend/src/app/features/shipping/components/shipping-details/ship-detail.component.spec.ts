@@ -303,6 +303,23 @@ describe('ShipDetailComponent (Load Cargo by dragging it onto the ship)', () => 
     expect(stockOf('Rum')).toContain('2');
   });
 
+  it('loading the same Cargo again adds another one aboard', () => {
+    const ship = aShip({ cargo: [rum], weight: 5.5 });
+    render(ship, [rum, gold]);
+
+    // When the User drags Rum onto the ship again
+    dropRum(true);
+    const post = httpMock.expectOne(`${base}/ships/${aShip().id}/cargos`);
+    expect(post.request.body).toEqual({ cargoId: 'rum' });
+    post.flush({ ...ship, cargo: [rum, rum], weight: 11 });
+    fixture.detectChanges();
+    refetchAvailable([gold, { ...rum, stock: 2 }]);
+
+    // Then 2 Rum are among the Loaded Cargo and the Current Weight grew by 5.5
+    expect(loadedCargo()).toEqual(['Rum', 'Rum']);
+    expect(weightText()).toMatch(/11\s*\/\s*15/);
+  });
+
   it('Cargo can be loaded without dragging', () => {
     render(preparedShip(), [rum, gold]);
 
@@ -346,17 +363,19 @@ describe('ShipDetailComponent (Load Cargo by dragging it onto the ship)', () => 
         detail: 'Loading Rum would exceed the Max Weight of 15.0',
         reason: 'Rum would exceed the Max Weight of 15.0',
         ship: () => aShip({ cargo: [ale], weight: 12 }),
+        loadedAfter: ['Ale'],
         availableAfter: [rum, gold],
         weight: /12\s*\/\s*15/,
       },
       {
-        situation: 'Rum is already among the Loaded Cargo',
-        title: 'Cargo already loaded',
-        detail: 'Rum is already loaded on the ship',
-        reason: 'Rum is already loaded',
-        ship: () => aShip({ cargo: [ale], weight: 2 }),
+        situation: 'loading a second Rum would take the ship over its Max Weight',
+        title: 'Ship too heavy',
+        detail: 'Loading Rum would exceed the Max Weight of 15.0',
+        reason: 'Rum would exceed the Max Weight of 15.0',
+        ship: () => aShip({ cargo: [rum], weight: 5.5 }),
+        loadedAfter: ['Rum'],
         availableAfter: [rum, gold],
-        weight: /2\s*\/\s*15/,
+        weight: /5\.5\s*\/\s*15/,
       },
       {
         situation: 'the Stock of Rum ran out after the Available Cargo was shown',
@@ -364,6 +383,7 @@ describe('ShipDetailComponent (Load Cargo by dragging it onto the ship)', () => 
         detail: 'Rum is out of Stock',
         reason: 'Rum is out of Stock',
         ship: () => aShip({ cargo: [ale], weight: 2 }),
+        loadedAfter: ['Ale'],
         availableAfter: [gold],
         weight: /2\s*\/\s*15/,
       },
@@ -387,7 +407,7 @@ describe('ShipDetailComponent (Load Cargo by dragging it onto the ship)', () => 
         expect(alert).not.toBeNull();
         expect(alert!.getAttribute('role')).toBe('alert');
         expect(alert!.textContent!.trim()).toBe(row.reason);
-        expect(loadedCargo()).toEqual(['Ale']);
+        expect(loadedCargo()).toEqual(row.loadedAfter);
         expect(weightText()).toMatch(row.weight);
         expect(availableCargo().includes('Rum')).toBe(row.availableAfter.includes(rum));
       });
@@ -518,5 +538,42 @@ describe('ShipDetailComponent (loading screen details)', () => {
     render(aShip({ weight: 13, maxweight: 15 }));
 
     expect(fixture.nativeElement.querySelector('.weight--warning')).not.toBeNull();
+  });
+
+  describe('Cargo refused by the Home Harbor', () => {
+    const refusedRum = aCargo({ id: 'rum-1', name: 'Rum', weight: 5.5 });
+    const silk = aCargo({ id: 'silk', name: 'Silk', weight: 1 });
+    const refusedNames = (): string[] =>
+      Array.from(fixture.nativeElement.querySelectorAll('[data-testid="refused-cargo"]')).map((el: any) =>
+        el.textContent.trim()
+      );
+
+    it('shows the Cargo refused by the Home Harbor apart from the Loaded Cargo, without an Unload button', () => {
+      render(aShip({ cargo: [silk], cargoAboard: [refusedRum, refusedRum], weight: 12 }));
+
+      expect(refusedNames()).toEqual(['Rum', 'Rum']);
+      expect(byTestId('refused-cargo-note')!.textContent).toContain('it can only be delivered to another Harbor');
+      expect(fixture.nativeElement.querySelectorAll('[data-testid="loaded-cargo"]').length).toBe(1);
+      const refused = fixture.nativeElement.querySelectorAll('[data-testid="refused-cargo"]');
+      refused.forEach((chip: HTMLElement) => expect(chip.querySelector('button')).toBeNull());
+    });
+
+    it('keeps the refused Cargo shown after a loaded Cargo is unloaded', () => {
+      render(aShip({ cargo: [silk], cargoAboard: [refusedRum, refusedRum], weight: 12 }));
+
+      fixture.componentInstance.onShipLoadUpdated(aShip({ cargo: [], cargoAboard: [refusedRum, refusedRum], weight: 11 }));
+      httpMock.expectOne(`${base}/cargos`).flush([rum]);
+      fixture.detectChanges();
+
+      expect(refusedNames()).toEqual(['Rum', 'Rum']);
+      expect(fixture.nativeElement.querySelectorAll('[data-testid="loaded-cargo"]').length).toBe(0);
+    });
+
+    it('shows no Refused Cargo block when nothing was refused', () => {
+      render(aShip({ cargo: [silk], weight: 1 }));
+
+      expect(byTestId('refused-cargo-note')).toBeNull();
+      expect(refusedNames()).toEqual([]);
+    });
   });
 });

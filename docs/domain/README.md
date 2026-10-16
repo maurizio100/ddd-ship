@@ -1,9 +1,8 @@
 # Domain
 
 Hexagonship is a playful harbor: ships commanded by cat Catains are loaded with Cargo and Released on
-a Shipping, and each departure is announced to a harbor terminal. Derived from the code (no workshop yet).
-Planned: several Harbors, each with its own fleet and Stock, between which ships sail (harbor-voyages
-ideation, 2026-10-03; marked "Planned" in the context files).
+a Shipping, and each departure is announced to a harbor terminal. Each backend instance is a Harbor with
+its own fleet, Stock and Savings, and ships sail between Harbors. Derived from the code (no workshop yet).
 
 | Where | What |
 |---|---|
@@ -19,4 +18,4 @@ ideation, 2026-10-03; marked "Planned" in the context files).
 | [Fleet](contexts/Fleet/Fleet.md) | Ship registry and Catain roster | [glossary](contexts/Fleet/glossary.md) |
 | [HarborTerminal](contexts/HarborTerminal/HarborTerminal.md) | Departure board consuming Shipping Published | [glossary](contexts/HarborTerminal/glossary.md) |
 | [Shipping](contexts/Shipping/Shipping.md) | Voyage lifecycle and Release | [glossary](contexts/Shipping/glossary.md) |
-| [Trade](contexts/Trade/Trade.md) | A Harbor's money: Prices, Savings, Market, Delivery Price, Earnings (candidate, not built) | [glossary](contexts/Trade/glossary.md) |
+| [Trade](contexts/Trade/Trade.md) | A Harbor's money: Prices, Savings, Market, Delivery Price, collecting Earnings and crediting them on Arrival at the Home Harbor (built) | [glossary](contexts/Trade/glossary.md) |

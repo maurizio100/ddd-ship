@@ -7,6 +7,9 @@ import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShippingQuote
+import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.fixtures.aCargo
+import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
@@ -17,6 +20,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.mockk.verifyOrder
+import io.mockk.justRun
 import org.junit.jupiter.api.Test
 
 class ShippingManagementServiceTest {
@@ -26,6 +31,7 @@ class ShippingManagementServiceTest {
     private val quoteRepositoryPort = mockk<QuoteRepositoryPort>()
     private val shippingOutboxRepository = mockk<ShippingOutboxRepository>(relaxed = true)
     private val knownHarborRepositoryPort = mockk<KnownHarborRepositoryPort>()
+    private val cargoPersistencePort = mockk<CargoPersistencePort>()
 
     private val service = ShippingManagementService(
         shipRepositoryPort,
@@ -34,6 +40,7 @@ class ShippingManagementServiceTest {
         shippingOutboxRepository,
         HarborName("Tortuga"),
         knownHarborRepositoryPort,
+        cargoPersistencePort,
     )
 
     init {
@@ -52,6 +59,34 @@ class ShippingManagementServiceTest {
         ship.shippingState() shouldBe ShippingState.SHIPPING
         verify(exactly = 1) { shippingRepositoryPort.updateActiveShipping(ship) }
         verify(exactly = 1) { shippingOutboxRepository.broadcastShipping(ship, HarborName("Tortuga")) }
+    }
+
+    @Test
+    fun `releasing a ship with Cargo aboard writes it as Loaded Cargo and clears the Cargo aboard before publishing`() {
+        val rum = aCargo(name = "Rum", weight = 5.5F)
+        val ship = givenShip(aShipRefusedAtHome(rum, rum))
+        givenKnownHarbors("Nassau", "Port Royal")
+        every { cargoPersistencePort.updateCargoLoad(any()) } answers { firstArg() }
+        justRun { shipRepositoryPort.clearCargoAboard(ship.id) }
+
+        service.releaseShipping(ship.id, HarborName("Port Royal"))
+
+        verifyOrder {
+            cargoPersistencePort.updateCargoLoad(match { it.cargoLoad == listOf(rum, rum) })
+            shipRepositoryPort.clearCargoAboard(ship.id)
+            shippingOutboxRepository.broadcastShipping(ship, HarborName("Tortuga"))
+        }
+    }
+
+    @Test
+    fun `releasing a ship without Cargo aboard neither writes the cargo load nor clears the Cargo aboard`() {
+        val ship = givenShip(aShip())
+        givenKnownHarbors("Port Royal")
+
+        service.releaseShipping(ship.id, HarborName("Port Royal"))
+
+        verify(exactly = 0) { cargoPersistencePort.updateCargoLoad(any()) }
+        verify(exactly = 0) { shipRepositoryPort.clearCargoAboard(any()) }
     }
 
     @Test
@@ -97,6 +132,19 @@ class ShippingManagementServiceTest {
         verify(exactly = 0) { shippingRepositoryPort.updateActiveShipping(any()) }
         verify(exactly = 0) { shippingOutboxRepository.broadcastShipping(any(), any()) }
     }
+
+    private fun aShipRefusedAtHome(vararg cargo: Cargo) =
+        Ship(
+            name = "Salty Whisker",
+            catainId = com.sonicdevelopment.domain.model.values.CatainId(java.util.UUID.randomUUID()),
+            catainName = "Furry Jones",
+            homeHarbor = HarborName("Tortuga"),
+            cargoAboard = cargo.toList(),
+            incoming = true,
+        ).apply {
+            refuse(HarborName("Tortuga"))
+            createNewShipping()
+        }
 
     private fun givenShip(ship: Ship): Ship {
         every { shipRepositoryPort.getShipDetails(ship.id) } returns ship

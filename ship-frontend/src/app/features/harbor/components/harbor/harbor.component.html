@@ -1,0 +1,100 @@
+<div class="page">
+  <header class="page-header">
+    <p class="kicker">What the hold can spare</p>
+    <h1>Stock</h1>
+    @if (savings(); as savings) {
+      <p class="savings">
+        <span class="savings__label">Savings</span>
+        <span class="savings__amount" data-testid="harbor-savings">{{ savings.amount }} $</span>
+      </p>
+    }
+    @if (purchaseRefusal(); as refusal) {
+      <p class="purchase-refusal" data-testid="harbor-purchase-refusal" role="alert">{{ refusal }}</p>
+    }
+  </header>
+
+  <section class="incoming" aria-labelledby="incoming-ships-heading">
+    <h2 id="incoming-ships-heading">Incoming Ships</h2>
+    @if (unloadRefusal(); as refusal) {
+      <p class="unload-refusal" data-testid="harbor-unload-refusal" role="alert">{{ refusal }}</p>
+    }
+    @if (refuseFailure(); as failure) {
+      <p class="refuse-failure" data-testid="harbor-refuse-failure" role="alert">{{ failure }}</p>
+    }
+    @if (incomingShips().length === 0) {
+      <p class="incoming__empty" data-testid="harbor-incoming-ships-empty">No Incoming Ships</p>
+    } @else {
+      <ul class="incoming__ships" aria-label="Incoming Ships">
+        @for (ship of incomingShips(); track ship.shipId) {
+          <li class="incoming__ship" data-testid="harbor-incoming-ship">
+            <span class="incoming__name" data-testid="harbor-incoming-ship-name">{{ ship.name }}</span>
+            <span class="incoming__cargo" data-testid="harbor-incoming-ship-cargo">{{ cargoSummary(ship) }}</span>
+            <span class="incoming__price">
+              <span class="incoming__price-label">Delivery Price</span>
+              <span data-testid="harbor-incoming-ship-delivery-price">{{ ship.deliveryPrice === null ? '—' : ship.deliveryPrice + ' $' }}</span>
+            </span>
+            <span class="incoming__actions">
+              <button
+                mat-stroked-button
+                type="button"
+                class="incoming__unload"
+                data-testid="harbor-unload"
+                [disabled]="!canUnload(ship)"
+                [attr.aria-label]="'Unload ' + ship.name"
+                (click)="unload(ship)"
+              >
+                Unload
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                class="incoming__refuse"
+                data-testid="harbor-refuse"
+                [disabled]="!canRefuse(ship)"
+                [attr.aria-label]="'Refuse ' + ship.name"
+                (click)="refuse(ship)"
+              >
+                Refuse
+              </button>
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <ul class="crates" aria-label="Stock">
+    @for (cargo of stock(); track cargo.cargoId) {
+      <li class="crate" data-testid="harbor-stock-row">
+        <img class="crate__picture" [src]="'/cargo/' + (cargo.name | lowercase) + '.jpg'" alt="" />
+        <span class="crate__name" data-testid="harbor-stock-cargo-name">{{ cargo.name }}</span>
+        <span class="crate__price" data-testid="harbor-stock-price">{{ cargo.price === null ? '—' : cargo.price + ' $' }}</span>
+        <span class="crate__stock"><span data-testid="harbor-stock-quantity">{{ cargo.quantity }}</span> in stock</span>
+        <div class="crate__buy">
+          <label class="crate__quantity">
+            <span class="crate__quantity-label">Quantity</span>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              data-testid="harbor-buy-quantity"
+              [value]="quantityOf(cargo)"
+              (input)="setQuantity(cargo, $event)"
+            />
+          </label>
+          <button
+            mat-stroked-button
+            type="button"
+            data-testid="harbor-buy"
+            [disabled]="!canBuy(cargo)"
+            [attr.aria-label]="'Buy ' + cargo.name"
+            (click)="buy(cargo)"
+          >
+            Buy
+          </button>
+        </div>
+      </li>
+    }
+  </ul>
+</div>

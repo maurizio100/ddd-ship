@@ -11,6 +11,10 @@
   every Harbor (`V9__same_reference_ids_at_every_harbor.sql`), and unique (`uq_cargos_cargo_id`,
   `uq_catains_catain_id`): an arriving ship names its Catain and Loaded Cargo by id. Never seed them
   with `gen_random_uuid()` or any other random value.
+- A migration that needs this Harbor's name uses the Flyway placeholder `${harbor_name}` (set from
+  `harbor.name`), dollar-quoted so a quote in the name cannot break the statement. Flyway does not
+  replace a placeholder directly after a `$`, so write `substr($harbor$ ${harbor_name}$harbor$, 2)`.
+  Every test that builds `Flyway.configure()` by hand passes `harbor_name` in `placeholders(...)`.
 
 ## Tables and columns
 
@@ -25,8 +29,12 @@
   always check the column type.
 - `ships_cargos` holds a ship's Loaded Cargo. Despite its name, its `ship_id` column references
   `shippings(id)`.
-- Every table has a primary key. A join table has a composite one on both foreign key columns
-  (`ships_cargos`: `pk_ships_cargos` on `(ship_id, cargo_id)`), so every table has a replica identity
+- Cargo aboard a ship that is not at sea (an Incoming Ship, or one its Home Harbor refused) goes in `ships_cargos_aboard`
+  (`ship_id` references `ships(id)`), one row per Cargo instance, never in `ships_cargos`. `saveNewShip`
+  replaces a ship's rows there in the same transaction as the ship row, and `delete` removes them first.
+  A Release moves them into `ships_cargos` and deletes them (`clearCargoAboard`) in its own transaction.
+- Every table has a primary key. A table that can hold the same pair twice gets a surrogate `id`
+  (`ships_cargos` since V14, `ships_cargos_aboard` since V16), so every table has a replica identity
   whatever the Debezium publication covers. PostgreSQL rejects `DELETE` on a published table without one.
 - Constraints are named `pk_<table>` and `fk_<table>_on_<target>`.
 
@@ -74,8 +82,22 @@
   last took the ship into this fleet. It is written only by `saveNewShip`, from the ship's `arrivedFrom`,
   so it is `NULL` for a registered ship, kept by a rename, and overwritten by each Arrival that takes
   effect. It is never derived from `arrivals`, which may hold an Arrival that was skipped.
+- `ships.ship_home_harbor` (NOT NULL) holds the ship's Home Harbor. It is written only by `saveNewShip`,
+  from the ship's `homeHarbor`, and never derived or changed in SQL; V17 backfilled existing rows.
+- `ships.ship_earnings NUMERIC(12,2)` (NOT NULL, default 0, `ck_ships_ship_earnings_not_negative`) holds
+  the ship's Earnings. `saveNewShip` writes it from the ship, so an Arrival restores the Earnings carried in
+  and a rename keeps them. An unloading increases it only through `addEarnings`, one atomic
+  `UPDATE ships SET ship_earnings = ship_earnings + :amount WHERE ship_id = :shipId AND ship_in_fleet` in the
+  caller's transaction (`Propagation.MANDATORY`), before the conditional clear; 0 rows fails. Never compute
+  the Earnings in memory and save them back with `saveNewShip` in an unloading.
 - `removeFromFleet` runs in the caller's transaction (`Propagation.MANDATORY`), together with the inbox
   record and the Shipping going `DONE`.
+- Clearing an Incoming Ship is one conditional `UPDATE ships … WHERE ship_in_fleet AND ship_incoming`,
+  followed by deleting its `ships_cargos_aboard` rows only when it updated a row. It runs in the caller's
+  transaction (`Propagation.MANDATORY`). It is the last write of an unloading and the first write of a
+  refusal, so 0 rows means a concurrent unloading or refusal won: the caller throws and its other writes
+  roll back. A Home Harbor refusing its own ship uses `endIncoming`, the same `UPDATE` without deleting
+  the Cargo aboard rows. Never clear the flag with `saveNewShip` (read-modify-write).
 
 ## Arrivals
 
@@ -124,6 +146,33 @@
   change it in memory and save it back: concurrent loads would lose updates.
   `ck_stocks_stock_quantity_not_negative` backs the "never below 0" rule up.
 - Putting into Stock is `INSERT … ON CONFLICT (cargo_id) DO UPDATE`, so a Cargo without a row gets one.
+- It is not in the Debezium connector's `table.include.list` and is never published.
+
+## Prices
+
+- `prices` holds this Harbor's Price of each Cargo: one row per Cargo (`uq_prices_cargo_id`), with
+  `price_amount NUMERIC(8,2)` and `ck_prices_price_amount_not_negative`.
+- Prices are rolled in code by `openHarbor`, not seeded by a migration: the roll is a domain rule
+  (`PriceRoll`), and each Harbor rolls its own.
+- It is written only through `PriceRepositoryPort.rememberPrice`, in the caller's transaction
+  (`Propagation.MANDATORY`) with `INSERT … ON CONFLICT (cargo_id) DO NOTHING`. A Price is never re-rolled
+  or overwritten.
+- It is not in the Debezium connector's `table.include.list` and is never published.
+
+## Savings
+
+- `savings` holds this Harbor's Savings in one row, `savings_amount NUMERIC(12,2)` with
+  `ck_savings_savings_amount_not_negative`.
+- The Starting Savings are seeded by `V15__prices_and_savings.sql`, like the Starting Stock. Don't seed
+  them from code or check for an empty table.
+- It is written only through `SavingsRepositoryPort`, in the caller's transaction.
+- Paying is one conditional statement, `UPDATE savings SET savings_amount = savings_amount - :amount
+  WHERE savings_amount >= :amount`; 0 updated rows means the Savings do not cover the amount. The Savings
+  are never read, changed in memory and saved back: the re-checked `WHERE` is what keeps two concurrent
+  payments from overspending them. A payment comes before the writes it pays for, so a refusal writes
+  nothing.
+- Receiving is one atomic statement, `UPDATE savings SET savings_amount = savings_amount + :amount`
+  (`receive`), in the caller's transaction; anything but 1 updated row fails. Never read-modify-write.
 - It is not in the Debezium connector's `table.include.list` and is never published.
 
 ## Binary data

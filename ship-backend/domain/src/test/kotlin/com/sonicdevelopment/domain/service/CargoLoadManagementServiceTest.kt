@@ -1,7 +1,6 @@
 package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
-import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.fixtures.aShip
@@ -71,14 +70,17 @@ class CargoLoadManagementServiceTest {
     }
 
     @Test
-    fun `loading Cargo already on board is rejected without touching the Stock`() {
-        val ship = givenShip(aShip(loadedCargo = listOf(rum)))
+    fun `loading the same Cargo twice takes two units out of the Stock`() {
+        val ship = givenShip(aShip())
         givenCargo(rum)
+        every { stockRepositoryPort.takeOneFromStock(rum.id) } returns true
 
-        shouldThrow<ItemAlreadyLoadedException> { service.addCargo(ship.id, rum.id) }
+        service.addCargo(ship.id, rum.id)
+        val loaded = service.addCargo(ship.id, rum.id)
 
-        verify(exactly = 0) { stockRepositoryPort.takeOneFromStock(any()) }
-        verify(exactly = 0) { cargoPersistencePort.updateCargoLoad(any()) }
+        loaded!!.cargo.map { it.name } shouldBe listOf("Rum", "Rum")
+        verify(exactly = 2) { stockRepositoryPort.takeOneFromStock(rum.id) }
+        verify(exactly = 2) { cargoPersistencePort.updateCargoLoad(any()) }
     }
 
     @Test

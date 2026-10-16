@@ -65,11 +65,17 @@ export class ShipsComponent implements OnInit, OnDestroy {
     return '/img/ship.jpg';
   }
 
+  /** An Incoming Ship must be unloaded or refused before it can start a new Shipping. */
   canCreateNewShipping(ship: Ship): boolean {
     return (
-      ship.shippingState === ShippingState.IDLE ||
-      ship.shippingState === ShippingState.DONE
+      !ship.incoming &&
+      (ship.shippingState === ShippingState.IDLE || ship.shippingState === ShippingState.DONE)
     );
+  }
+
+  /** Whether the ship carries Earnings; a zero amount is not shown. */
+  hasEarnings(ship: Ship): boolean {
+    return Number(ship.earnings) > 0;
   }
 
   shippingExists(ship: Ship): boolean {

@@ -4,16 +4,17 @@ import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.ports.driven.ArrivalRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import com.sonicdevelopment.domain.ports.driven.CatainRepository
 import com.sonicdevelopment.domain.ports.driven.FleetEventsPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation.Companion.fromShip
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
-import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipArrivedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
@@ -37,10 +38,16 @@ import org.springframework.stereotype.Service
  * no effect. A ship in the fleet that is not at sea does not arrive again: an Arrival handled before the
  * Arrivals were recorded, re-published.
  *
- * Otherwise, in one transaction with the inbox record: one of each Loaded Cargo goes into the Stock,
- * the ship joins the fleet with its Ship Id, Ship Name and Catain and no Shipping, remembering the Origin
- * Harbor it arrived from (replacing the one of an earlier Arrival), and Ship Arrived is written to the
- * outbox for the Origin Harbor.
+ * Otherwise, in one transaction with the inbox record: the ship joins the fleet with its Ship Id, Ship Name
+ * and Catain and no Shipping, remembering the Origin Harbor it arrived from (replacing the one of an earlier
+ * Arrival), and Ship Arrived is written to the outbox for the Origin Harbor. A ship that carries Cargo joins
+ * as an Incoming Ship with that Cargo aboard, one entry per Cargo instance; a ship that carries none joins as
+ * an ordinary ship. The Stock is unchanged: Cargo goes into it only when a User unloads the ship (STORY-045).
+ * The ship keeps the Home Harbor carried in the Shipping Published; an event without one (from a Harbor that
+ * does not send it yet) makes the Origin Harbor the ship's Home Harbor. An event without Earnings carries
+ * none. At its Home Harbor the ship's Earnings go into the Savings and the ship carries none; the credit sits
+ * behind the inbox and Arrival guards, so a redelivered or re-published Arrival credits nothing twice, and it
+ * rolls back with the rest of the Arrival. At any other Harbor the ship keeps the Earnings it carries.
  *
  * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
  * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
@@ -58,11 +65,11 @@ class ArrivalManagementService(
     private val shipRepositoryPort: ShipRepositoryPort,
     private val catainRepository: CatainRepository,
     private val cargoQueryPort: CargoQueryPort,
-    private val stockRepositoryPort: StockRepositoryPort,
     private val shippingOutboxRepository: ShippingOutboxRepository,
     private val shippingRepositoryPort: ShippingRepositoryPort,
     private val arrivalRepositoryPort: ArrivalRepositoryPort,
     private val fleetEventsPort: FleetEventsPort,
+    private val savingsRepositoryPort: SavingsRepositoryPort,
 ) : ArrivalManagementPort {
 
     @Transactional
@@ -87,14 +94,19 @@ class ArrivalManagementService(
             inFleet.endShipping(earlierVoyage.id)
             shippingRepositoryPort.updateActiveShipping(inFleet)
         }
-        cargo.forEach { stockRepositoryPort.putIntoStock(it.id, 1) }
         val ship = Ship(
             id = shippingPublished.shipId,
             name = shippingPublished.shipName,
             catainId = catain.catainId,
             catainName = catain.catainName,
+            homeHarbor = shippingPublished.homeHarbor ?: originHarbor,
             arrivedFrom = originHarbor,
+            cargoAboard = cargo,
+            incoming = cargo.isNotEmpty(),
+            earnings = shippingPublished.earnings,
         )
+        val homecoming = ship.bringEarningsHome(currentHarbor)
+        if (homecoming != Money.dollars(0)) savingsRepositoryPort.receive(homecoming)
         shipRepositoryPort.saveNewShip(fromShip(ship))
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)
         fleetEventsPort.announceShipArrived(ship, originHarbor)

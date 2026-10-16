@@ -5,7 +5,6 @@ import com.sonicdevelopment.application.acceptance.fixtures.FakeHarborTest
 import com.sonicdevelopment.application.acceptance.fixtures.STARTING_STOCK
 import com.sonicdevelopment.application.acceptance.fixtures.SeedData
 import com.sonicdevelopment.application.acceptance.fixtures.aShippingPublishedRecord
-import com.sonicdevelopment.application.acceptance.fixtures.givenStockOf
 import com.sonicdevelopment.driving.adapter.messaging.ShippingEventListener
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -48,20 +47,6 @@ class ShipArrivesAtItsDestinationHarborAcceptanceTest {
     }
 
     @Test
-    fun `The Cargo of an arriving ship is unloaded into the Stock`() {
-        // Given the Stock of "Port Royal" holds 1 "Rum" and no "Silk"
-        fakes.givenStockOf("Rum", 1)
-        fakes.givenStockOf("Silk", 0)
-
-        // When "Black Pearl" arrives at "Port Royal"
-        blackPearlIsAnnounced()
-
-        // Then the Stock of "Port Royal" holds 2 "Rum" and 1 "Silk"
-        stock()["Rum"] shouldBe 2
-        stock()["Silk"] shouldBe 1
-    }
-
-    @Test
     fun `The arrived ship joins the fleet of the Destination Harbor`() {
         // When "Black Pearl" arrives at "Port Royal"
         blackPearlIsAnnounced()
@@ -70,6 +55,8 @@ class ShipArrivesAtItsDestinationHarborAcceptanceTest {
         val ship = availableShips().single { it["id"] == blackPearlId.toString() }
         ship["name"] shouldBe "Black Pearl"
         ship["catain"] shouldBe WHISKERS
+        // as an Incoming Ship, since it arrived with Cargo aboard (STORY-044)
+        ship["incoming"] shouldBe true
         // And it has no Loaded Cargo and no Active Shipping
         (ship["shippingState"] == null || ship["shippingState"] == "IDLE") shouldBe true
         (shipDetails(blackPearlId)["cargo"] as List<*>).shouldBeEmpty()
@@ -94,8 +81,8 @@ class ShipArrivesAtItsDestinationHarborAcceptanceTest {
     @Test
     fun `An Arrival announced twice is handled once`() {
         // Given "Black Pearl" has already arrived at "Port Royal"
+        val stockBeforeArrival = stock()
         val firstAnnouncement = blackPearlIsAnnounced()
-        val stockAfterArrival = stock()
 
         // When the Release of "Black Pearl" is announced to "Port Royal" again:
         // redelivered with the same event id, and re-published under a new one
@@ -103,9 +90,13 @@ class ShipArrivesAtItsDestinationHarborAcceptanceTest {
         blackPearlIsAnnounced()
 
         // Then the Stock of "Port Royal" is unchanged
-        stock() shouldBe stockAfterArrival
+        stock() shouldBe stockBeforeArrival
         // And "Black Pearl" appears exactly once among the Available Ships of "Port Royal"
         availableShips().count { it["id"] == blackPearlId.toString() } shouldBe 1
+        // And once among its Incoming Ships, with its "Rum" and "Silk" aboard once each
+        val incoming = incomingShips().filter { it["shipId"] == blackPearlId.toString() }
+        incoming shouldHaveSize 1
+        cargoNames(incoming.single()).sorted() shouldBe listOf("Rum", "Silk")
         fakes.outbox.shipArrived() shouldHaveSize 1
     }
 
@@ -126,6 +117,7 @@ class ShipArrivesAtItsDestinationHarborAcceptanceTest {
         // Then the Stock and the fleet of "Port Royal" are unchanged
         stock().values.forEach { it shouldBe STARTING_STOCK }
         availableShips().shouldBeEmpty()
+        incomingShips().shouldBeEmpty()
         fakes.outbox.shipArrived().shouldBeEmpty()
     }
 
@@ -159,6 +151,15 @@ class ShipArrivesAtItsDestinationHarborAcceptanceTest {
         response.statusCode shouldBe HttpStatus.OK
         return response.body!!.map { it as Map<*, *> }
     }
+
+    private fun incomingShips(): List<Map<*, *>> {
+        val response = restTemplate.getForEntity("/web/incoming-ships", List::class.java)
+        response.statusCode shouldBe HttpStatus.OK
+        return response.body!!.map { it as Map<*, *> }
+    }
+
+    private fun cargoNames(incomingShip: Map<*, *>): List<String> =
+        (incomingShip["cargo"] as List<*>).map { (it as Map<*, *>)["name"] as String }
 
     private fun shipDetails(shipId: UUID): Map<*, *> {
         val response = restTemplate.getForEntity("/web/ships/$shipId", Map::class.java)

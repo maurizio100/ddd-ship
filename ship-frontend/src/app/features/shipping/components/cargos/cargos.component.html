@@ -1,6 +1,6 @@
 @if (showLoaded) {
   <ul class="chips" aria-label="Loaded Cargo">
-    @for (cargo of cargos; track cargo.id) {
+    @for (cargo of cargos; track $index) {
       <li class="chip" data-testid="loaded-cargo">
         <img class="chip__picture" [src]="'/cargo/' + (cargo.name | lowercase) + '.jpg'" alt="" />
         <span class="chip__name" data-testid="cargo-name">{{ cargo.name }}</span>

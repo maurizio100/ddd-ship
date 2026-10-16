@@ -139,6 +139,8 @@
   color: var(--hs-muted);
 }
 
+.home-harbor,
+.earnings,
 .arrived-from {
   display: flex;
   align-items: center;
@@ -160,7 +162,8 @@
   margin-top: 16px;
 }
 
-.at-sea {
+.at-sea,
+.incoming {
   margin: 0;
   font-style: italic;
   color: var(--hs-muted);

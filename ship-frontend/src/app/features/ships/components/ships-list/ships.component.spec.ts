@@ -6,7 +6,7 @@ import { ShipsComponent } from './ships.component';
 import { Ship, ShippingState } from '../../models/ship';
 import { ShipService } from '../../services/ship.service';
 import * as ShipActions from '../../store/actions/ship.actions';
-import { anArrivalNotice, anAvailableShip } from '../../../../../testing/fixtures';
+import { anArrivalNotice, anAvailableShip, anIncomingShip } from '../../../../../testing/fixtures';
 import { Catain } from '../../../catains/model/catain';
 import { ArrivalNotice } from '../../models/fleet-event';
 
@@ -102,6 +102,55 @@ describe('ShipsComponent (The fleet shows where an arrived ship came from)', () 
     render([anAvailableShip({ arrivedFrom: 'Nassau' })]);
 
     expect(arrivedFrom()).toEqual(['Arrived from Nassau']);
+  });
+});
+
+describe('ShipsComponent (A ship keeps its Home Harbor)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] }, catains: { catains: [], loading: false, error: null } } }),
+        {
+          provide: ShipService,
+          useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']),
+        },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  const homeHarbor = (): string[] =>
+    all('ship-home-harbor').map((line) => line.textContent!.replace(/\s+/g, ' ').trim());
+
+  const arrivedFrom = (): string[] =>
+    all('ship-arrived-from').map((badge) => badge.textContent!.trim());
+
+  it('A newly registered ship has this Harbor as its Home Harbor', () => {
+    render([anAvailableShip({ name: 'Salty Whisker', homeHarbor: 'Port Royal', arrivedFrom: null })]);
+
+    expect(homeHarbor().map((text) => text.replace(/^home\s*/, ''))).toEqual(['Home Harbor Port Royal']);
+    expect(all('ship-arrived-from')).toEqual([]);
+  });
+
+  it('The Home Harbor does not change when the ship sails elsewhere', () => {
+    render([anAvailableShip({ homeHarbor: 'Port Royal', arrivedFrom: 'Port Royal' })]);
+
+    expect(homeHarbor().map((text) => text.replace(/^home\s*/, ''))).toEqual(['Home Harbor Port Royal']);
+  });
+
+  it('The Home Harbor survives several voyages', () => {
+    render([anAvailableShip({ homeHarbor: 'Port Royal', arrivedFrom: 'Tortuga' })]);
+
+    expect(homeHarbor().map((text) => text.replace(/^home\s*/, ''))).toEqual(['Home Harbor Port Royal']);
+    expect(arrivedFrom()).toEqual(['Arrived from Tortuga']);
   });
 });
 
@@ -221,5 +270,90 @@ describe('ShipsComponent (ship card)', () => {
     render([anAvailableShip()]);
 
     expect(one('ship-picture')!.getAttribute('alt')).toBe('');
+  });
+});
+
+describe('ShipsComponent (An arriving ship becomes an Incoming Ship)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          initialState: {
+            ships: { ships, loading: false, error: null, arrivalNotices: [] },
+            catains: { catains: [], loading: false, error: null },
+          },
+        }),
+        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  it('An Incoming Ship cannot get a new Shipping', () => {
+    render([anIncomingShip({ shippingState: ShippingState.IDLE })]);
+
+    expect(all('new-shipping')).toEqual([]);
+    expect(all('ship-incoming').map((note) => note.textContent!.trim())).toEqual([
+      'Salty Whisker must be unloaded or refused first',
+    ]);
+  });
+
+  it('A ship arriving with no Cargo joins the fleet as an ordinary ship', () => {
+    render([anAvailableShip({ name: 'Empty Tabby', shippingState: ShippingState.IDLE, incoming: false })]);
+
+    expect(all('new-shipping').length).toBe(1);
+    expect(all('new-shipping')[0].textContent).toContain('New shipping');
+    expect(all('ship-incoming')).toEqual([]);
+  });
+});
+
+describe('ShipsComponent (Unloading earns the ship its Earnings)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] }, catains: { catains: [], loading: false, error: null } } }),
+        {
+          provide: ShipService,
+          useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']),
+        },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const earnings = (): string[] =>
+    Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('[data-testid="ship-earnings"]')).map((line) =>
+      line.textContent!.replace(/\s+/g, ' ').trim().replace(/^payments\s*/, ''),
+    );
+
+  it('shows the Earnings a ship carries', () => {
+    render([anAvailableShip({ name: 'Salty Whisker', earnings: '80.00' })]);
+
+    expect(earnings()).toEqual(['Earnings 80.00 $']);
+  });
+
+  it('shows collected Earnings as the backend reports them', () => {
+    render([anAvailableShip({ name: 'Salty Whisker', earnings: '120.00' })]);
+
+    expect(earnings()).toEqual(['Earnings 120.00 $']);
+  });
+
+  it('shows no Earnings for a ship that carries none', () => {
+    render([anAvailableShip({ name: 'Salty Whisker', earnings: '0.00' })]);
+
+    expect(earnings()).toEqual([]);
   });
 });

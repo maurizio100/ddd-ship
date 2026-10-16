@@ -33,6 +33,20 @@
           @if (dragOver()) {
             <div class="deck__overlay" aria-hidden="true">Heave it aboard!</div>
           }
+          @if (ship.cargoAboard.length > 0) {
+            <h2 id="refused-heading">Refused Cargo aboard</h2>
+            <ul class="refused" aria-labelledby="refused-heading">
+              @for (cargo of ship.cargoAboard; track $index) {
+                <li class="refused__chip" data-testid="refused-cargo">
+                  <img class="refused__picture" [src]="'/cargo/' + (cargo.name | lowercase) + '.jpg'" alt="" />
+                  <span class="refused__name">{{ cargo.name }}</span>
+                </li>
+              }
+            </ul>
+            <p class="refused__note" data-testid="refused-cargo-note">
+              Refused here; it can only be delivered to another Harbor
+            </p>
+          }
           <h2 id="loaded-heading">Loaded Cargo</h2>
           @if (ship.cargo.length === 0) {
             <p class="deck__empty">The hold is empty — drop Cargo here</p>

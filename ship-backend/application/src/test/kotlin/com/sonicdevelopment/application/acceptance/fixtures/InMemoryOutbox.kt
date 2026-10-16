@@ -16,6 +16,8 @@ sealed interface OutboxMessage {
         val cargoIds: List<UUID>,
         val originHarbor: String,
         val destinationHarbor: String?,
+        val homeHarbor: String? = null,
+        val earnings: String? = null,
     ) : OutboxMessage
 
     data class ShipArrived(
@@ -43,6 +45,8 @@ class InMemoryOutbox : ShippingOutboxRepository, HarborOutboxRepositoryPort {
             cargoIds = ship.loadedCargo.map { it.id.id },
             originHarbor = originHarbor.name,
             destinationHarbor = shipping.destinationHarbor?.name,
+            homeHarbor = ship.homeHarbor.name,
+            earnings = ship.earnings.toDecimalString(),
         )
     }
 

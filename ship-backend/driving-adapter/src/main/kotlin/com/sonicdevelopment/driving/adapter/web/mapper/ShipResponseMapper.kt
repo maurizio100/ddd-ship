@@ -12,7 +12,10 @@ fun toShipResponse(ship: ShipDTO) =
         name = ship.name,
         catain = ship.catain,
         shippingState = ship.shippingState,
-        arrivedFrom = ship.arrivedFrom
+        arrivedFrom = ship.arrivedFrom,
+        incoming = ship.incoming,
+        homeHarbor = ship.homeHarbor,
+        earnings = ship.earnings.toDecimalString(),
     )
 fun toShipDetailResponse(ship: ShipDetailDTO) =
     ShipDetailResponse(
@@ -25,7 +28,15 @@ fun toShipDetailResponse(ship: ShipDetailDTO) =
                 weight = it.weight
             )
         },
+        cargoAboard = ship.cargoAboard.map {
+            CargoResponse(
+                id = it.id.id,
+                name = it.name,
+                weight = it.weight
+            )
+        },
         weight = ship.actualWeight,
         maxweight = ship.maxWeight,
-        arrivedFrom = ship.arrivedFrom
+        arrivedFrom = ship.arrivedFrom,
+        homeHarbor = ship.homeHarbor,
     )

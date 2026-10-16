@@ -31,15 +31,14 @@ docker compose -f docker-compose-app.yml up -d            # app wired to the Kaf
 Hexagonship is a playful harbor: a **User** registers ships, each commanded by a cat **Catain**, loads
 them with **Cargo** up to a Max Weight of 15.0, and **Releases** them on a **Shipping**; each departure
 is published and announced on a harbor terminal. Each backend instance is a **Harbor** with its own
-fleet and **Stock**; a Release names a Destination Harbor, whose backend handles the **Arrival** (Cargo
-into its Stock, ship into its fleet) and answers with `ship-arrived`, which sets the origin's Shipping
+fleet and **Stock**; a Release names a Destination Harbor, whose backend handles the **Arrival** (the ship
+joins its fleet, as an **Incoming Ship** while Cargo is aboard) and answers with `ship-arrived`, which sets the origin's Shipping
 to `DONE`. Bounded contexts: **Fleet**, **CargoLoading**, **Shipping**, **HarborTerminal**, and the
 candidate **Trade**. Core flow: create ship (Fleet) → new Shipping → load Cargo (CargoLoading) →
 Release → `shipping-published` via outbox/Kafka → Arrival at the Destination Harbor → `ship-arrived`
-→ HarborTerminal announces departures. Planned (harbor-economy, not built): Cargo has a **Price**, a
-Harbor holds **Savings** and buys at the **Market**, unloads **Incoming Ships** by hand paying the
-**Delivery Price** (or refuses them, sending them back to their **Home Harbor**), and ships carry
-**Earnings** home. Planned (crew, not built): each ship has a **Ship Class** setting its Crew Capacity,
+→ HarborTerminal announces departures. Cargo has a **Price**, a Harbor holds **Savings**, buys at the
+**Market** and unloads **Incoming Ships** by hand paying the **Delivery Price**, or refuses them, sending
+them back to their **Home Harbor**, or, at the Home Harbor itself, keeping the ship and its Cargo (built). A Delivery Price paid away from a ship's Home Harbor becomes the ship's **Earnings**, which it carries from Harbor to Harbor (built); at the Home Harbor it goes back into the Savings at once (built). When the ship arrives at its Home Harbor, the Earnings it carries go into that Harbor's Savings (built). Planned (crew, not built): each ship has a **Ship Class** setting its Crew Capacity,
 and at its Home Harbor a User **Hires** **Recruits** from the Harbor's own **Recruit Pool** for a
 **Hiring Fee**; the **Crew** sails with the ship. Full model: `docs/domain/`.
 

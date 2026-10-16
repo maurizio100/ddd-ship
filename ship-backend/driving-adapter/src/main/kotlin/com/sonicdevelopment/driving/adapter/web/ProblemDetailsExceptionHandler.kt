@@ -1,7 +1,11 @@
 package com.sonicdevelopment.driving.adapter.web
 
+import com.sonicdevelopment.domain.exception.CargoHasNoPriceException
 import com.sonicdevelopment.domain.exception.CargoOutOfStockException
-import com.sonicdevelopment.domain.exception.ItemAlreadyLoadedException
+import com.sonicdevelopment.domain.exception.NewShippingRefusedException
+import com.sonicdevelopment.domain.exception.RefusedCargoException
+import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
+import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.UnknownHarborException
@@ -22,9 +26,6 @@ class ProblemDetailsExceptionHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(ShipTooHeavyException::class)
     fun shipTooHeavy(exception: ShipTooHeavyException) = conflict("Ship too heavy", exception)
 
-    @ExceptionHandler(ItemAlreadyLoadedException::class)
-    fun cargoAlreadyLoaded(exception: ItemAlreadyLoadedException) = conflict("Cargo already loaded", exception)
-
     @ExceptionHandler(CargoOutOfStockException::class)
     fun cargoOutOfStock(exception: CargoOutOfStockException) = conflict("Cargo out of Stock", exception)
 
@@ -33,6 +34,21 @@ class ProblemDetailsExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(ShippingNotPreparingException::class)
     fun shippingNotPreparing(exception: ShippingNotPreparingException) = conflict("Ship not being prepared", exception)
+
+    @ExceptionHandler(SavingsDoNotCoverException::class)
+    fun savingsDoNotCover(exception: SavingsDoNotCoverException) = conflict("Savings do not cover", exception)
+
+    @ExceptionHandler(CargoHasNoPriceException::class)
+    fun cargoHasNoPrice(exception: CargoHasNoPriceException) = conflict("Cargo has no Price", exception)
+
+    @ExceptionHandler(NewShippingRefusedException::class)
+    fun newShippingRefused(exception: NewShippingRefusedException) = conflict("New Shipping refused", exception)
+
+    @ExceptionHandler(ShipNotIncomingException::class)
+    fun shipNotIncoming(exception: ShipNotIncomingException) = conflict("Not an Incoming Ship", exception)
+
+    @ExceptionHandler(RefusedCargoException::class)
+    fun refusedCargo(exception: RefusedCargoException) = conflict("Refused Cargo", exception)
 
     private fun conflict(title: String, exception: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.message).apply { this.title = title }

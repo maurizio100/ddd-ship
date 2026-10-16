@@ -24,7 +24,7 @@ class CargoLoadManagementService(
 
     /**
      * Loads the Cargo and takes one out of the Stock, in one transaction: a load rejected by the ship
-     * (Max Weight, already loaded) or by the Stock (out of Stock) leaves both unchanged.
+     * (Max Weight) or by the Stock (out of Stock) leaves both unchanged.
      */
     @Transactional
     override fun addCargo(shipId: ShipId, cargoId: CargoId): ShipDetailDTO? {

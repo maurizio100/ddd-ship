@@ -2,6 +2,8 @@ spring:
   flyway:
     # Flyway migrations are owned by the application module.
     locations: filesystem:../application/src/main/resources/db/migration
+    placeholders:
+      harbor_name: Test Harbor
   jpa:
     hibernate:
       ddl-auto: none
