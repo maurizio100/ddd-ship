@@ -1,34 +1,33 @@
 # Context: HarborTerminal
 
 The harbor's departure board. It listens for Shipping Published events and announces each ship that
-has put to sea, with its Catain, its weight and the Cargo on board.
+has put to sea, with its Catain, its weight and the Cargo on board. With several Harbors it remains
+one departure board for all of them; it is not a Harbor itself.
 
 Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the folder beside this file.
+
+## Strategic classification
+- **Domain:** Generic — it prints what an event says and holds no rules of its own.
+- **Business model:** Engagement — it makes departures visible.
+- **Evolution:** Commodity — a plain event consumer.
 
 ## Participants
 - ship-terminal — a standalone Kafka consumer (group `ship-terminal`) on topic `hexagonship-shipping`.
 
 ## Behaviour
 - Consume Shipping Published events and print ship name, "Captain Name" (the Catain), weight and the Cargo list (`ship-terminal/src/main/kotlin/Main.kt`).
-- Keeps its own copy of the event model; unknown fields are ignored.
-- Planned (harbor-voyages, 2026-10-03): with several Harbors, the terminal remains one departure board for all of them; Shipping Published gains Origin Harbor and Destination Harbor, which it may show. It is not a Harbor itself.
 
-## Tactical model
+## Inbound communication
+| From | Message | Kind |
+|------|---------|------|
+| Shipping | Shipping Published | Event |
 
-> Status: not yet discovered
-> The tactical model emerges during implementation. Each story that
-> touches this context adds or modifies entries below via the
-> `implement-story` skill. Do not pre-populate from the discovery
-> source — tactical choices are made at code time, not at analysis time.
+## Outbound communication
+None.
 
-### Aggregates
-_No entries yet._
+## Business decisions
+- The terminal keeps its own copy of the event model and ignores unknown fields; it never shares the backend's classes.
+- Events arrive at least once, so the terminal tolerates duplicates.
 
-### Entities (non-aggregate roots)
-_No entries yet._
-
-### Value objects
-_No entries yet._
-
-### Domain services
-_No entries yet._
+## Assumptions and open questions
+- Open: whether the board should show the Origin Harbor and Destination Harbor that Shipping Published now carries; today it does not.

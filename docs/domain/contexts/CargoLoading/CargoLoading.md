@@ -3,47 +3,38 @@
 Putting goods on board. A fixed catalog of Cargo (Ale, Rum, Silk, …), each with a Weight, can be
 loaded onto and unloaded from a ship while it is being prepared, the same Cargo more than once
 included. A ship can carry at most its Max Weight, applied to the summed Weight of everything
-aboard.
+aboard. Each Harbor keeps its own Stock of Cargo.
 
 Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the folder beside this file.
+
+## Strategic classification
+- **Domain:** Supporting — loading feeds the voyage and the Stock feeds Trade, but the rules are simple.
+- **Business model:** Engagement — choosing what to load is part of the game.
+- **Evolution:** Custom built — built for Hexagonship and stable.
 
 ## Participants
 - User — picks Cargo from the Available Cargo and loads or unloads it on a ship.
 
 ## Behaviour
-- Each Harbor keeps its own Stock: how many of each Cargo it has on hand. A Harbor starts with its Starting Stock (3 of every Cargo, the same at every Harbor), seeded once when it opens for the first time (`V7__stocks.sql`).
-- List the Available Cargo: the catalog Cargo (seeded by `V2__cargos.sql`) whose Stock at this Harbor is above 0, each with its Stock (`CargoInformationService`).
-- The Harbor's Stock overview lists the whole catalog with each Cargo's Stock, Cargo at 0 included (`GET /web/stock`, shown on the harbor management page). *Introduced by STORY-023.*
-- Load Cargo onto a ship, the same Cargo more than once included: rejected if the ship would exceed its Max Weight of 15.0, applied to the summed Weight of everything aboard (`ShipTooHeavyException`) — `Ship.addCargo` — or if the Harbor's Stock holds none of it (`CargoOutOfStockException`). A successful load takes one out of the Stock. A rejected load changes neither the ship nor the Stock and is answered with `409`. *Modified by STORY-022.*
-- Unload Cargo while preparing; if it was on board, the ship's Current Weight drops by the Cargo's Weight, never below 0 (`Ship.removeCargo`), and one is put back into the Stock. Unloading Cargo that isn't on board changes nothing.
+- Each Harbor keeps its own Stock: how many of each Cargo it has on hand. A Harbor starts with its Starting Stock (3 of every Cargo, the same at every Harbor), seeded once when it opens for the first time.
+- List the Available Cargo: the catalog Cargo whose Stock at this Harbor is above 0, each with its Stock.
+- The Harbor's Stock overview lists the whole catalog with each Cargo's Stock, Cargo at 0 included (`GET /web/stock`, shown on the harbor management page).
+- Load Cargo onto a ship while preparing; a successful load takes one out of the Stock. A rejected load is answered with `409`.
+- Unload Cargo while preparing; if it was on board, the ship's Current Weight drops by the Cargo's Weight and one is put back into the Stock.
 - The Current Weight against the Max Weight is shown while preparing a shipping ("Current Weight: x / 15").
+- After the Starting Stock, the Stock is refilled only by a User unloading an Incoming Ship, by buying at the Market (both through Trade), and by a User unloading while preparing, which returns what was taken. An Arrival leaves the Stock unchanged: the Cargo stays aboard the Incoming Ship.
 
-### Unloading on Arrival (harbor-voyages ideation, 2026-10-03)
-Built by STORY-006 unless marked otherwise.
-- After the Starting Stock, a Harbor's Stock is refilled only by ships delivering Cargo (a User unloading an Incoming Ship), by buying at the Market, and by a User unloading while preparing, which returns what was taken.
-- Unloading on Arrival is replaced by STORY-044: an Arrival leaves the Stock unchanged and the Cargo stays aboard an Incoming Ship (Shipping); the Stock grows only when a User unloads it, all its Cargo at once.
-- Every Harbor names each Cargo by the same Cargo id (seeded with fixed ids by `V9__same_reference_ids_at_every_harbor.sql`), so an arriving ship's Cargo resolves at any Harbor. *Built by STORY-006.*
+## Inbound communication
+| From | Message | Kind |
+|------|---------|------|
+| Trade | Put Cargo into the Stock (bought at the Market, or unloaded from an Incoming Ship) | Command |
 
-## Tactical model
+## Outbound communication
+None: Shipping reads the Loaded Cargo and the Current Weight from the shared `Ship` (Shared Kernel), not through a message.
 
-> Status: not yet discovered
-> The tactical model emerges during implementation. Each story that
-> touches this context adds or modifies entries below via the
-> `implement-story` skill. Do not pre-populate from the discovery
-> source — tactical choices are made at code time, not at analysis time.
-
-### Aggregates
-- **Ship** (Shared Kernel with Fleet and Shipping) — holds the Loaded Cargo and the Current Weight; enforces "at most the Max Weight" in `addCargo`, applied to the summed Weight of everything aboard, and names the Cargo in the rejection. The same Cargo may be loaded more than once. `removeCargo` removes one matching instance, returns whether the Cargo was on board, and changes the Current Weight only then. *Modified by STORY-004, STORY-022.*
-
-### Entities (non-aggregate roots)
-_No entries yet._
-
-### Value objects
-- **AvailableCargoDTO** — a catalog Cargo that can be loaded here, with its Stock (always above 0). Driving-port DTO of `CargoInformationPort`. *Introduced by STORY-004.*
-- **StockedCargoDTO** — a catalog Cargo with its Stock (0 allowed). Driving-port DTO of `CargoInformationPort.getStockOverview`. *Introduced by STORY-023.*
-- **CargoOutOfStockException** — the rule violation "the Harbor's Stock holds none of this Cargo". *Introduced by STORY-004.*
-
-### Domain services
-- **StockRepositoryPort** (driven port) — the Harbor's Stock: quantity per Cargo, one Stock per Harbor. Invariant: never below 0, enforced atomically by `takeOneFromStock` (one conditional statement, so concurrent loads of the last Cargo cannot both succeed). `putIntoStock(cargoId, quantity)` is the single entry point for refilling. Writes run in the caller's transaction. *Introduced by STORY-004.*
-- **CargoLoadManagementService** — loading applies the ship's rules first, then takes one from the Stock; unloading Loaded Cargo puts one back. Each runs in one transaction with the cargo load. *Modified by STORY-004.*
-- **CargoInformationService** — Available Cargo = catalog Cargo with Stock above 0, in catalog order. *Modified by STORY-004.*
+## Business decisions
+- A ship carries at most its Max Weight of 15.0, applied to the summed Weight of everything aboard. A load that would exceed it is rejected and names the Cargo. The same Cargo may be loaded more than once.
+- A load is rejected when the Harbor's Stock holds none of that Cargo. A rejected load changes neither the ship nor the Stock.
+- The Stock never drops below 0, even when two loads of the last Cargo run at the same time.
+- Unloading removes one matching Cargo and never takes the Current Weight below 0. Unloading Cargo that is not on board changes nothing.
+- Every Harbor names each Cargo by the same Cargo id, so an arriving ship's Cargo resolves at any Harbor.
