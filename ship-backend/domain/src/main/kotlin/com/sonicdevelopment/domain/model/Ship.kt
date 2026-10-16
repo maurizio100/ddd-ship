@@ -115,6 +115,9 @@ class Ship(
         return true
     }
 
+    /** Scaffold for STORY-050: hands over nothing yet. */
+    fun bringEarningsHome(currentHarbor: HarborName): Money = Money.dollars(0)
+
     /**
      * Refuses an Incoming Ship at [currentHarbor]. At its Home Harbor it only stops being Incoming: the Cargo
      * aboard stays aboard and no Shipping is started. Anywhere else it starts a new Shipping, moves every Cargo

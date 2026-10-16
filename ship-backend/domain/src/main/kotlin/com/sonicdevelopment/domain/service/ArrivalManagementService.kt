@@ -9,6 +9,7 @@ import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import com.sonicdevelopment.domain.ports.driven.CatainRepository
 import com.sonicdevelopment.domain.ports.driven.FleetEventsPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation.Companion.fromShip
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
@@ -65,6 +66,7 @@ class ArrivalManagementService(
     private val shippingRepositoryPort: ShippingRepositoryPort,
     private val arrivalRepositoryPort: ArrivalRepositoryPort,
     private val fleetEventsPort: FleetEventsPort,
+    private val savingsRepositoryPort: SavingsRepositoryPort,
 ) : ArrivalManagementPort {
 
     @Transactional
