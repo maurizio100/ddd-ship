@@ -16,8 +16,8 @@ index row below in the same change as the decision file.
 
 ## Index
 
-<One row per decision, sorted by ID ascending. `adr-writing` maintains this — read it first and
-open only the decisions that bear on your task.>
+<!-- One row per decision, sorted by ID ascending. `adr-writing` maintains this — read it first and
+open only the decisions that bear on your task. -->
 
 | ID | Decision | Status | Category | Date |
 | --- | --- | --- | --- | --- |

@@ -400,4 +400,22 @@ class ShipTest {
         earned shouldBe false
         ship.earnings.toDecimalString() shouldBe "0.00"
     }
+
+    @Test
+    fun `bringEarningsHome hands over the Earnings at the Home Harbor and keeps them elsewhere`() {
+        val ship = Ship(
+            name = "Salty Whisker", catainId = CatainId(UUID.randomUUID()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), earnings = Money.of("80.00"),
+        )
+
+        val elsewhere = ship.bringEarningsHome(HarborName("Isla de Muerta"))
+
+        elsewhere.toDecimalString() shouldBe "0.00"
+        ship.earnings shouldBe Money.of("80.00")
+
+        val home = ship.bringEarningsHome(HarborName("Port Royal"))
+
+        home shouldBe Money.of("80.00")
+        ship.earnings shouldBe Money.dollars(0)
+    }
 }

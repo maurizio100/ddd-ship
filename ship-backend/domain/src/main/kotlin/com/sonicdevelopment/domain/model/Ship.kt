@@ -116,6 +116,18 @@ class Ship(
     }
 
     /**
+     * The ship brings its Earnings home to [currentHarbor]. At its Home Harbor it hands over all its Earnings,
+     * which then drop to zero; the caller credits the returned amount to the Savings. Anywhere else it keeps
+     * its Earnings and zero is returned.
+     */
+    fun bringEarningsHome(currentHarbor: HarborName): Money {
+        if (homeHarbor != currentHarbor) return Money.dollars(0)
+        val homecoming = earnings
+        earnings = Money.dollars(0)
+        return homecoming
+    }
+
+    /**
      * Refuses an Incoming Ship at [currentHarbor]. At its Home Harbor it only stops being Incoming: the Cargo
      * aboard stays aboard and no Shipping is started. Anywhere else it starts a new Shipping, moves every Cargo
      * aboard into its Loaded Cargo, and clears the Cargo aboard and the Incoming flag together, so that the ship

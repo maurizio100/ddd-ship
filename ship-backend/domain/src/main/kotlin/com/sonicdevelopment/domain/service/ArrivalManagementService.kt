@@ -4,11 +4,13 @@ import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.ports.driven.ArrivalRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import com.sonicdevelopment.domain.ports.driven.CatainRepository
 import com.sonicdevelopment.domain.ports.driven.FleetEventsPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation.Companion.fromShip
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
@@ -42,8 +44,10 @@ import org.springframework.stereotype.Service
  * as an Incoming Ship with that Cargo aboard, one entry per Cargo instance; a ship that carries none joins as
  * an ordinary ship. The Stock is unchanged: Cargo goes into it only when a User unloads the ship (STORY-045).
  * The ship keeps the Home Harbor carried in the Shipping Published; an event without one (from a Harbor that
- * does not send it yet) makes the Origin Harbor the ship's Home Harbor. The ship also keeps the Earnings it
- * carries; an event without them carries none.
+ * does not send it yet) makes the Origin Harbor the ship's Home Harbor. An event without Earnings carries
+ * none. At its Home Harbor the ship's Earnings go into the Savings and the ship carries none; the credit sits
+ * behind the inbox and Arrival guards, so a redelivered or re-published Arrival credits nothing twice, and it
+ * rolls back with the rest of the Arrival. At any other Harbor the ship keeps the Earnings it carries.
  *
  * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
  * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
@@ -65,6 +69,7 @@ class ArrivalManagementService(
     private val shippingRepositoryPort: ShippingRepositoryPort,
     private val arrivalRepositoryPort: ArrivalRepositoryPort,
     private val fleetEventsPort: FleetEventsPort,
+    private val savingsRepositoryPort: SavingsRepositoryPort,
 ) : ArrivalManagementPort {
 
     @Transactional
@@ -100,6 +105,8 @@ class ArrivalManagementService(
             incoming = cargo.isNotEmpty(),
             earnings = shippingPublished.earnings,
         )
+        val homecoming = ship.bringEarningsHome(currentHarbor)
+        if (homecoming != Money.dollars(0)) savingsRepositoryPort.receive(homecoming)
         shipRepositoryPort.saveNewShip(fromShip(ship))
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)
         fleetEventsPort.announceShipArrived(ship, originHarbor)

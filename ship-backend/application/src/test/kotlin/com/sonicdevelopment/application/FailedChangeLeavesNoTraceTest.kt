@@ -315,6 +315,39 @@ class FailedChangeLeavesNoTraceTest {
     }
 
     @Test
+    fun `A Home Harbor Arrival whose Ship Arrived write fails leaves the Savings and the ship's Earnings unchanged`() {
+        val eventId = UUID.randomUUID()
+        val homecoming = ShippingPublishedDTO(
+            shipId = ShipId(UUID.randomUUID()),
+            shipName = "Salty Whisker",
+            catainId = CatainId(SeedData.aCatainId),
+            shippingId = ShippingId(UUID.randomUUID()),
+            cargoIds = emptyList(),
+            originHarbor = HarborName("Isla de Muerta"),
+            destinationHarbor = HarborName("Port Royal"),
+            homeHarbor = HarborName("Port Royal"),
+            earnings = Money.of("80.00"),
+        )
+        failingOutbox.shipArrivedArmed = true
+
+        shouldThrow<IllegalStateException> {
+            arrivalManagementPort.receiveShippingPublished(EventId(eventId), homecoming)
+        }
+
+        // the Earnings really went into the Savings before the Ship Arrived write failed
+        countingSavings.receivesThrough shouldBe 1
+        savingsAmount() shouldBe STARTING_SAVINGS
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM inbox_events WHERE event_id = ?", Int::class.java, eventId
+        ) shouldBe 0
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM arrivals WHERE shipping_id = ?", Int::class.java, homecoming.shippingId.id
+        ) shouldBe 0
+        count("ships") shouldBe 0
+        count("shipping_outbox") shouldBe 0
+    }
+
+    @Test
     fun `An opening whose Harbor Opened write fails leaves no Price and no outbox row`() {
         val startupPrices = jdbcTemplate.queryForList("SELECT cargo_id, price_amount FROM prices")
         try {

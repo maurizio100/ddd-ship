@@ -130,17 +130,13 @@ The Stock is unchanged by an Arrival; it changes only when a User buys at the Ma
 Incoming Ship (6.7, [ADR-0007](../adr/0007-unload-incoming-ships-manually-after-arrival.md), built by STORY-045). A ship that
 arrives with no Cargo joins as an ordinary ship.
 
-### Decided, not built yet: Earnings (EPIC-003)
+### Earnings at the Home Harbor
 
-Per [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md), the Destination transaction changes in one
-place; everything else above stays, including `ship-arrived` in the same transaction:
-
-- If this Harbor is the ship's Home Harbor, the Earnings carried in `shipping-published` go into the
-  Savings and the ship's Earnings become zero, in the same inbox transaction, so a redelivered event
-  credits nothing twice.
-
-Carrying the Earnings is built: the Arrival takes the ship into the fleet with the Earnings carried in
-`shipping-published` (none for an event without them); only the credit at the Home Harbor is not built.
+Per [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md), if this Harbor is the ship's Home Harbor,
+the Earnings carried in `shipping-published` go into the Savings and the ship's Earnings become zero, before
+the ship is saved and in the same inbox transaction as `ship-arrived`. The credit sits behind the inbox and
+`arrivals` guards, so a redelivered or re-published event credits nothing twice. Elsewhere the ship joins
+the fleet with the Earnings carried in `shipping-published` (none for an event without them).
 
 ### Decided, not built yet: the Crew sails with the ship
 
