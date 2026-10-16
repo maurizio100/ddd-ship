@@ -178,7 +178,17 @@ export default withMermaid({
   },
 
   head: [
-    ['meta', { name: 'theme-color', content: '#00417b' }],
+    ['meta', { name: 'theme-color', content: '#1b2a3a' }],
+    // The app's faces (docs/services/ship-frontend/design-guidelines.md).
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    [
+      'link',
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Pirata+One&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&display=swap',
+      },
+    ],
   ],
 
   themeConfig: {
@@ -224,12 +234,12 @@ export default withMermaid({
   mermaid: {
     theme: 'default',
     themeVariables: {
-      primaryColor: '#E5EEF5',
-      primaryBorderColor: '#00417b',
-      primaryTextColor: '#16212C',
-      lineColor: '#5a5f62',
+      primaryColor: '#FBF5E6',
+      primaryBorderColor: '#8C2F1B',
+      primaryTextColor: '#1B2A3A',
+      lineColor: '#5A4E3C',
       fontFamily:
-        'Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
+        'Alegreya Sans, system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
     },
   },
 })

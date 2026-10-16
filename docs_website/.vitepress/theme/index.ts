@@ -1,18 +1,17 @@
+import { h } from 'vue'
 import DefaultTheme from 'vitepress/theme'
 import type { Theme } from 'vitepress'
 import { setupMermaidZoom } from './mermaid-zoom'
+import HeroShip from './HeroShip.vue'
 
-// Inter — a clean, OpenFont-licensed UI typeface, safe to ship on a public site.
-import '@fontsource/inter/300.css'
-import '@fontsource/inter/400.css'
-import '@fontsource/inter/500.css'
-import '@fontsource/inter/600.css'
-import '@fontsource/inter/700.css'
-
+// Fonts (Alegreya Sans, IM Fell English, Pirata One) come from Google Fonts,
+// linked in config.mts — the same faces as ship-frontend.
 import './custom.css'
 
 export default {
   extends: DefaultTheme,
+  // The home page's hero shows the galleon instead of an image file.
+  Layout: () => h(DefaultTheme.Layout, null, { 'home-hero-image': () => h(HeroShip) }),
   setup() {
     setupMermaidZoom()
   },

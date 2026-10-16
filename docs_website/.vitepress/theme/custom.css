@@ -1,92 +1,150 @@
 /* ────────────────────────────────────────────────────────────────────────
  * Docs portal — VitePress theme skin
- * A neutral blue Material-3 skin: shape scale, pale-blue canvas with bordered
- * white surfaces, restrained elevation, pill buttons. Typeface: Inter.
- * Re-theme by editing the palette tokens below (--more-* / --vp-c-brand-*).
+ * The app's pirate harbor (docs/services/ship-frontend/design-guidelines.md):
+ * parchment surfaces, ink text, oxblood actions, brass trim. Pill buttons,
+ * bordered cards. Fonts: Alegreya Sans (text), IM Fell English (headings),
+ * Pirata One (the wordmark), loaded from Google Fonts in config.mts.
+ * Re-theme by editing the palette tokens below (--pirate-* / --vp-c-*).
+ * Brass is never text on parchment (contrast); all text meets 4.5:1.
  * ──────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* MORE palette ---------------------------------------------------------- */
-  --more-blue:        #00417b;   /* primary-40 — the brand */
-  --more-blue-30:     #0e4782;
-  --more-blue-20:     #00315f;
-  --more-blue-light:  #e5eef5;
-  --more-blue-medium: #c8def1;
-  --more-canvas:      #f2f7fa;   /* WEB page background */
-  --more-fg:          #16212c;   /* root-dark — primary text */
-  --more-fg-2:        #5a5f62;   /* neutral-40 — muted */
-  --more-fg-3:        #72787b;   /* neutral-50 — captions */
-  --more-border:      #dee3e6;   /* neutral-90 — borders do the work */
-  --more-border-2:    #c2c7ca;   /* neutral-80 */
-  --more-sunken:      #ecf1f4;   /* neutral-95 */
-  --more-surface-2:   #f5fafd;   /* neutral-98 */
-  --more-success:     #337432;
-  --more-success-bg:  #c7dbc7;
-  --more-warn:        #e07564;
-  --more-warn-bg:     #f3d8d4;
-  --more-error:       #ba1a1a;
-  --more-error-bg:    #ffdad6;
+  /* Pirate palette (ship-frontend design guidelines) ---------------------- */
+  --pirate-ink:          #1b2a3a;   /* body text, dark surfaces */
+  --pirate-parchment:    #f3e9d2;   /* page frame; text on ink */
+  --pirate-card:         #fbf5e6;   /* reading column, cards */
+  --pirate-raised:       #fff8ec;   /* text on oxblood */
+  --pirate-sand:         #e8d9b5;   /* chips, active nav */
+  --pirate-border:       #d9c79e;   /* card borders */
+  --pirate-muted:        #5a4e3c;   /* secondary text */
+  --pirate-muted-2:      #6f6149;   /* captions */
+  --pirate-oxblood:      #8c2f1b;   /* primary action, links */
+  --pirate-oxblood-dark: #6a2112;   /* hover */
+  --pirate-brass:        #b8862b;   /* trim only */
+  --pirate-warning:      #c0532f;
+
+  /* The home-hero galleon (HeroShip.vue) ---------------------------------- */
+  --pirate-wood:  #6b4a2b;
+  --pirate-sail:  #24221f;          /* black sails */
+  --pirate-gold:  var(--pirate-brass);
+  --pirate-bone:  var(--pirate-parchment);
+  --pirate-sea:   #1f4e6b;
+  --pirate-sea-2: #2f6b8a;
 
   /* Typography ------------------------------------------------------------ */
-  --vp-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --vp-font-family-base: 'Alegreya Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --pirate-font-heading: 'IM Fell English', Georgia, 'Times New Roman', serif;
+  --pirate-font-wordmark: 'Pirata One', var(--pirate-font-heading);
 
   /* Brand accent (links, active nav, buttons) ----------------------------- */
-  --vp-c-brand-1: var(--more-blue);
-  --vp-c-brand-2: var(--more-blue-30);
-  --vp-c-brand-3: var(--more-blue-20);
-  --vp-c-brand-soft:   rgba(0, 65, 123, 0.08);
-  --vp-c-brand-softer: rgba(0, 65, 123, 0.05);
+  --vp-c-brand-1: var(--pirate-oxblood);
+  --vp-c-brand-2: var(--pirate-oxblood-dark);
+  --vp-c-brand-3: var(--pirate-oxblood);
+  --vp-c-brand-soft:   rgba(140, 47, 27, 0.10);
+  --vp-c-brand-softer: rgba(140, 47, 27, 0.05);
+  --vp-button-brand-bg:         var(--pirate-oxblood);
+  --vp-button-brand-hover-bg:   var(--pirate-oxblood-dark);
+  --vp-button-brand-active-bg:  var(--pirate-oxblood-dark);
+  --vp-button-brand-text:       var(--pirate-raised);
+  --vp-button-brand-hover-text: var(--pirate-raised);
+  --vp-button-brand-active-text: var(--pirate-raised);
+  --vp-button-alt-bg:          var(--pirate-sand);
+  --vp-button-alt-hover-bg:    var(--pirate-border);
+  --vp-button-alt-active-bg:   var(--pirate-border);
+  --vp-button-alt-text:        var(--pirate-ink);
+  --vp-button-alt-hover-text:  var(--pirate-ink);
+  --vp-button-alt-active-text: var(--pirate-ink);
 
-  /* Surfaces — white reading column on a pale-blue frame ------------------ */
-  --vp-c-bg:      #ffffff;
-  --vp-c-bg-alt:  var(--more-canvas);
-  --vp-c-bg-soft: var(--more-surface-2);
-  --vp-c-bg-elv:  #ffffff;
+  /* Surfaces — card reading column on a parchment frame ------------------- */
+  --vp-c-bg:      var(--pirate-card);
+  --vp-c-bg-alt:  var(--pirate-parchment);
+  --vp-c-bg-soft: #f6eedb;
+  --vp-c-bg-elv:  var(--pirate-raised);
 
-  --vp-c-text-1: var(--more-fg);
-  --vp-c-text-2: var(--more-fg-2);
-  --vp-c-text-3: var(--more-fg-3);
+  --vp-c-text-1: var(--pirate-ink);
+  --vp-c-text-2: var(--pirate-muted);
+  --vp-c-text-3: var(--pirate-muted-2);
 
-  --vp-c-border:  var(--more-border);
-  --vp-c-divider: var(--more-border);
-  --vp-c-gutter:  var(--more-border);
+  --vp-c-border:  var(--pirate-border);
+  --vp-c-divider: var(--pirate-border);
+  --vp-c-gutter:  var(--pirate-border);
 
   /* Code ------------------------------------------------------------------ */
-  --vp-code-block-bg: var(--more-surface-2);
+  --vp-code-block-bg: #f6eedb;
 
-  /* Home hero — no gradients (MORE is a "no gradient" system) -------------- */
-  --vp-home-hero-name-color: var(--more-blue);
+  /* Home hero — the galleon instead of a gradient ------------------------- */
+  --vp-home-hero-name-color: var(--pirate-oxblood);
   --vp-home-hero-image-background-image: none;
   --vp-home-hero-image-filter: none;
 
   /* Restrained shadows (borders do the visual work) ----------------------- */
-  --vp-shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --vp-shadow-2: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --vp-shadow-3: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --vp-shadow-1: 0 1px 2px 0 rgba(27, 42, 58, 0.06);
+  --vp-shadow-2: 0 1px 3px 0 rgba(27, 42, 58, 0.10), 0 1px 2px 0 rgba(27, 42, 58, 0.05);
+  --vp-shadow-3: 0 2px 8px rgba(27, 42, 58, 0.10);
 }
 
-/* Dark mode — derived from the Material 3 tonal scale around #00417B ------- */
+/* Dark mode — night at sea: ink surfaces, parchment text, brass accent ----- */
 .dark {
-  --vp-c-brand-1: #81adee;   /* primary-70 */
-  --vp-c-brand-2: #a5c8ff;   /* primary-80 */
-  --vp-c-brand-3: #6692d1;   /* primary-60 */
-  --vp-c-brand-soft:   rgba(129, 173, 238, 0.14);
-  --vp-c-brand-softer: rgba(129, 173, 238, 0.08);
+  --pirate-sail:  #3a3631;          /* still black, but visible on ink */
+  --pirate-bone:  #f3e9d2;
+  --pirate-sea:   #2a5f80;
+  --pirate-sea-2: #3b7ea1;
 
-  --vp-c-bg:      #16212c;   /* root-dark */
-  --vp-c-bg-alt:  #101922;
-  --vp-c-bg-soft: #1b2733;
-  --vp-c-bg-elv:  #1b2733;
+  --vp-c-brand-1: #e0a84a;   /* light brass — links on ink (6.9:1) */
+  --vp-c-brand-2: #f0c774;
+  --vp-c-brand-3: #e0a84a;
+  --vp-c-brand-soft:   rgba(224, 168, 74, 0.16);
+  --vp-c-brand-softer: rgba(224, 168, 74, 0.08);
+  --vp-button-brand-bg:         #e0a84a;
+  --vp-button-brand-hover-bg:   #f0c774;
+  --vp-button-brand-active-bg:  #f0c774;
+  --vp-button-brand-text:       var(--pirate-ink);
+  --vp-button-brand-hover-text: var(--pirate-ink);
+  --vp-button-brand-active-text: var(--pirate-ink);
+  --vp-button-alt-bg:          #22344a;
+  --vp-button-alt-hover-bg:    #2c4360;
+  --vp-button-alt-active-bg:   #2c4360;
+  --vp-button-alt-text:        var(--pirate-parchment);
+  --vp-button-alt-hover-text:  var(--pirate-parchment);
+  --vp-button-alt-active-text: var(--pirate-parchment);
 
-  --vp-c-text-1: #ecf1f4;
-  --vp-c-text-2: #b3c9dc;
-  --vp-c-text-3: #a7acaf;
+  --vp-c-bg:      var(--pirate-ink);
+  --vp-c-bg-alt:  #142130;
+  --vp-c-bg-soft: #22344a;
+  --vp-c-bg-elv:  #22344a;
 
-  --vp-c-border:  #2c3134;
-  --vp-c-divider: #23303b;
-  --vp-c-gutter:  #0d151d;
+  --vp-c-text-1: var(--pirate-parchment);
+  --vp-c-text-2: var(--pirate-border);
+  --vp-c-text-3: #b5a57f;
 
-  --vp-code-block-bg: #101922;
+  --vp-c-border:  #34475c;
+  --vp-c-divider: #2a3b4e;
+  --vp-c-gutter:  #0f1924;
+
+  --vp-code-block-bg: #142130;
+
+  --vp-home-hero-name-color: #e0a84a;
+}
+
+/* Headings and the wordmark in the app's display faces ------------------- */
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3,
+.VPHero .text,
+.VPFeature .title {
+  font-family: var(--pirate-font-heading);
+  font-weight: 400;
+}
+.VPHero .name,
+.VPNavBarTitle .title {
+  font-family: var(--pirate-font-wordmark);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+/* Brass underline under the nav bar, like the app bar. */
+.VPNavBar .divider-line {
+  background-color: var(--pirate-brass) !important;
+  height: 2px;
 }
 
 /* ── Component polish — Material-3 shapes ────────────────────────────────── */
@@ -106,12 +164,12 @@
     box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 .VPFeature:hover {
-  border-color: var(--more-blue);
+  border-color: var(--vp-c-brand-1);
   box-shadow: var(--vp-shadow-2);
 }
 
 /* Custom containers (tip / info / warning / danger) → 12px, no reliance on
- * gradients, tinted with the MORE semantic palette. */
+ * gradients, tinted with the theme's semantic palette. */
 .custom-block {
   border-radius: 12px;
   border-width: 1px;
@@ -284,4 +342,13 @@
 .mm-toolbar button:hover {
   background: var(--vp-c-brand-soft);
   color: var(--vp-c-brand-1);
+}
+
+/* The home-hero galleon: VitePress gives the hero image a small box on narrow
+ * screens (and pulls the title up under it), so the ship shrinks to match. */
+@media (max-width: 639px) {
+  .VPHero .hero-ship { max-width: 220px; }
+}
+@media (min-width: 640px) and (max-width: 959px) {
+  .VPHero .hero-ship { max-width: 300px; }
 }
