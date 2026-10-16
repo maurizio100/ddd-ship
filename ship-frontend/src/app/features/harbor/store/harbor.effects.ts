@@ -86,6 +86,7 @@ export class HarborEffects {
   /**
    * An arriving ship may be an Incoming Ship, so the list is read again on every Arrival and whenever the
    * stream (re)connects, which the ships store answers with a fleet load, since an Arrival may have been missed.
+   * An Arrival may also put the Earnings of a ship coming home into the Savings, so the Savings are read back too.
    */
   watchArrivals$ = createEffect(() =>
     this.actions$.pipe(
@@ -93,7 +94,7 @@ export class HarborEffects {
       switchMap(() =>
         this.actions$.pipe(
           ofType(ShipActions.shipArrived, ShipActions.loadShips),
-          map(() => HarborActions.loadIncomingShips()),
+          switchMap(() => [HarborActions.loadIncomingShips(), HarborActions.loadSavings()]),
           takeUntil(this.actions$.pipe(ofType(HarborActions.stopWatchingArrivals))),
         ),
       ),

@@ -115,8 +115,17 @@ class Ship(
         return true
     }
 
-    /** Scaffold for STORY-050: hands over nothing yet. */
-    fun bringEarningsHome(currentHarbor: HarborName): Money = Money.dollars(0)
+    /**
+     * The ship brings its Earnings home to [currentHarbor]. At its Home Harbor it hands over all its Earnings,
+     * which then drop to zero; the caller credits the returned amount to the Savings. Anywhere else it keeps
+     * its Earnings and zero is returned.
+     */
+    fun bringEarningsHome(currentHarbor: HarborName): Money {
+        if (homeHarbor != currentHarbor) return Money.dollars(0)
+        val homecoming = earnings
+        earnings = Money.dollars(0)
+        return homecoming
+    }
 
     /**
      * Refuses an Incoming Ship at [currentHarbor]. At its Home Harbor it only stops being Incoming: the Cargo
