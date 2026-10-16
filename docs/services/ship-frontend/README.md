@@ -28,6 +28,18 @@ environment variable:
 - **The fleet-events stream** (`/web/fleet-events`) has its own unbuffered `location` in nginx, and its
   own Ingress on k8s (see `guidelines/architecture.md`).
 
+## How to run
+
+From `ship-frontend/` (Node and npm; `npm ci` once). These are the commands the delivery agents run.
+
+| Task | Command |
+|---|---|
+| Build | `npm run build` (`npm run build:check` also fails if the development backend URL `localhost:8080` is still in the bundle) |
+| All tests | `npm test -- --watch=false --browsers=ChromeHeadless` (plain `npm test` watches forever) |
+| One spec file | `npm test -- --watch=false --browsers=ChromeHeadless --include <path/to/file.spec.ts>` |
+| Lint | none configured |
+| Start the dev server | `npm start` (needs a running ship-backend) |
+
 ## Documents in this folder
 
 Read this index first and then open **only** the documents your task needs.
