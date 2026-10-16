@@ -165,7 +165,7 @@ describe('HarborEffects', () => {
     expect(emitted).toEqual([ShipActions.watchFleet(), ShipActions.stopWatchingFleet()]);
   });
 
-  it('watchArrivals$ reloads the Incoming Ships when a ship arrives and when the stream (re)connects, until stopped', () => {
+  it('watchArrivals$ reloads the Incoming Ships and the Savings when a ship arrives and when the stream (re)connects, until stopped', () => {
     const arrived = ShipActions.shipArrived({ shipId: 'id', shipName: 'Salty Whisker', originHarbor: 'Tortuga' });
     const emitted: Action[] = [];
     effects.watchArrivals$.subscribe((action) => emitted.push(action));
@@ -175,12 +175,17 @@ describe('HarborEffects', () => {
     actions$.next(arrived);
     actions$.next(ShipActions.shipLeft({ shipId: 'id', shipName: 'Black Pearl', destinationHarbor: 'Nassau' }));
 
-    expect(emitted).toEqual([HarborActions.loadIncomingShips(), HarborActions.loadIncomingShips()]);
+    expect(emitted).toEqual([
+      HarborActions.loadIncomingShips(),
+      HarborActions.loadSavings(),
+      HarborActions.loadIncomingShips(),
+      HarborActions.loadSavings(),
+    ]);
 
     actions$.next(HarborActions.stopWatchingArrivals());
     actions$.next(arrived);
 
-    expect(emitted.length).toBe(2);
+    expect(emitted.length).toBe(4);
   });
 
   it('unloadIncomingShip$ unloads the Incoming Ship and emits unloadIncomingShipSuccess', () => {

@@ -18,6 +18,7 @@ import com.sonicdevelopment.domain.ports.driven.CargoQueryPort
 import com.sonicdevelopment.domain.ports.driven.CatainRepository
 import com.sonicdevelopment.domain.ports.driven.FleetEventsPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort.InitialShipInformation
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
@@ -50,11 +51,12 @@ class ArrivalManagementServiceTest {
     private val shippings = mockk<ShippingRepositoryPort>(relaxed = true)
     private val arrivals = mockk<ArrivalRepositoryPort>()
     private val fleetEvents = mockk<FleetEventsPort>(relaxed = true)
+    private val savings = mockk<SavingsRepositoryPort>(relaxed = true)
 
-    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, outbox, shippings, arrivals, fleetEvents)
+    private val service = ArrivalManagementService(portRoyal, inbox, ships, catains, cargoQuery, outbox, shippings, arrivals, fleetEvents, savings)
 
     /** The Origin side of the Arrival runs at "Tortuga", where the ship was Released. */
-    private val tortugaService = ArrivalManagementService(tortuga, inbox, ships, catains, cargoQuery, outbox, shippings, arrivals, fleetEvents)
+    private val tortugaService = ArrivalManagementService(tortuga, inbox, ships, catains, cargoQuery, outbox, shippings, arrivals, fleetEvents, savings)
 
     private val eventId = EventId(UUID.randomUUID())
     private val rum = aCargo(name = "Rum")
@@ -181,6 +183,59 @@ class ArrivalManagementServiceTest {
         service.receiveShippingPublished(eventId, blackPearl)
 
         saved.captured.earnings.toDecimalString() shouldBe "0.00"
+    }
+
+    @Test
+    fun `an arriving ship at its Home Harbor puts its Earnings into the Savings and carries none`() {
+        val saved = slot<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+
+        service.receiveShippingPublished(eventId, blackPearl.copy(homeHarbor = portRoyal, earnings = Money.of("80.00")))
+
+        verify(exactly = 1) { savings.receive(Money.of("80.00")) }
+        saved.captured.earnings.toDecimalString() shouldBe "0.00"
+        verifyOrder {
+            savings.receive(Money.of("80.00"))
+            ships.saveNewShip(any())
+            outbox.announceShipArrived(any(), blackPearl.shippingId, tortuga, portRoyal)
+        }
+    }
+
+    @Test
+    fun `an arriving ship away from its Home Harbor keeps its Earnings and credits nothing`() {
+        val saved = slot<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+
+        service.receiveShippingPublished(
+            eventId,
+            blackPearl.copy(homeHarbor = HarborName("Isla de Muerta"), earnings = Money.of("80.00")),
+        )
+
+        verify(exactly = 0) { savings.receive(any()) }
+        saved.captured.earnings shouldBe Money.of("80.00")
+    }
+
+    @Test
+    fun `an arriving ship at its Home Harbor without Earnings credits nothing`() {
+        service.receiveShippingPublished(eventId, blackPearl.copy(homeHarbor = portRoyal))
+
+        verify(exactly = 0) { savings.receive(any()) }
+        verify(exactly = 1) { ships.saveNewShip(any()) }
+    }
+
+    @Test
+    fun `a duplicate or re-published Arrival credits nothing`() {
+        val homecoming = blackPearl.copy(homeHarbor = portRoyal, earnings = Money.of("80.00"))
+
+        every { inbox.recordConsumedEvent(eventId) } returns false
+        service.receiveShippingPublished(eventId, homecoming)
+
+        every { inbox.recordConsumedEvent(eventId) } returns true
+        every { arrivals.recordArrival(blackPearl.shippingId, blackPearl.shipId) } returns false
+        service.receiveShippingPublished(eventId, homecoming)
+
+        verify(exactly = 0) { savings.receive(any()) }
+        assertNoArrival()
     }
 
     @Test
