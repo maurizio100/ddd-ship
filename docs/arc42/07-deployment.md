@@ -39,7 +39,9 @@ The frontend's nginx proxies `/web` to the backend. The fleet-events stream (`/w
 `location` with buffering off, HTTP/1.1 without `Connection: close`, and a 1 h read timeout, so events
 pass through at once and idle streams survive between heartbeats.
 
-`ship-terminal` is not containerised; it is run locally and connects to `localhost:9094`.
+`ship-terminal` is not containerised; it is run locally and connects to `localhost:9094`. Decided, not
+built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): `ship-coast-guard` runs the same way, as one instance for all Harbors, and only
+where Kafka runs (Compose); its Kafka Streams state store, changelog and repartition topics live on that broker.
 
 ## 7.2 Kubernetes (`k8s/`, namespace `ddd-ship`)
 
@@ -72,6 +74,7 @@ slug, and each project has its own default network. Only backend and PostgreSQL 
 
 - one Debezium outbox connector per Harbor in `kafka-connect/connectors/shipping-outbox-<slug>.json`, with its own connector name, `database.hostname` and replication slot;
 - the topic `hexagonship-harbor` created with `cleanup.policy=compact` before the first Harbor starts, by `kafka-connect/connect-helpers/create-harbor-topic` ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md));
+- decided, not built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): every backend also consumes `hexagonship-coast-guard`;
 - Kafka reachable from every backend ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)).
 
 **Kubernetes (planned):** one namespace per Harbor. This requires Kafka in the cluster first (R-4).

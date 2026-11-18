@@ -246,7 +246,7 @@ sequenceDiagram
         rect rgb(240,240,240)
         Note over BE,DB: one DB transaction
         BE->>DB: clear the Incoming flag and the Cargo aboard (only if still Incoming)
-        BE->>DB: new Shipping to the Home Harbor, Cargo aboard as Loaded Cargo; ship at sea
+        BE->>DB: new Shipping to the Home Harbor, Cargo aboard as Loaded Cargo, ship at sea
         BE->>DB: insert outbox row (shipping-published to the Home Harbor, with the ship's Earnings)
         end
         DB->>K: Debezium, then Arrival at the Home Harbor as in 6.4
@@ -254,7 +254,7 @@ sequenceDiagram
         FE->>BE: refuse the Incoming Ship
         rect rgb(240,240,240)
         Note over BE,DB: one DB transaction
-        BE->>DB: clear only the Incoming flag (only if still Incoming); the Cargo aboard stays
+        BE->>DB: clear only the Incoming flag (only if still Incoming), the Cargo aboard stays
         end
     end
 ```
@@ -288,5 +288,45 @@ sequenceDiagram
 ```
 
 Nothing is published: the Crew leaves the Harbor only with the ship, in `shipping-published`.
+
+## 6.9 The Coast Guard imprisons a ship (decided, not built yet)
+
+Per [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md). The Coast Guard reads every `shipping-published` beside the Harbors; the Arrival at the
+Destination Harbor (6.4) does not wait for it. It counts each Shipping id once per Ship Id, and the third
+voyage carrying Contraband within 10 minutes imprisons the ship; its count then starts again.
+
+```mermaid
+sequenceDiagram
+    participant K as Kafka
+    participant CG as ship-coast-guard
+    participant H as Harbor the ship arrived at
+    participant HH as Home Harbor
+    actor U as User at the Home Harbor
+    K->>CG: shipping-published (re-keyed by Ship Id)
+    CG->>CG: count voyages carrying Contraband, each Shipping id once
+    CG->>K: ship-imprisoned (third within 10 minutes) on hexagonship-coast-guard
+    K->>H: ship-imprisoned
+    rect rgb(240,240,240)
+    Note over H: one DB transaction, inbox-guarded
+    alt ship no longer in the fleet, or at sea
+        H->>H: nothing happens, the ship escapes
+    else away from the Home Harbor
+        H->>H: confiscate all Cargo (into no Stock)
+        H->>K: shipping-published to the Home Harbor, flagged imprisoned (outbox)
+    else at the Home Harbor
+        H->>H: confiscate all Cargo, the ship is imprisoned
+    end
+    end
+    K->>HH: Arrival as in 6.4, flagged - the ship is imprisoned
+    U->>HH: pay the Fine
+    rect rgb(240,240,240)
+    Note over HH: one DB transaction
+    HH->>HH: take 50.00 $ from the Savings (refused if they fall short, nothing written)
+    HH->>HH: the ship is free
+    end
+```
+
+The Home Harbor also receives `ship-imprisoned`, but cannot rely on reading it before the ship arrives,
+so the flag in `shipping-published` decides. An Imprisoned Ship cannot get a new Shipping.
 
 > TODO: error scenarios (Debezium down, consumer offline) once the quality scenarios in chapter 10 are set.

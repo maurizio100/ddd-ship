@@ -23,6 +23,7 @@ decisions** — each needs a call from the project owner (fix, accept, or turn i
 | R-14 | Debt | Weight is a binary float while money is an exact decimal (ADR-0008). | `Cargo.weight`, `Ship.currentWeight` | Two numeric conventions in one model; Weight sums can drift in the last digit. |
 | R-15 | Debt | Catain Images are not in the repository: Compose and k8s only create the bucket, the images were uploaded by hand, and Catain Purrbossa's image id points at no image. | `V3__catains.sql`, `k8s/21-minio.yaml` | A new Harbor shows no Catain Images; STORY-017 fixes it. |
 | R-16 | Risk | The Crew rides with the ship and Recruit Pools differ per Harbor: a lost or stranded ship takes its Crew with it, every Harbor keeps copies of foreign Crew Members, and `shipping-published` grows with the Crew. | [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md) | Accepted as part of the game, like R-13. Recruit images, if any, have no shared source (cf. R-15). |
+| R-17 | Risk | The Coast Guard judges after the Arrival: a ship that sails on before `ship-imprisoned` reaches the Harbor it arrived at escapes, and an Imprisoned Ship whose Home Harbor never has 50.00 $ stays imprisoned. | [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md) | Accepted as part of the game, like R-13. Like Kafka itself the Coast Guard runs only in Compose (R-4), and it keeps a third copy of the `shipping-published` shape (R-8). |
 
 ## High-risk areas
 
