@@ -73,6 +73,7 @@ Each component's docs live in its own folder, fronted by a `README.md` that stat
 purpose and indexes the folder's documents. Before working on a story, read the `README.md` of the
 component(s) it touches and open only the documents its index points you at:
 - `docs/services/ship-backend/README.md` — REST API, domain logic, persistence and outbox for Fleet, CargoLoading and Shipping
+- `docs/services/ship-coast-guard/README.md` — Kafka Streams app that imprisons ships carrying Contraband too often (CoastGuard; planned, ADR-0011)
 - `docs/services/ship-frontend/README.md` — Angular/NgRx UI for managing ships, loading Cargo and Releasing
 - `docs/services/ship-terminal/README.md` — Kafka consumer that announces departed ships (HarborTerminal)
 
