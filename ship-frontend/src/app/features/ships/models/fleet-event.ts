@@ -24,4 +24,12 @@ export interface ArrivalNotice {
   shipId: string;
   shipName: string;
   originHarbor: string;
+  imprisoned?: boolean;
+}
+
+/** What the User is told about a ship the Coast Guard imprisoned here and that sails home. */
+export interface ImprisonmentNotice {
+  shipId: string;
+  shipName: string;
+  homeHarbor: string;
 }

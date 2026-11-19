@@ -6,9 +6,9 @@ import { ShipsComponent } from './ships.component';
 import { Ship, ShippingState } from '../../models/ship';
 import { ShipService } from '../../services/ship.service';
 import * as ShipActions from '../../store/actions/ship.actions';
-import { anArrivalNotice, anAvailableShip, anIncomingShip } from '../../../../../testing/fixtures';
+import { anArrivalNotice, anAvailableShip, anImprisonmentNotice, anIncomingShip } from '../../../../../testing/fixtures';
 import { Catain } from '../../../catains/model/catain';
-import { ArrivalNotice } from '../../models/fleet-event';
+import { ArrivalNotice, ImprisonmentNotice } from '../../models/fleet-event';
 
 describe('ShipsComponent (The voyage ends at the Origin Harbor)', () => {
   let fixture: ComponentFixture<ShipsComponent>;
@@ -355,5 +355,88 @@ describe('ShipsComponent (Unloading earns the ship its Earnings)', () => {
     render([anAvailableShip({ name: 'Salty Whisker', earnings: '0.00' })]);
 
     expect(earnings()).toEqual([]);
+  });
+});
+
+describe('ShipsComponent (A Harbor carries out an imprisonment)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(
+    ships: Ship[],
+    state: {
+      arrivalNotices?: ArrivalNotice[];
+      imprisonmentNotices?: ImprisonmentNotice[];
+      newShippingRefusal?: { shipId: string; message: string } | null;
+    } = {},
+  ): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          initialState: {
+            ships: {
+              ships,
+              loading: false,
+              error: null,
+              arrivalNotices: state.arrivalNotices ?? [],
+              imprisonmentNotices: state.imprisonmentNotices ?? [],
+              newShippingRefusal: state.newShippingRefusal ?? null,
+            },
+            catains: { catains: [], loading: false, error: null },
+          },
+        }),
+        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  const texts = (testId: string): string[] => all(testId).map((element) => element.textContent!.trim());
+
+  it('The User is told when the Coast Guard imprisons a ship here', () => {
+    render([anIncomingShip({ shippingState: ShippingState.SHIPPING, imprisoned: true })], {
+      imprisonmentNotices: [anImprisonmentNotice()],
+    });
+
+    expect(texts('ships-imprisonment-notice')).toEqual([
+      'The Coast Guard imprisoned Salty Whisker: its Cargo is confiscated and it sails home to Tortuga',
+    ]);
+  });
+
+  it('At its Home Harbor the ship is imprisoned in place', () => {
+    render([anIncomingShip({ incoming: false, imprisoned: true, homeHarbor: 'Tortuga', shippingState: null })]);
+
+    expect(texts('ship-status')).toEqual(['Imprisoned']);
+    expect(all('new-shipping')).toEqual([]);
+  });
+
+  it('A ship sent home imprisoned is imprisoned on its Arrival', () => {
+    render([anIncomingShip({ incoming: false, imprisoned: true, arrivedFrom: 'Port Royal' })], {
+      arrivalNotices: [
+        anArrivalNotice({
+          shipId: anIncomingShip().id,
+          shipName: 'Salty Whisker',
+          originHarbor: 'Port Royal',
+          imprisoned: true,
+        }),
+      ],
+    });
+
+    expect(texts('ships-arrival-notice')).toEqual(['Salty Whisker arrived from Port Royal, imprisoned']);
+  });
+
+  it('An Imprisoned Ship cannot get a new Shipping', () => {
+    const saltyWhisker = anIncomingShip({ incoming: false, imprisoned: true, shippingState: null });
+    render([saltyWhisker], {
+      newShippingRefusal: { shipId: saltyWhisker.id, message: 'Salty Whisker is imprisoned' },
+    });
+
+    expect(texts('new-shipping-refusal')).toEqual(['Salty Whisker is imprisoned']);
+    expect(all('new-shipping-refusal')[0].getAttribute('role')).toBe('alert');
   });
 });

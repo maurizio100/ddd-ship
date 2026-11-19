@@ -2,7 +2,7 @@ import { AvailableCargo, Cargo } from '../app/features/shipping/models/cargo';
 import { KnownHarbors } from '../app/features/shipping/models/known-harbors';
 import { Ship, ShippingState } from '../app/features/shipping/models/ship';
 import { ShippingSummary } from '../app/features/shipping/models/shipping-summary';
-import { ArrivalNotice } from '../app/features/ships/models/fleet-event';
+import { ArrivalNotice, ImprisonmentNotice } from '../app/features/ships/models/fleet-event';
 import { PurchaseRequest } from '../app/features/harbor/models/purchase-request';
 import { Savings } from '../app/features/harbor/models/savings';
 import { IncomingShip } from '../app/features/harbor/models/incoming-ship';
@@ -57,6 +57,7 @@ export function anAvailableShip(overrides: Partial<AvailableShip> = {}): Availab
     arrivedFrom: null,
     incoming: false,
     earnings: '0.00',
+    imprisoned: false,
     ...overrides,
   };
 }
@@ -115,6 +116,16 @@ export function anArrivalNotice(overrides: Partial<ArrivalNotice> = {}): Arrival
     shipId: '5f1d7c2e-0000-4000-8000-000000000001',
     shipName: 'Black Pearl',
     originHarbor: 'Tortuga',
+    ...overrides,
+  };
+}
+
+/** What the User is told when the Coast Guard imprisons "Salty Whisker" here and it sails home to "Tortuga". */
+export function anImprisonmentNotice(overrides: Partial<ImprisonmentNotice> = {}): ImprisonmentNotice {
+  return {
+    shipId: '5f1d7c2e-0000-4000-8000-000000000002',
+    shipName: 'Salty Whisker',
+    homeHarbor: 'Tortuga',
     ...overrides,
   };
 }
