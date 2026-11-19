@@ -12,4 +12,5 @@ data class ShipImprisonedEvent(
     val shippingId: UUID,
 )
 
-fun eventIdOf(shippingId: UUID): UUID = UUID(0, 0)
+/** Derived from the tipping Shipping id, so a republished imprisonment carries the same event id. */
+fun eventIdOf(shippingId: UUID): UUID = UUID.nameUUIDFromBytes("ship-imprisoned:$shippingId".toByteArray())
