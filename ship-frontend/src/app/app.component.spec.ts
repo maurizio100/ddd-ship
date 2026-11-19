@@ -18,6 +18,7 @@ describe('AppComponent', () => {
       providers: [
         provideMaterialSymbols(),
         provideRouter([{path: 'ships', children: []}, {path: 'ships/:id/cargo', children: []}, {path: 'harbor', children: []}]),
+        provideMockStore(),
         {provide: HarborNameService, useValue: {getHarborName: () => harborName}}
       ]
     }).compileComponents();
@@ -87,6 +88,7 @@ describe('AppComponent Harbor Name variants', () => {
       providers: [
         provideMaterialSymbols(),
         provideRouter([{path: 'ships', children: []}]),
+        provideMockStore(),
         {provide: HarborNameService, useValue: {getHarborName: () => harborName}}
       ]
     }).compileComponents();

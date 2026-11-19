@@ -10,6 +10,9 @@
     <nav class="app-bar__nav" aria-label="Main">
       <a class="app-bar__pill" data-testid="nav-fleet" routerLink="/ships" routerLinkActive="active">Fleet</a>
       <a class="app-bar__pill" data-testid="nav-harbor" routerLink="/harbor" routerLinkActive="active">Harbor</a>
+      @if (hasImprisonedShips()) {
+        <a class="app-bar__pill" data-testid="nav-imprisoned" routerLink="/imprisoned" routerLinkActive="active">Imprisoned Ships</a>
+      }
     </nav>
   </div>
 </header>

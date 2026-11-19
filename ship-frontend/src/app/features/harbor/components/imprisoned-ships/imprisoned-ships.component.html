@@ -1,0 +1,69 @@
+<div class="page">
+  <header class="page-header">
+    <p class="kicker">Held in the harbor brig</p>
+    <h1>Imprisoned Ships</h1>
+    @if (savings(); as savings) {
+      <p class="savings">
+        <span class="savings__label">Savings</span>
+        <span class="savings__amount" data-testid="imprisoned-savings">{{ savings.amount }} $</span>
+      </p>
+    }
+  </header>
+
+  @if (imprisonedShips().length === 0) {
+    <p class="empty" data-testid="imprisoned-ships-empty">No Imprisoned Ships</p>
+  }
+
+  <div class="grid">
+    @for (ship of imprisonedShips(); track ship.shipId) {
+      <article class="card" data-testid="imprisoned-ship">
+        <div class="head">
+          <div class="ring">
+            @if (catainImageUrl(ship); as url) {
+              @if (!imageFailed(ship)) {
+                <img [src]="url" [alt]="ship.catain" (error)="onImageError(ship)" />
+              } @else {
+                <mat-icon fontIcon="pets"></mat-icon>
+              }
+            } @else {
+              <mat-icon fontIcon="pets"></mat-icon>
+            }
+            <span class="bars" aria-hidden="true"></span>
+          </div>
+          <span class="chip">
+            <mat-icon fontIcon="lock" aria-hidden="true"></mat-icon>
+            Imprisoned
+          </span>
+        </div>
+        <h2 class="ship-name" data-testid="imprisoned-ship-name">{{ ship.name }}</h2>
+        <p class="under">under {{ ship.catain }}</p>
+        <p class="home-harbor">
+          <mat-icon fontIcon="home" aria-hidden="true"></mat-icon>
+          Home Harbor {{ ship.homeHarbor }}
+        </p>
+        <p class="fine">
+          <span class="fine__label">Fine</span>
+          <span class="fine__amount" data-testid="imprisoned-ship-fine">{{ ship.fine }} $</span>
+        </p>
+        <p class="coverage" [class.coverage--short]="!ship.savingsCoverFine">
+          <mat-icon [fontIcon]="ship.savingsCoverFine ? 'check' : 'block'" aria-hidden="true"></mat-icon>
+          <span data-testid="imprisoned-ship-coverage">{{ coverage(ship) }}</span>
+        </p>
+        @if (refusalFor(ship); as refusal) {
+          <p class="fine-refusal" role="alert" data-testid="imprisoned-ship-fine-refusal">{{ refusal }}</p>
+        }
+        <button
+          mat-flat-button
+          type="button"
+          class="pay-fine"
+          data-testid="imprisoned-ship-pay-fine"
+          [disabled]="!canPayFine(ship)"
+          (click)="payFine(ship)"
+        >
+          <mat-icon fontIcon="lock_open"></mat-icon>
+          Pay Fine
+        </button>
+      </article>
+    }
+  </div>
+</div>

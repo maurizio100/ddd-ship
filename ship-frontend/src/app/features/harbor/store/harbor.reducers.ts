@@ -64,4 +64,22 @@ export const harborReducers = createReducer(
     refuseFailure: refusal,
     refusingShipIds: state.refusingShipIds.filter((id) => id !== shipId),
   })),
+  on(HarborActions.loadImprisonedShipsSuccess, (state, { imprisonedShips }) => ({ ...state, imprisonedShips })),
+  on(HarborActions.loadImprisonedShipsFailure, (state, { error }) => ({ ...state, error })),
+  on(HarborActions.payFine, (state, { shipId }) => ({
+    ...state,
+    fineRefusal: null,
+    payingFineShipIds: [...state.payingFineShipIds, shipId],
+  })),
+  on(HarborActions.payFineSuccess, (state, { payment }) => ({
+    ...state,
+    fineNotice: payment,
+    payingFineShipIds: state.payingFineShipIds.filter((id) => id !== payment.shipId),
+  })),
+  on(HarborActions.payFineFailure, (state, { shipId, refusal }) => ({
+    ...state,
+    fineRefusal: { shipId, message: refusal },
+    payingFineShipIds: state.payingFineShipIds.filter((id) => id !== shipId),
+  })),
+  on(HarborActions.dismissFineNotice, (state) => ({ ...state, fineNotice: null })),
 );

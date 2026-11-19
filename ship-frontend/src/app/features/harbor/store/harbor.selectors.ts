@@ -53,12 +53,29 @@ export const selectRefuseFailure = createSelector(selectHarborState, (state) => 
 
 export const selectRefusingShipIds = createSelector(selectHarborState, (state) => state.refusingShipIds ?? []);
 
-export const selectImprisonedShips = (state: { harbor?: HarborState }): ImprisonedShip[] => [];
+/**
+ * The Fine selectors read the root state, not the `harbor` feature, so they are safe while that feature is not
+ * registered (the app bar reads them on every page): they read no Imprisoned Ship then.
+ */
+const selectHarborStateIfRegistered = (state: { harbor?: HarborState }): HarborState | undefined => state.harbor;
 
-export const selectFineNotice = (state: { harbor?: HarborState }): FinePayment | null => null;
+const NO_SHIPS: ImprisonedShip[] = [];
+const NO_IDS: string[] = [];
 
-export const selectFineRefusal = (state: { harbor?: HarborState }): { shipId: string; message: string } | null => null;
+export const selectImprisonedShips = createSelector(
+  selectHarborStateIfRegistered,
+  (state): ImprisonedShip[] => state?.imprisonedShips ?? NO_SHIPS,
+);
 
-export const selectPayingFineShipIds = (state: { harbor?: HarborState }): string[] => [];
+export const selectFineNotice = createSelector(selectHarborStateIfRegistered, (state) => state?.fineNotice ?? null);
 
-export const selectHasImprisonedShips = (state: { harbor?: HarborState }): boolean => false;
+export const selectFineRefusal = createSelector(selectHarborStateIfRegistered, (state) => state?.fineRefusal ?? null);
+
+export const selectPayingFineShipIds = createSelector(
+  selectHarborStateIfRegistered,
+  (state): string[] => state?.payingFineShipIds ?? NO_IDS,
+);
+
+/** Whether this Harbor holds an Imprisoned Ship; false while the `harbor` feature is not registered. */
+export const selectHasImprisonedShips = (state: { harbor?: HarborState }): boolean =>
+  (state.harbor?.imprisonedShips?.length ?? 0) > 0;
