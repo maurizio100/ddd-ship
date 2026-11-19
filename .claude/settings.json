@@ -7,7 +7,6 @@
       "Bash"
     ],
     "ask": [
-      "Bash(gh pr merge:*)"
     ]
   }
 }
