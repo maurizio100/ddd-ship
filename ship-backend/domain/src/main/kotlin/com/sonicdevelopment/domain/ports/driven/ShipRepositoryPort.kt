@@ -24,11 +24,13 @@ interface ShipRepositoryPort {
         val incoming: Boolean,
         /** The Earnings the ship carries until it reaches its Home Harbor. */
         val earnings: Money,
+        /** Whether the ship is an Imprisoned Ship, or sails home as one. */
+        val imprisoned: Boolean,
     ) {
         companion object {
             fun fromShip(ship: Ship) = InitialShipInformation(
                 ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom, ship.homeHarbor, ship.cargoAboard, ship.isIncoming,
-                ship.earnings,
+                ship.earnings, false,
             )
         }
     }
@@ -57,6 +59,10 @@ interface ShipRepositoryPort {
 
     /** Adds [amount] to the Earnings of a ship in the fleet in one atomic step; runs in the caller's transaction. */
     fun addEarnings(shipId: ShipId, amount: Money)
+
+    fun lockShip(shipId: ShipId): Ship?
+
+    fun confiscate(shipId: ShipId)
 
     /** Deletes the ship's Cargo aboard; runs in the caller's transaction. */
     fun clearCargoAboard(shipId: ShipId)

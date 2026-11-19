@@ -23,4 +23,5 @@ data class ShippingPublishedDTO(
     val homeHarbor: HarborName? = null,
     /** The Earnings the ship carries; zero for events from Harbors that do not send them. */
     val earnings: Money = Money.dollars(0),
+    val imprisoned: Boolean = false,
 )

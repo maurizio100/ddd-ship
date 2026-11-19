@@ -7,6 +7,14 @@ data class ShipArrivedFleetEvent(
     val shipId: UUID,
     val shipName: String,
     val originHarbor: String,
+    val imprisoned: Boolean,
+)
+
+data class ShipImprisonedFleetEvent(
+    val shipId: UUID,
+    val shipName: String,
+    val homeHarbor: String,
+    val sailsHome: Boolean,
 )
 
 /** Data of the `ship-left` fleet event: a ship arrived at [destinationHarbor] and left this Harbor's fleet. */

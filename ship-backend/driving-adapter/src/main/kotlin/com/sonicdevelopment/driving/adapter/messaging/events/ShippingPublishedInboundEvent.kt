@@ -20,6 +20,7 @@ data class ShippingPublishedInboundEvent(
         val shipName: String,
         val homeHarbor: String? = null,
         val earnings: String? = null,
+        val imprisoned: Boolean? = null,
     )
 
     data class CatainEventData(val catainId: UUID)

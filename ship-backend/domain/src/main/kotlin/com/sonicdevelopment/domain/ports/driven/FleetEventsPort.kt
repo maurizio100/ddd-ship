@@ -17,4 +17,6 @@ interface FleetEventsPort {
 
     /** [ship] arrived at [destinationHarbor] and has left this Harbor's fleet. */
     fun announceShipLeft(ship: Ship, destinationHarbor: HarborName?)
+
+    fun announceShipImprisoned(ship: Ship, sailsHome: Boolean)
 }

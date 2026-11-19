@@ -148,6 +148,11 @@ class Ship(
         isIncoming = false
     }
 
+    fun confiscate(currentHarbor: HarborName): Boolean = false
+
+    fun sailHomeImprisoned(shippingQuote: ShippingQuote) {
+    }
+
     private fun moveCargoAboardIntoLoadedCargo() {
         cargoLoad.addAll(cargoAboard)
         cargoAboard = emptyList()

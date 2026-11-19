@@ -104,6 +104,10 @@ class ShipRepositoryAdapter(
         }
     }
 
+    override fun lockShip(shipId: ShipId): Ship? = TODO()
+
+    override fun confiscate(shipId: ShipId): Unit = TODO()
+
     @Transactional(propagation = Propagation.MANDATORY)
     override fun clearCargoAboard(shipId: ShipId) {
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)

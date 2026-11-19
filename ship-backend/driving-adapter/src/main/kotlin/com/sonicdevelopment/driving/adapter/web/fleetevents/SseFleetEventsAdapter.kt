@@ -21,7 +21,10 @@ class SseFleetEventsAdapter(
 ) : FleetEventsPort {
 
     override fun announceShipArrived(ship: Ship, originHarbor: HarborName) {
-        afterCommit(SHIP_ARRIVED, ShipArrivedFleetEvent(ship.id.id, ship.shipName, originHarbor.name))
+        afterCommit(SHIP_ARRIVED, ShipArrivedFleetEvent(ship.id.id, ship.shipName, originHarbor.name, imprisoned = false))
+    }
+
+    override fun announceShipImprisoned(ship: Ship, sailsHome: Boolean) {
     }
 
     override fun announceShipLeft(ship: Ship, destinationHarbor: HarborName?) {

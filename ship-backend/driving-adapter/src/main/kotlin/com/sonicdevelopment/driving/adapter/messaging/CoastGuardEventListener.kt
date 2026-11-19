@@ -1,12 +1,16 @@
 package com.sonicdevelopment.driving.adapter.messaging
 
+import com.sonicdevelopment.domain.ports.driving.shipping.ImprisonmentManagementPort
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 
 /** Hands the events on `hexagonship-coast-guard` to the Harbor: Ship Imprisoned to the imprisonment. Ignores other event types. */
 @Component
-class CoastGuardEventListener {
+class CoastGuardEventListener(
+    private val inboundMessageReader: InboundMessageReader,
+    private val imprisonmentManagementPort: ImprisonmentManagementPort,
+) {
 
     @KafkaListener(id = COAST_GUARD_LISTENER_ID, idIsGroup = false, topics = [COAST_GUARD_TOPIC])
     fun onCoastGuardEvent(record: ConsumerRecord<String, String>) {

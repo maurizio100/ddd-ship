@@ -15,5 +15,6 @@ data class ShipDTO(
     val homeHarbor: String,
     /** The Earnings the ship carries until it reaches its Home Harbor. */
     val earnings: Money = Money.dollars(0),
+    val imprisoned: Boolean = false,
 ) {
 }

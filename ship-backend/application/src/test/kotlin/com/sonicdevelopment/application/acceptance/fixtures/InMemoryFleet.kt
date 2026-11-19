@@ -105,6 +105,10 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[shipId] = record.copy(earnings = record.earnings + amount)
     }
 
+    override fun lockShip(shipId: ShipId): Ship? = TODO()
+
+    override fun confiscate(shipId: ShipId): Unit = TODO()
+
     @Synchronized
     override fun clearCargoAboard(shipId: ShipId) {
         ships[shipId]?.let { ships[shipId] = it.copy(cargoAboard = emptyList()) }

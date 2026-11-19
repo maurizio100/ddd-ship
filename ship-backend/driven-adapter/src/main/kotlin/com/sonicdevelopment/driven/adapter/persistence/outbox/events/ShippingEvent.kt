@@ -18,7 +18,8 @@ data class ShippingEvent @JsonCreator constructor(
         /** The Harbor where the ship was registered; it travels with the ship from Harbor to Harbor. */
         @JsonProperty("homeHarbor") val homeHarbor: String,
         /** The ship's Earnings as a decimal string with two decimals; they travel with the ship. */
-        @JsonProperty("earnings") val earnings: String
+        @JsonProperty("earnings") val earnings: String,
+        @JsonProperty("imprisoned") val imprisoned: Boolean
     ) : Serializable
 
     data class CatainEventData @JsonCreator constructor(
