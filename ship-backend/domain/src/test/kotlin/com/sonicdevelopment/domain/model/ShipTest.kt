@@ -2,6 +2,7 @@ package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.RefusedCargoException
+import com.sonicdevelopment.domain.exception.ShipNotImprisonedException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
@@ -455,6 +456,54 @@ class ShipTest {
             preparing.release(ShippingQuote("Fair winds"), HarborName("Tortuga"))
         }.message shouldBe "Salty Whisker is imprisoned"
         preparing.shippingState() shouldBe ShippingState.PREPARING
+    }
+
+    @Test
+    fun `paying the Fine frees an Imprisoned Ship at its Home Harbor, which can then get a new Shipping`() {
+        val ship = Ship(
+            name = "Salty Whisker", catainId = CatainId(UUID.randomUUID()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), imprisoned = true,
+        )
+        ship.isImprisonedHere(HarborName("Port Royal")) shouldBe true
+
+        ship.free(HarborName("Port Royal"))
+
+        ship.isImprisoned shouldBe false
+        ship.isImprisonedHere(HarborName("Port Royal")) shouldBe false
+        ship.createNewShipping()
+        ship.shippingState() shouldBe ShippingState.PREPARING
+    }
+
+    @Test
+    fun `a ship that is not imprisoned cannot be freed`() {
+        val ship = anIdleShip()
+
+        ship.isImprisonedHere(ship.homeHarbor) shouldBe false
+        shouldThrow<ShipNotImprisonedException> { ship.free(ship.homeHarbor) }.message shouldBe "Salty Whisker is not imprisoned"
+        ship.isImprisoned shouldBe false
+    }
+
+    @Test
+    fun `an Imprisoned Ship away from its Home Harbor cannot be freed there`() {
+        val ship = Ship(
+            name = "Salty Whisker", catainId = CatainId(UUID.randomUUID()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), imprisoned = true,
+        )
+
+        ship.isImprisonedHere(HarborName("Tortuga")) shouldBe false
+        shouldThrow<ShipNotImprisonedException> { ship.free(HarborName("Tortuga")) }.message shouldBe "Salty Whisker is not imprisoned"
+        ship.isImprisoned shouldBe true
+    }
+
+    @Test
+    fun `a ship sailing home imprisoned cannot be freed while at sea`() {
+        val ship = anIdleShip(cargoAboard = listOf(aCargo()), incoming = true)
+        ship.confiscate(HarborName("Tortuga"))
+        ship.sailHomeImprisoned(ShippingQuote("Fair winds"))
+
+        ship.isImprisonedHere(ship.homeHarbor) shouldBe false
+        shouldThrow<ShipNotImprisonedException> { ship.free(ship.homeHarbor) }.message shouldBe "Salty Whisker is not imprisoned"
+        ship.isImprisoned shouldBe true
     }
 
     private fun anIdleShip(cargoAboard: List<Cargo> = emptyList(), incoming: Boolean = false) = Ship(

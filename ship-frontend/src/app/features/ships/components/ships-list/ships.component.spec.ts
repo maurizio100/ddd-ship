@@ -5,8 +5,9 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { ShipsComponent } from './ships.component';
 import { Ship, ShippingState } from '../../models/ship';
 import { ShipService } from '../../services/ship.service';
+import * as HarborActions from '../../../harbor/store/harbor.actions';
 import * as ShipActions from '../../store/actions/ship.actions';
-import { anArrivalNotice, anAvailableShip, anImprisonmentNotice, anIncomingShip } from '../../../../../testing/fixtures';
+import { aFinePayment, anArrivalNotice, anAvailableShip, anImprisonedShip, anImprisonmentNotice, anIncomingShip, aSavings } from '../../../../../testing/fixtures';
 import { Catain } from '../../../catains/model/catain';
 import { ArrivalNotice, ImprisonmentNotice } from '../../models/fleet-event';
 
@@ -480,5 +481,74 @@ describe('ShipsComponent (an Imprisoned Ship on the fleet page)', () => {
     all('new-shipping')[0].click();
 
     expect(store.dispatch).toHaveBeenCalledWith(ShipActions.createShipping({ ship: blackPearl }));
+  });
+});
+
+describe('ShipsComponent (Free an Imprisoned Ship by paying its Fine)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+  let store: MockStore;
+
+  const saltyWhiskerImprisoned = () => anIncomingShip({ incoming: false, imprisoned: true, shippingState: null });
+
+  function render(ships: Ship[], harbor: Record<string, unknown> = {}): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          initialState: {
+            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null },
+            catains: { catains: [], loading: false, error: null },
+            harbor: {
+              stock: [], savings: aSavings(), incomingShips: [], loading: false, error: null,
+              imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [],
+              ...harbor,
+            },
+          },
+        }),
+      ],
+    });
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+  const texts = (testId: string): string[] => all(testId).map((el) => el.textContent!.trim());
+
+  it('The User sees whether the Savings cover the Fine', () => {
+    render([saltyWhiskerImprisoned()], { imprisonedShips: [anImprisonedShip({ savingsCoverFine: true })] });
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.loadImprisonedShips());
+    expect(texts('ship-fine')[0]).toContain('Fine 50.00 $');
+    expect(texts('ship-fine-coverage')).toEqual(['The Savings cover the Fine']);
+    expect((all('ship-pay-fine')[0] as HTMLButtonElement).disabled).toBeFalse();
+    TestBed.resetTestingModule();
+
+    render([saltyWhiskerImprisoned()], {
+      savings: aSavings({ amount: '30.00' }),
+      imprisonedShips: [anImprisonedShip({ savingsCoverFine: false })],
+    });
+    expect(texts('ship-fine-coverage')).toEqual(['The Savings do not cover the Fine of 50.00 $']);
+    expect((all('ship-pay-fine')[0] as HTMLButtonElement).disabled).toBeTrue();
+  });
+
+  it('Paying the Fine frees the ship', () => {
+    const imprisoned = anImprisonedShip();
+    render([saltyWhiskerImprisoned()], { imprisonedShips: [imprisoned] });
+    (all('ship-pay-fine')[0] as HTMLButtonElement).click();
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.payFine({ shipId: imprisoned.shipId }));
+    TestBed.resetTestingModule();
+
+    // once paid, the fleet shows the notice and the freed ship can get a new Shipping
+    render([anIncomingShip({ incoming: false, imprisoned: false, shippingState: ShippingState.IDLE })], {
+      fineNotice: aFinePayment(),
+    });
+    expect(texts('ships-fine-notice')[0]).toContain(
+      'Salty Whisker is free: the Fine of 50.00 $ is paid, the Savings are 950.00 $',
+    );
+    expect(all('ship-fine')).toEqual([]);
+    expect(all('new-shipping').length).toBe(1);
   });
 });

@@ -1,17 +1,22 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, concatMap, map, of, switchMap, takeUntil } from 'rxjs';
+import { Router } from '@angular/router';
+import { catchError, concatMap, map, of, switchMap, takeUntil, tap, timer } from 'rxjs';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
 import { MarketService } from '../services/market.service';
 import { IncomingShipsService } from '../services/incoming-ships.service';
+import { ImprisonedShipsService } from '../services/imprisoned-ships.service';
 import * as ShipActions from '../../ships/store/actions/ship.actions';
 
 const PURCHASE_FAILED = 'The Market could not complete the purchase';
 const UNLOAD_FAILED = 'The Incoming Ship could not be unloaded';
 const REFUSE_FAILED = 'The Incoming Ship could not be refused';
+const FINE_FAILED = 'The Fine could not be paid';
+/** How long the notice of a paid Fine stays on the fleet before it dismisses itself. */
+export const FINE_NOTICE_MS = 8000;
 
 @Injectable()
 export class HarborEffects {
@@ -20,6 +25,8 @@ export class HarborEffects {
   private savingsService = inject(SavingsService);
   private marketService = inject(MarketService);
   private incomingShipsService = inject(IncomingShipsService);
+  private imprisonedShipsService = inject(ImprisonedShipsService);
+  private router = inject(Router);
 
   loadStock$ = createEffect(() =>
     this.actions$.pipe(
@@ -160,6 +167,76 @@ export class HarborEffects {
     this.actions$.pipe(
       ofType(HarborActions.refuseIncomingShipSuccess, HarborActions.refuseIncomingShipFailure),
       map(() => HarborActions.loadIncomingShips()),
+    ),
+  );
+
+  /** A newer load wins, as for the Incoming Ships. */
+  loadImprisonedShips$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.loadImprisonedShips),
+      switchMap(() =>
+        this.imprisonedShipsService.getImprisonedShips().pipe(
+          map((imprisonedShips) => HarborActions.loadImprisonedShipsSuccess({ imprisonedShips })),
+          catchError((error) => of(HarborActions.loadImprisonedShipsFailure({ error }))),
+        ),
+      ),
+    ),
+  );
+
+  /** concatMap: a Fine payment moves money, so a later one never cancels it. */
+  payFine$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.payFine),
+      concatMap(({ shipId }) =>
+        this.imprisonedShipsService.payFine(shipId).pipe(
+          map((payment) => HarborActions.payFineSuccess({ payment })),
+          catchError((error: HttpErrorResponse) =>
+            of(HarborActions.payFineFailure({ shipId, error, refusal: error.error?.detail ?? FINE_FAILED })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  /** The backend owns the money: after a paid Fine the Imprisoned Ships, the Savings and the fleet are read back. */
+  refreshAfterFinePaid$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.payFineSuccess),
+      switchMap(() => [HarborActions.loadImprisonedShips(), HarborActions.loadSavings(), ShipActions.loadShips()]),
+    ),
+  );
+
+  /** The freed ship is shown on the fleet, where it can get a new Shipping. */
+  showFleetAfterFinePaid$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(HarborActions.payFineSuccess),
+        tap(() => this.router.navigate(['/ships'])),
+      ),
+    { dispatch: false },
+  );
+
+  /** The Fine notice dismisses itself after a while; a newer payment restarts the wait. */
+  dismissFineNotice$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.payFineSuccess),
+      switchMap(() => timer(FINE_NOTICE_MS).pipe(map(() => HarborActions.dismissFineNotice()))),
+    ),
+  );
+
+  /** A refused payment may mean the ship was freed elsewhere or the Savings changed: read both back. */
+  refreshAfterRefusedFine$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.payFineFailure),
+      switchMap(() => [HarborActions.loadImprisonedShips(), HarborActions.loadSavings()]),
+    ),
+  );
+
+  /** Every fleet load, also the one after a pushed imprisonment, reads the Imprisoned Ships back, so the app-bar pill follows. */
+  refreshImprisonedShipsWithFleet$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ShipActions.loadShipsSuccess),
+      map(() => HarborActions.loadImprisonedShips()),
     ),
   );
 }

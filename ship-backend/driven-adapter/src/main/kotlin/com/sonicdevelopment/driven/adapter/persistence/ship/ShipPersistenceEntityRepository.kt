@@ -34,6 +34,18 @@ interface ShipPersistenceEntityRepository: JpaRepository<ShipPersistenceEntity, 
     fun confiscate(@Param("shipId") shipId: UUID): Int
 
     /**
+     * Clears the imprisoned flag of an Imprisoned Ship in the fleet; returns the number of updated rows (1 or 0).
+     * Clears the persistence context, so a ship loaded before is read again with the new flag.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(
+        nativeQuery = true,
+        value = "UPDATE ships SET ship_imprisoned = false " +
+            "WHERE ship_id = :shipId AND ship_in_fleet = true AND ship_imprisoned = true"
+    )
+    fun free(@Param("shipId") shipId: UUID): Int
+
+    /**
      * Clears the Incoming flag of an Incoming Ship in the fleet; returns the number of updated rows (1 or 0).
      * The `WHERE` is re-checked after a concurrent writer commits, so of two unloadings of the same ship only
      * one updates it. Clears the persistence context, so a ship loaded before is read again with the new flag.

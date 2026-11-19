@@ -250,6 +250,30 @@ class FakeDrivenPortsTest {
     }
 
     @Test
+    fun `free mirrors the adapter - clears the imprisoned flag, only of an Imprisoned Ship in the fleet`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val imprisoned = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+            imprisoned = true,
+        )
+        val notImprisoned = Ship(
+            name = "Sea Biscuit", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(imprisoned))
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(notImprisoned))
+
+        fleet.free(imprisoned.id)
+
+        fleet.getShipDetails(imprisoned.id)!!.isImprisoned shouldBe false
+        shouldThrow<IllegalStateException> { fleet.free(imprisoned.id) }
+        shouldThrow<IllegalStateException> { fleet.free(notImprisoned.id) }
+        shouldThrow<IllegalStateException> { fleet.free(ShipId(UUID.randomUUID())) }
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(imprisoned))
+        fleet.removeFromFleet(imprisoned.id)
+        shouldThrow<IllegalStateException> { fleet.free(imprisoned.id) }
+    }
+
+    @Test
     fun `rememberPrice keeps the first Price and reports false after`() {
         val prices = InMemoryPrices(InMemoryCargoCatalog())
 

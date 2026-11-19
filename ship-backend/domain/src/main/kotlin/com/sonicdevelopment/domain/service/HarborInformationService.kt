@@ -7,6 +7,7 @@ import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
+import com.sonicdevelopment.domain.ports.driving.harbor.ImprisonedShipDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborInformationPort
 import com.sonicdevelopment.domain.ports.driving.harbor.KnownHarborsDTO
@@ -40,6 +41,23 @@ class HarborInformationService(
                 arrivedFrom = ship.arrivedFrom?.name,
                 cargo = ship.cargoAboard.map { CargoDTO(it.id, it.name, it.weight) },
                 deliveryPrice = DeliveryPrice.of(ship.cargoAboard, prices),
+            )
+        }
+    }
+
+    /** Whether the Savings cover the Fine is computed when the list is read, from the Savings read once. */
+    override fun getImprisonedShips(): List<ImprisonedShipDTO> {
+        val imprisonedShips = shipRepositoryPort.getAllShips().filter { it.isImprisonedHere(currentHarbor) }
+        if (imprisonedShips.isEmpty()) return emptyList()
+        val savingsCoverFine = savingsRepositoryPort.getSavings() >= Fine.AMOUNT
+        return imprisonedShips.map { ship ->
+            ImprisonedShipDTO(
+                id = ship.id,
+                name = ship.shipName,
+                catain = ship.catainName,
+                homeHarbor = ship.homeHarbor,
+                fine = Fine.AMOUNT,
+                savingsCoverFine = savingsCoverFine,
             )
         }
     }

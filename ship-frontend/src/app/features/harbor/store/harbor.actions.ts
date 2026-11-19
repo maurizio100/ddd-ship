@@ -1,3 +1,5 @@
+import { ImprisonedShip } from '../models/imprisoned-ship';
+import { FinePayment } from '../models/fine-payment';
 import {createAction, props} from '@ngrx/store';
 import {StockedCargo} from '../models/stocked-cargo';
 import {Savings} from '../models/savings';
@@ -84,3 +86,26 @@ export const refuseIncomingShipFailure = createAction(
   '[Harbor] Refuse Incoming Ship Failure',
   props<{shipId: string; error: unknown; refusal: string}>()
 );
+
+export const loadImprisonedShips = createAction('[Harbor] Load Imprisoned Ships');
+
+export const loadImprisonedShipsSuccess = createAction(
+  '[Harbor] Load Imprisoned Ships Success',
+  props<{imprisonedShips: ImprisonedShip[]}>()
+);
+
+export const loadImprisonedShipsFailure = createAction(
+  '[Harbor] Load Imprisoned Ships Failure',
+  props<{error: unknown}>()
+);
+
+export const payFine = createAction('[Harbor] Pay Fine', props<{shipId: string}>());
+
+export const payFineSuccess = createAction('[Harbor] Pay Fine Success', props<{payment: FinePayment}>());
+
+export const payFineFailure = createAction(
+  '[Harbor] Pay Fine Failure',
+  props<{shipId: string; error: unknown; refusal: string}>()
+);
+
+export const dismissFineNotice = createAction('[Harbor] Dismiss Fine Notice');

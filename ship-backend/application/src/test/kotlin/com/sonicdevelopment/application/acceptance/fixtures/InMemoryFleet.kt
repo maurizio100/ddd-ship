@@ -117,6 +117,14 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[shipId] = record.copy(incoming = false, imprisoned = true, cargoAboard = emptyList())
     }
 
+    /** Like the adapter's conditional `UPDATE`: only an Imprisoned Ship in the fleet, anything else fails. */
+    @Synchronized
+    override fun free(shipId: ShipId) {
+        val record = ships[shipId]?.takeIf { it.inFleet && it.imprisoned }
+            ?: throw IllegalStateException("Ship $shipId is not an Imprisoned Ship in the fleet")
+        ships[shipId] = record.copy(imprisoned = false)
+    }
+
     @Synchronized
     override fun clearCargoAboard(shipId: ShipId) {
         ships[shipId]?.let { ships[shipId] = it.copy(cargoAboard = emptyList()) }

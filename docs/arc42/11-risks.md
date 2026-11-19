@@ -40,3 +40,7 @@ decisions** — each needs a call from the project owner (fix, accept, or turn i
   at-least-once event, writes Shipping Published and races User unloading, refusal and Release. Every write
   stays after the inbox, holding-Harbor and at-sea guards and the row lock (`lockShip`, which `releaseShipping`
   takes too), in one transaction with the outbox row.
+- **Fine payment** (`ImprisonmentManagementService.payFine`): it debits the Savings and frees an Imprisoned
+  Ship. The order lock (`lockShip`) → `Ship.free` guard → conditional Savings debit → conditional `free` write
+  must stay, in one transaction; a write moved above the debit frees a ship nobody paid for, and dropping the
+  lock lets two concurrent payments race.

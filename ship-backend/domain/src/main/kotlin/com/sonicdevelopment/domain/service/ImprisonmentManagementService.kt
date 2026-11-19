@@ -1,16 +1,20 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort.CargoLoadInformation
 import com.sonicdevelopment.domain.ports.driven.FleetEventsPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
+import com.sonicdevelopment.domain.ports.driving.shipping.FinePaymentDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ImprisonmentManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipImprisonedDTO
 import jakarta.transaction.Transactional
@@ -31,6 +35,12 @@ import org.springframework.stereotype.Service
  * sends a ship home. A second imprisonment of a ship already sent home finds it at sea and changes nothing.
  *
  * The Users at this Harbor are told through [FleetEventsPort] once the transaction commits.
+ *
+ * At its Home Harbor, an Imprisoned Ship in port is freed by paying its [Fine] from the Savings ([payFine]), in one
+ * transaction: the ship is read under its row lock, must be imprisoned here, the Fine is paid by the conditional
+ * debit of the Savings, and only then is the imprisoned flag cleared. Nothing is written before the payment is
+ * accepted. The lock serialises two payments for the same ship: the second finds it free and pays nothing.
+ * Freeing tells no fleet and writes no outbox row.
  */
 @Service
 class ImprisonmentManagementService(
@@ -42,6 +52,7 @@ class ImprisonmentManagementService(
     private val quoteRepositoryPort: QuoteRepositoryPort,
     private val shippingOutboxRepository: ShippingOutboxRepository,
     private val fleetEventsPort: FleetEventsPort,
+    private val savingsRepositoryPort: SavingsRepositoryPort,
 ) : ImprisonmentManagementPort {
 
     @Transactional
@@ -65,5 +76,16 @@ class ImprisonmentManagementService(
         shippingRepositoryPort.updateActiveShipping(ship)
         shippingOutboxRepository.broadcastShipping(ship, currentHarbor)
         fleetEventsPort.announceShipImprisoned(ship, sailsHome = true)
+    }
+
+    @Transactional
+    override fun payFine(shipId: ShipId): FinePaymentDTO? {
+        val ship = shipRepositoryPort.lockShip(shipId) ?: return null
+        ship.free(currentHarbor)
+        if (!savingsRepositoryPort.pay(Fine.AMOUNT)) {
+            throw SavingsDoNotCoverException(Fine.AMOUNT, "The Savings do not cover the Fine of ${Fine.AMOUNT}")
+        }
+        shipRepositoryPort.free(ship.id)
+        return FinePaymentDTO(ship.id, ship.shipName, Fine.AMOUNT, savingsRepositoryPort.getSavings())
     }
 }

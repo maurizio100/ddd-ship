@@ -1,5 +1,7 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
+import com.sonicdevelopment.domain.exception.ShipNotImprisonedException
 import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
@@ -8,6 +10,7 @@ import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
@@ -15,10 +18,13 @@ import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.FleetEventsPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
+import com.sonicdevelopment.domain.ports.driving.shipping.FinePaymentDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipImprisonedDTO
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -42,9 +48,10 @@ class ImprisonmentManagementServiceTest {
     private val quotes = mockk<QuoteRepositoryPort>()
     private val outbox = mockk<ShippingOutboxRepository>(relaxed = true)
     private val fleetEvents = mockk<FleetEventsPort>(relaxed = true)
+    private val savings = mockk<SavingsRepositoryPort>()
 
-    private val atPortRoyal = ImprisonmentManagementService(portRoyal, inbox, ships, shippings, cargoPersistence, quotes, outbox, fleetEvents)
-    private val atTortuga = ImprisonmentManagementService(tortuga, inbox, ships, shippings, cargoPersistence, quotes, outbox, fleetEvents)
+    private val atPortRoyal = ImprisonmentManagementService(portRoyal, inbox, ships, shippings, cargoPersistence, quotes, outbox, fleetEvents, savings)
+    private val atTortuga = ImprisonmentManagementService(tortuga, inbox, ships, shippings, cargoPersistence, quotes, outbox, fleetEvents, savings)
 
     private val eventId = EventId(UUID.randomUUID())
     private val saltyWhiskerId = ShipId(UUID.randomUUID())
@@ -180,6 +187,68 @@ class ImprisonmentManagementServiceTest {
         transactional.dontRollbackOn.toList() shouldBe emptyList()
     }
 
+    @Test
+    fun `paying the Fine locks the ship, pays the Fine, then frees it, and returns the Savings after`() {
+        every { ships.lockShip(saltyWhiskerId) } returns aShip(imprisoned = true)
+        every { savings.pay(Fine.AMOUNT) } returns true
+        every { savings.getSavings() } returns Money.of("950.00")
+
+        val payment = atTortuga.payFine(saltyWhiskerId)
+
+        payment shouldBe FinePaymentDTO(saltyWhiskerId, "Salty Whisker", Money.of("50.00"), Money.of("950.00"))
+        verifyOrder {
+            ships.lockShip(saltyWhiskerId)
+            savings.pay(Money.of("50.00"))
+            ships.free(saltyWhiskerId)
+            savings.getSavings()
+        }
+    }
+
+    @Test
+    fun `a Fine the Savings fall short for is refused and the ship is not freed`() {
+        every { ships.lockShip(saltyWhiskerId) } returns aShip(imprisoned = true)
+        every { savings.pay(Fine.AMOUNT) } returns false
+
+        shouldThrow<SavingsDoNotCoverException> { atTortuga.payFine(saltyWhiskerId) }
+            .message shouldBe "The Savings do not cover the Fine of 50.00 $"
+
+        verify(exactly = 0) { ships.free(any()) }
+    }
+
+    @Test
+    fun `a ship that is not imprisoned here is neither paid for nor freed`() {
+        every { ships.lockShip(saltyWhiskerId) } returns aShip()
+
+        shouldThrow<ShipNotImprisonedException> { atTortuga.payFine(saltyWhiskerId) }
+            .message shouldBe "Salty Whisker is not imprisoned"
+        // imprisoned, but Port Royal is not its Home Harbor
+        every { ships.lockShip(saltyWhiskerId) } returns aShip(imprisoned = true)
+        shouldThrow<ShipNotImprisonedException> { atPortRoyal.payFine(saltyWhiskerId) }
+
+        verify(exactly = 0) { savings.pay(any()) }
+        verify(exactly = 0) { ships.free(any()) }
+    }
+
+    @Test
+    fun `paying a Fine for a ship not in the fleet returns null and pays nothing`() {
+        every { ships.lockShip(saltyWhiskerId) } returns null
+
+        atTortuga.payFine(saltyWhiskerId) shouldBe null
+
+        verify(exactly = 0) { savings.pay(any()) }
+        verify(exactly = 0) { ships.free(any()) }
+    }
+
+    @Test
+    fun `a Fine payment runs in one transaction that rolls back on any exception`() {
+        val payFine = ImprisonmentManagementService::class.java.getMethod("payFine", ShipId::class.java)
+
+        val transactional = payFine.getAnnotation(Transactional::class.java)
+
+        (transactional != null) shouldBe true
+        transactional.dontRollbackOn.toList() shouldBe emptyList()
+    }
+
     private fun nothingBeyondTheInboxWasWritten() {
         verify(exactly = 0) { ships.confiscate(any()) }
         verify(exactly = 0) { shippings.createShipping(any()) }
@@ -194,6 +263,7 @@ class ImprisonmentManagementServiceTest {
         incoming: Boolean = false,
         activeShipping: Shipping? = null,
         loadedCargo: List<Cargo> = emptyList(),
+        imprisoned: Boolean = false,
     ) = Ship(
         id = saltyWhiskerId,
         name = "Salty Whisker",
@@ -205,5 +275,6 @@ class ImprisonmentManagementServiceTest {
         cargoLoad = loadedCargo.toMutableList(),
         cargoAboard = cargoAboard,
         incoming = incoming,
+        imprisoned = imprisoned,
     )
 }

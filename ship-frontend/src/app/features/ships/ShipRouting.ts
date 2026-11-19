@@ -1,12 +1,14 @@
 import {Routes} from '@angular/router';
 import {SHIPS_STORE_PROVIDERS} from "./store/ShipsStoreProviders";
 import {CATAIN_STORE_PROVIDERS} from "../catains/store/CatainStoreProviders";
+import {HARBOR_STORE_PROVIDERS} from "../harbor/store/HarborStoreProviders";
 
 export const SHIPS_ROUTES: Routes = [
   {
     path: '',
-    // The ships list shows each ship's Catain Image, so the Catain store serves the whole feature.
-    providers: [SHIPS_STORE_PROVIDERS, CATAIN_STORE_PROVIDERS],
+    // The ships list shows each ship's Catain Image, so the Catain store serves the whole feature; an Imprisoned
+    // Ship's card shows its Fine from the harbor store.
+    providers: [SHIPS_STORE_PROVIDERS, CATAIN_STORE_PROVIDERS, HARBOR_STORE_PROVIDERS],
     children: [
       {
         path: '',  // matches /ships

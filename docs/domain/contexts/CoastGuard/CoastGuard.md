@@ -3,7 +3,7 @@
 The Coast Guard watches the seas between all Harbors. It reads every Shipping Published, counts per
 ship how often it carries Contraband, and imprisons a ship that does so too often by publishing Ship
 Imprisoned. Like HarborTerminal it serves all Harbors and is not a Harbor itself. Built: counting and
-publishing Ship Imprisoned. Built: the Harbor side's Confiscation. Planned (coast-guard ideation, 2026-11-18): the Fine.
+publishing Ship Imprisoned. Built: the Harbor side's Confiscation. Built: the Fine, paid at the Home Harbor.
 
 Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the folder beside this file.
 
@@ -16,7 +16,7 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - The Coast Guard — a component of its own beside the Harbors, keeping its own copy of the event model (built).
 
 ## Behaviour
-The Coast Guard counts and publishes Ship Imprisoned (built). The Harbor holding the ship carries out the Confiscation (built); the Fine is not built yet.
+The Coast Guard counts and publishes Ship Imprisoned (built). The Harbor holding the ship carries out the Confiscation (built); the Home Harbor frees its Imprisoned Ship when the Fine is paid (built).
 
 ## Inbound communication
 | From | Message | Kind |

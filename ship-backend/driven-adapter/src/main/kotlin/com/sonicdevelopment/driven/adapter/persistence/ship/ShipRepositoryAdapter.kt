@@ -119,6 +119,14 @@ class ShipRepositoryAdapter(
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
     }
 
+    /** The conditional `UPDATE` must hit the row of an Imprisoned Ship in the fleet. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun free(shipId: ShipId) {
+        check(shipPersistenceEntityRepository.free(shipId.id) == 1) {
+            "Ship ${shipId.id} is not an Imprisoned Ship in the fleet, so it cannot be freed"
+        }
+    }
+
     @Transactional(propagation = Propagation.MANDATORY)
     override fun clearCargoAboard(shipId: ShipId) {
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)

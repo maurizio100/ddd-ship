@@ -38,6 +38,9 @@ changes that flow.
 - The feature state is registered under a plural key (`ships`, `catains`, `shippings`), with its
   `<Feature>State` interface next to the selectors.
 - Selectors are named `select<Thing>` and built with `createFeatureSelector` / `createSelector`.
+- A selector read outside the routes that register its feature (the app bar, or a component on another
+  feature's route) reads the root state and tolerates the feature being absent: it returns the empty value
+  instead of going through `createFeatureSelector`.
 
 ## Models
 

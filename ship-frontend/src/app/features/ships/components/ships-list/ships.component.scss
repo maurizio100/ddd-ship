@@ -203,3 +203,48 @@
   color: var(--mat-sys-on-primary);
   font-weight: 600;
 }
+
+/* The Fine panel of an Imprisoned Ship listed at its Home Harbor. */
+.fine {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--hs-border);
+  background: var(--hs-raised);
+
+  &__amount {
+    margin: 0;
+    font-family: 'IM Fell English', serif;
+    font-size: 22px;
+  }
+
+  &__coverage {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 4px 0 0;
+
+    mat-icon {
+      color: var(--hs-brass);
+    }
+
+    &--short {
+      font-style: italic;
+      color: var(--hs-muted);
+    }
+  }
+
+  &__refusal {
+    margin: 8px 0 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    font-weight: 600;
+  }
+
+  &__pay {
+    width: 100%;
+    margin-top: 12px;
+  }
+}
