@@ -220,7 +220,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           description: >-
-            The new Shipping is refused (title "New Shipping refused"): the ship is an Incoming Ship
+            The new Shipping is refused (title "New Shipping refused"): the ship is an Imprisoned Ship
+            (`detail` "<Ship Name> is imprisoned"), an Incoming Ship
             (`detail` "<Ship Name> must be unloaded or refused first"), or it already has an Active Shipping
             (`detail` "<Ship Name> already has an Active Shipping"). Nothing is written.
           content:
@@ -508,6 +509,8 @@ paths:
         - `event: ship-arrived`, data `ShipArrivedFleetEvent`: a ship arrived at this Harbor and joined its fleet.
         - `event: ship-left`, data `ShipLeftFleetEvent`: a ship this Harbor Released arrived at its
           Destination Harbor and left this Harbor's fleet.
+        - `event: ship-imprisoned`, data `ShipImprisonedFleetEvent`: the Coast Guard imprisoned a ship held here and
+          its Cargo is confiscated; it sails home imprisoned, or stays here as an Imprisoned Ship at its Home Harbor.
 
         Events are not replayed: a client that reconnects refetches `/web/ships` when it needs the current fleet.
       operationId: subscribeToFleetEvents
@@ -613,6 +616,11 @@ components:
           pattern: '^\d+\.\d{2}$'
           example: "80.00"
           description: The Earnings the ship carries until it reaches its Home Harbor, a decimal string with two decimals; "0.00" for none
+        imprisoned:
+          type: boolean
+          description: >-
+            Whether the ship is an Imprisoned Ship, which cannot start a new Shipping; also true for a ship at sea
+            home after its Cargo was confiscated here
 
     ShipDetailResponse:
       type: object
@@ -779,7 +787,7 @@ components:
     ShipArrivedFleetEvent:
       type: object
       description: Data of the `ship-arrived` fleet event
-      required: [shipId, shipName, originHarbor]
+      required: [shipId, shipName, originHarbor, imprisoned]
       properties:
         shipId:
           type: string
@@ -789,6 +797,26 @@ components:
         originHarbor:
           type: string
           description: Harbor Name of the Origin Harbor the ship arrived from
+        imprisoned:
+          type: boolean
+          description: Whether the ship arrived at its Home Harbor as an Imprisoned Ship, sent home after a Confiscation
+
+    ShipImprisonedFleetEvent:
+      type: object
+      description: Data of the `ship-imprisoned` fleet event
+      required: [shipId, shipName, homeHarbor, sailsHome]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        shipName:
+          type: string
+        homeHarbor:
+          type: string
+          description: Harbor Name of the ship's Home Harbor
+        sailsHome:
+          type: boolean
+          description: Whether the ship sails home imprisoned; false when it is imprisoned here, at its Home Harbor
 
     ShipLeftFleetEvent:
       type: object
