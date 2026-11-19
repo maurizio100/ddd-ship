@@ -24,7 +24,12 @@ class Ship(
     cargoAboard: List<Cargo> = emptyList(),
     incoming: Boolean = false,
     earnings: Money = Money.dollars(0),
+    imprisoned: Boolean = false,
 ) {
+
+    /** Whether the ship is an Imprisoned Ship, or sails home from the holding Harbor as one. */
+    var isImprisoned: Boolean = imprisoned
+        private set
 
     /** The Earnings the ship carries until it reaches its Home Harbor. */
     var earnings: Money = earnings
