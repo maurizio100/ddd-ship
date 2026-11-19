@@ -21,7 +21,7 @@ Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-rec
 - Each Harbor also has an inbox of consumed event ids in `inbox_events` (`V5`, [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and its Known Harbors in `known_harbors` (`V6`, [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
 - **Money** (built by STORY-024, EPIC-003, [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): dollars to two decimals, an exact decimal in the domain, `NUMERIC(…, 2)` in PostgreSQL and a decimal string in event JSON, never a binary float. In REST JSON money is a decimal string with two decimals, never a JSON number (see [api-design.md](../services/ship-backend/guidelines/api-design.md)). Each Harbor's **Savings** (Starting Savings 1000.00 $) change only through a port inside the caller's transaction and never drop below 0, like the Stock. **Prices** are per Harbor: rolled once when the Harbor first opens (whole dollars, 30.00 $ to 60.00 $, decided 2026-10-07, STORY-024) and kept; a Delivery Price uses the paying Harbor's Prices. A ship's Earnings and Home Harbor are stored with the ship and travel in `shipping-published`.
 - **Crew** (decided, not built, [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): each Harbor's **Recruit Pool** is runtime data filled at that Harbor, not a migration seed, and differs between Harbors by design — one of two exceptions to identical seeds, together with the Prices; the Cargo catalog and Catain roster keep that rule. A ship's Crew is stored with the ship, travels in `shipping-published`, and is replaced, not merged, when the ship arrives. The **Hiring Fee** follows the Money rules above.
-- **Coast Guard** (decided, not built, [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): the **Fine** (50.00 $) follows the Money rules above and is paid at the Home Harbor only. An imprisoned ship's state is stored with the ship. The Coast Guard has no database: its counts live in a Kafka Streams state store, backed by a changelog topic.
+- **Coast Guard** (built, [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): it has no database: its counts live in the Kafka Streams state store `ship-watches`, backed by a changelog topic. Decided, not built: the **Fine** (50.00 $) follows the Money rules above and is paid at the Home Harbor only, and an imprisoned ship's state is stored with the ship.
 
 ## 8.3 Transactions and event publication
 
@@ -52,9 +52,9 @@ Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-rec
 the Savings and adds the Crew Member together (6.8). Storing an arriving ship's Crew happens inside the
 Arrival's inbox transaction.
 
-Decided, not built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): the Coast Guard writes `ship-imprisoned` to Kafka directly, the only
+Built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): the Coast Guard writes `ship-imprisoned` to Kafka directly, the only
 producer besides Debezium. Its write is not transactional with any database and may be repeated after a
-crash; the Harbors handle `ship-imprisoned` in an inbox transaction, so a repeat has no effect. Paying the Fine
+crash. Decided, not built: the Harbors handle `ship-imprisoned` in an inbox transaction, so a repeat has no effect. Paying the Fine
 is a REST-driven transaction at the Home Harbor that takes the Fine from the Savings and frees the ship together.
 
 Pushes to the browser (the fleet-events stream, 8.7) happen only after commit: the domain announces a
@@ -105,7 +105,7 @@ A component's default test command needs no Docker, no network and no other comp
 | Driving adapter | one controller or Kafka listener against a mocked driving port | `@WebMvcTest` + springmockk, plain JUnit for listeners | default build |
 | Acceptance | one test per Gherkin scenario of a story, over HTTP against the real Spring wiring, with in-memory fakes in place of the driven ports | `@SpringBootTest(RANDOM_PORT)`, plain JUnit named after the scenarios (no Cucumber) | default build |
 | Postgres | each persistence adapter, the Flyway migrations, and a few transaction tests proving that a failed change leaves neither its state change nor its outbox row behind | `@DataJpaTest` / `@SpringBootTest` + Testcontainers PostgreSQL | Maven profile `-Pdb`, run by CI on every pull request |
-| Coast Guard (decided, not built, [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)) | the Kafka Streams topology: counting, the 10-minute window, once per Shipping id, the reset after an imprisonment | `TopologyTestDriver` (no broker) | default build of `ship-coast-guard` |
+| Coast Guard (built, [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)) | the Kafka Streams topology: counting, the 10-minute window, once per Shipping id, the reset after an imprisonment | `TopologyTestDriver` (no broker) | default build of `ship-coast-guard`: `cd ship-coast-guard && mvn -q verify` |
 | Frontend | components, NgRx reducers, effects and selectors, with a mock store and no HTTP | Karma + Jasmine | default build |
 
 - **Coverage expectation:** every behavioural story has acceptance tests, every rule it adds or

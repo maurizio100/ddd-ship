@@ -21,7 +21,7 @@ its own fleet, Stock and Savings, and ships sail between Harbors. Derived from t
 | Context | What it covers | Terms |
 |---|---|---|
 | [CargoLoading](contexts/CargoLoading/CargoLoading.md) | Loading Cargo onto ships within the Max Weight | [glossary](contexts/CargoLoading/glossary.md) |
-| [CoastGuard](contexts/CoastGuard/CoastGuard.md) | Imprisoning ships that carry Contraband too often (planned) | [glossary](contexts/CoastGuard/glossary.md) |
+| [CoastGuard](contexts/CoastGuard/CoastGuard.md) | Imprisoning ships that carry Contraband too often (counting and Ship Imprisoned built; Confiscation, Fine and freeing planned) | [glossary](contexts/CoastGuard/glossary.md) |
 | [Fleet](contexts/Fleet/Fleet.md) | Ship registry and Catain roster | [glossary](contexts/Fleet/glossary.md) |
 | [HarborTerminal](contexts/HarborTerminal/HarborTerminal.md) | Departure board consuming Shipping Published | [glossary](contexts/HarborTerminal/glossary.md) |
 | [Shipping](contexts/Shipping/Shipping.md) | Voyage lifecycle and Release | [glossary](contexts/Shipping/glossary.md) |
