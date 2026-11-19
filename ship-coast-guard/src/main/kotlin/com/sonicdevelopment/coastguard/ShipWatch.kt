@@ -20,14 +20,11 @@ data class ShipWatch(val voyages: List<CountedVoyage> = emptyList()) {
         if (at < windowStart) return Pair(this, false)
 
         val recent = voyages.filter { it.at >= windowStart } + CountedVoyage(shippingId, at, spent = false)
-        val counted = recent.count { !it.spent && withinWindow(it.at, at) }
+        val counted = recent.count { !it.spent }
         return if (counted >= VOYAGES_TO_IMPRISON) {
             Pair(ShipWatch(recent.map { it.copy(spent = true) }), true)
         } else {
             Pair(ShipWatch(recent), false)
         }
     }
-
-    private fun withinWindow(voyageAt: Long, at: Long): Boolean =
-        Math.abs(at - voyageAt) <= WINDOW.toMillis()
 }
