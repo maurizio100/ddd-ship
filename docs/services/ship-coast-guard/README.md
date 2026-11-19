@@ -20,4 +20,5 @@ Read this index first and then open **only** the documents your task needs.
 
 | Document | What it contains | Read it when |
 | --- | --- | --- |
+| `guidelines/` | Testing conventions. `guidelines/README.md` indexes them. | Writing or reviewing code in this component |
 | `decisions/` | Component-scoped mini-ADRs — decisions binding only this component. `decisions/README.md` indexes them all. | Planning or reviewing a change: scan the index, open the entries that bear on it, and check the change does not contradict one. |
