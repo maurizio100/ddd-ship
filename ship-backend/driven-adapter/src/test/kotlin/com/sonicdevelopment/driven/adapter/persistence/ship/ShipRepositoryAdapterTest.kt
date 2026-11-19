@@ -398,6 +398,59 @@ class ShipRepositoryAdapterTest {
     }
 
     @Test
+    fun `saveNewShip round-trips the imprisoned flag, and a later save overwrites it`() {
+        val ship = Ship(
+            name = "Salty Whisker", catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), imprisoned = true,
+        )
+        ships.saveNewShip(InitialShipInformation.fromShip(ship))
+        flushAndClear()
+
+        ships.getShipDetails(ship.id)!!.isImprisoned shouldBe true
+
+        ships.saveNewShip(InitialShipInformation.fromShip(renamed(ship, "Salty Whisker")))
+        flushAndClear()
+
+        ships.getShipDetails(ship.id)!!.isImprisoned shouldBe false
+    }
+
+    @Test
+    fun `confiscate clears the Incoming flag and the Cargo aboard and sets the imprisoned flag`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum(), rum()))
+        val blackPearl = anIncomingShip("Black Pearl", listOf(sugar()))
+        ships.lockShip(saltyWhisker.id)!!.isIncoming shouldBe true
+
+        ships.confiscate(saltyWhisker.id)
+
+        val confiscated = ships.getShipDetails(saltyWhisker.id)!!
+        confiscated.isIncoming shouldBe false
+        confiscated.isImprisoned shouldBe true
+        confiscated.cargoAboard.shouldBeEmpty()
+        aboardRowsFor(saltyWhisker.id) shouldBe 0
+        ships.getShipDetails(blackPearl.id)!!.isIncoming shouldBe true
+        aboardRowsFor(blackPearl.id) shouldBe 1
+    }
+
+    @Test
+    fun `lockShip finds only a ship in the fleet, and confiscate fails for any other`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum()))
+        ships.removeFromFleet(saltyWhisker.id)
+        flushAndClear()
+
+        ships.lockShip(saltyWhisker.id) shouldBe null
+        ships.lockShip(ShipId(UUID.randomUUID())) shouldBe null
+        shouldThrow<IllegalStateException> { ships.confiscate(saltyWhisker.id) }
+        aboardRowsFor(saltyWhisker.id) shouldBe 1
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun `lockShip and confiscate require a transaction`() {
+        shouldThrow<IllegalTransactionStateException> { ships.lockShip(ShipId(UUID.randomUUID())) }
+        shouldThrow<IllegalTransactionStateException> { ships.confiscate(ShipId(UUID.randomUUID())) }
+    }
+
+    @Test
     fun `addEarnings adds to the Earnings of a ship in the fleet`() {
         val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum()))
         val blackPearl = anIncomingShip("Black Pearl", listOf(sugar()))
