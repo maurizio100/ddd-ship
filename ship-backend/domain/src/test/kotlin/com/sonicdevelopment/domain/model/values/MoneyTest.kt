@@ -9,6 +9,15 @@ import java.math.BigDecimal
 class MoneyTest {
 
     @Test
+    fun `amounts are ordered by value whatever their scale`() {
+        (Money.of("50") < Money.of("50.01")) shouldBe true
+        (Money.of("49.99") < Money.of("50.00")) shouldBe true
+        (Money(BigDecimal("1000")) > Money.of("50.00")) shouldBe true
+        Money(BigDecimal("50")).compareTo(Money.of("50.00")) shouldBe 0
+        (Money.of("50.0") >= Money.of("50.00")) shouldBe true
+    }
+
+    @Test
     fun `whole dollars have two decimals`() {
         Money.dollars(42).toDecimalString() shouldBe "42.00"
         Money.dollars(42).amount shouldBe BigDecimal("42.00")
