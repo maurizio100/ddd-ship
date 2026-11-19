@@ -1,7 +1,8 @@
 import {inject, Injectable} from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
 import * as ShipActions from "../actions/ship.actions";
-import {catchError, defer, exhaustMap, map, mergeMap, of, retry, switchMap, takeUntil, timer} from "rxjs";
+import {catchError, defer, exhaustMap, map, mergeMap, Observable, of, retry, switchMap, takeUntil, timer} from "rxjs";
+import {Action} from "@ngrx/store";
 import {ShipService} from "../../services/ship.service";
 import {FleetEventsService} from "../../services/fleet-events.service";
 import {FleetEvent} from "../../models/fleet-event";
@@ -70,6 +71,14 @@ export class ShipEffects {
     )
   });
 
+  refetchOnImprisonment$ = createEffect((): Observable<Action> => new Observable<Action>());
+
+  dismissImprisonmentNotice$ = createEffect((): Observable<Action> => new Observable<Action>());
+
+  createShipping$ = createEffect((): Observable<Action> => new Observable<Action>());
+
+  createShippingSuccess$ = createEffect((): Observable<Action> => new Observable<Action>(), {dispatch: false});
+
   dismissArrivalNotice$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(ShipActions.shipArrived),
@@ -86,6 +95,7 @@ function toAction(event: FleetEvent) {
       return ShipActions.shipArrived(event.ship);
     case 'ship-left':
       return ShipActions.shipLeft(event.ship);
+    case 'ship-imprisoned':
     case 'connected':
       return ShipActions.loadShips();
   }

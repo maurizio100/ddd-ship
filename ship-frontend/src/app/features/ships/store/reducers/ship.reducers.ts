@@ -6,7 +6,9 @@ export const initialState: ShipState = {
   ships: [],
   loading: false,
   error: null,
-  arrivalNotices: []
+  arrivalNotices: [],
+  imprisonmentNotices: [],
+  newShippingRefusal: null,
 }
 
 export const shipReducers = createReducer(
@@ -46,7 +48,7 @@ export const shipReducers = createReducer(
     ...state,
     arrivalNotices: [
       ...state.arrivalNotices.filter(notice => notice.shipId !== shipId),
-      {shipId, shipName, originHarbor}
+      {shipId, shipName, originHarbor, imprisoned: false}
     ]
   })),
 
