@@ -1,8 +1,9 @@
 import {inject, Injectable} from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
 import * as ShipActions from "../actions/ship.actions";
-import {catchError, defer, exhaustMap, map, mergeMap, Observable, of, retry, switchMap, takeUntil, timer} from "rxjs";
-import {Action} from "@ngrx/store";
+import {catchError, defer, exhaustMap, map, mergeMap, of, retry, switchMap, takeUntil, tap, timer} from "rxjs";
+import {HttpErrorResponse} from "@angular/common/http";
+import {Router} from "@angular/router";
 import {ShipService} from "../../services/ship.service";
 import {FleetEventsService} from "../../services/fleet-events.service";
 import {FleetEvent} from "../../models/fleet-event";
@@ -19,6 +20,7 @@ export class ShipEffects {
   private actions$ = inject(Actions);
   private shipService = inject(ShipService);
   private fleetEventsService = inject(FleetEventsService);
+  private router = inject(Router);
 
   /** A newer load wins: a refetch after a pushed arrival is never dropped behind a running one. */
   loadShips$ = createEffect(() => {
@@ -71,13 +73,43 @@ export class ShipEffects {
     )
   });
 
-  refetchOnImprisonment$ = createEffect((): Observable<Action> => new Observable<Action>());
+  /** The imprisoned ship's Cargo and state changed by itself: the fleet is fetched again. */
+  refetchOnImprisonment$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(ShipActions.shipImprisoned),
+      map(() => ShipActions.loadShips())
+    )
+  });
 
-  dismissImprisonmentNotice$ = createEffect((): Observable<Action> => new Observable<Action>());
+  dismissImprisonmentNotice$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(ShipActions.shipImprisoned),
+      mergeMap(({shipId}) => timer(ARRIVAL_NOTICE_MS).pipe(
+        map(() => ShipActions.dismissImprisonmentNotice({shipId}))
+      ))
+    )
+  });
 
-  createShipping$ = createEffect((): Observable<Action> => new Observable<Action>());
+  /** A refused new Shipping (409 Problem Details) tells the User the backend's `detail`. */
+  createShipping$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(ShipActions.createShipping),
+      exhaustMap(({ship}) => this.shipService.createShipping(ship).pipe(
+        map(shippingSummary => ShipActions.createShippingSuccess({shippingSummary})),
+        catchError((error: HttpErrorResponse) => of(ShipActions.createShippingFailure({
+          shipId: ship.id,
+          error: error.error?.detail ?? 'A new Shipping could not be started'
+        })))
+      ))
+    )
+  });
 
-  createShippingSuccess$ = createEffect((): Observable<Action> => new Observable<Action>(), {dispatch: false});
+  createShippingSuccess$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(ShipActions.createShippingSuccess),
+      tap(({shippingSummary}) => this.router.navigate([`ships/${shippingSummary.shipId}/cargo`]))
+    )
+  }, {dispatch: false});
 
   dismissArrivalNotice$ = createEffect(() => {
     return this.actions$.pipe(
@@ -96,6 +128,7 @@ function toAction(event: FleetEvent) {
     case 'ship-left':
       return ShipActions.shipLeft(event.ship);
     case 'ship-imprisoned':
+      return ShipActions.shipImprisoned(event.ship);
     case 'connected':
       return ShipActions.loadShips();
   }

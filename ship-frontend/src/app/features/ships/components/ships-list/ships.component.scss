@@ -103,6 +103,21 @@
   font-size: 14px;
 }
 
+.status--imprisoned {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--hs-ink);
+  color: var(--hs-raised);
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--hs-brass);
+  }
+}
+
 .body {
   padding: 0 16px 16px;
 }
@@ -167,4 +182,14 @@
   margin: 0;
   font-style: italic;
   color: var(--hs-muted);
+}
+
+.new-shipping-refusal {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-weight: 600;
 }

@@ -11,7 +11,7 @@
     @for (notice of arrivalNotices(); track notice.shipId) {
       <div class="notice">
         <mat-icon class="notice-icon" fontIcon="anchor" aria-hidden="true"></mat-icon>
-        <p class="notice-text" data-testid="ships-arrival-notice">{{ notice.shipName }} arrived from {{ notice.originHarbor }}</p>
+        <p class="notice-text" data-testid="ships-arrival-notice">{{ notice.shipName }} arrived from {{ notice.originHarbor }}{{ notice.imprisoned ? ', imprisoned' : '' }}</p>
         <button
           mat-icon-button
           type="button"
@@ -24,6 +24,22 @@
         </button>
       </div>
     }
+    @for (notice of imprisonmentNotices(); track notice.shipId) {
+      <div class="notice">
+        <mat-icon class="notice-icon" fontIcon="lock" aria-hidden="true"></mat-icon>
+        <p class="notice-text" data-testid="ships-imprisonment-notice">The Coast Guard imprisoned {{ notice.shipName }}: its Cargo is confiscated and it sails home to {{ notice.homeHarbor }}</p>
+        <button
+          mat-icon-button
+          type="button"
+          class="notice-dismiss"
+          aria-label="Dismiss"
+          data-testid="ships-imprisonment-notice-dismiss"
+          (click)="dismissImprisonment(notice)"
+        >
+          <mat-icon fontIcon="close"></mat-icon>
+        </button>
+      </div>
+    }
   </div>
 
   <div class="grid">
@@ -31,7 +47,12 @@
       <article class="card" data-testid="ship">
         <div class="picture">
           <img [src]="getImageUrl(ship)" alt="" data-testid="ship-picture" />
-          <span class="status" data-testid="ship-status">{{ statusLabel(ship) }}</span>
+          <span class="status" [class.status--imprisoned]="isImprisoned(ship)">
+            @if (isImprisoned(ship)) {
+              <mat-icon fontIcon="lock" aria-hidden="true"></mat-icon>
+            }
+            <span data-testid="ship-status">{{ statusLabel(ship) }}</span>
+          </span>
         </div>
         <div class="body">
           <div class="ring" data-testid="ship-catain">
@@ -64,6 +85,9 @@
             </p>
           }
           <div class="actions">
+            @if (refusalFor(ship); as refusal) {
+              <p class="new-shipping-refusal" role="alert" data-testid="new-shipping-refusal">{{ refusal }}</p>
+            }
             @if (ship.incoming) {
               <p class="incoming" data-testid="ship-incoming">{{ ship.name }} must be unloaded or refused first</p>
             }
