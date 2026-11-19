@@ -2,9 +2,9 @@ package com.sonicdevelopment.driving.adapter.web
 
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborInformationPort
-import com.sonicdevelopment.domain.ports.driving.harbor.ImprisonedShipDTO
-import com.sonicdevelopment.domain.ports.driving.shipping.FinePaymentDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ImprisonmentManagementPort
+import com.sonicdevelopment.driving.adapter.web.mapper.toFinePaymentResponse
+import com.sonicdevelopment.driving.adapter.web.mapper.toImprisonedShipResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.FinePaymentResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.ImprisonedShipResponse
 import org.springframework.http.HttpStatus
@@ -38,21 +38,4 @@ class ImprisonedShipController(
         imprisonmentManagementPort.payFine(ShipId(shipId))?.let { toFinePaymentResponse(it) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Unable to find resource")
 
-    private fun toImprisonedShipResponse(imprisonedShip: ImprisonedShipDTO) =
-        ImprisonedShipResponse(
-            shipId = imprisonedShip.id.id,
-            name = imprisonedShip.name,
-            catain = imprisonedShip.catain,
-            homeHarbor = imprisonedShip.homeHarbor.name,
-            fine = imprisonedShip.fine.toDecimalString(),
-            savingsCoverFine = imprisonedShip.savingsCoverFine,
-        )
-
-    private fun toFinePaymentResponse(payment: FinePaymentDTO) =
-        FinePaymentResponse(
-            shipId = payment.shipId.id,
-            name = payment.shipName,
-            fine = payment.fine.toDecimalString(),
-            savings = payment.savings.toDecimalString(),
-        )
 }

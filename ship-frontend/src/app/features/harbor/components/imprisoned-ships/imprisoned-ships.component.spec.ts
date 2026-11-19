@@ -43,26 +43,26 @@ describe('ImprisonedShipsComponent (Free an Imprisoned Ship by paying its Fine)'
     render([anImprisonedShip()]);
 
     expect(store.dispatch).toHaveBeenCalledWith(HarborActions.loadImprisonedShips());
-    expect(texts('imprisoned-ship-name')).toEqual(['Salty Whisker']);
-    expect(texts('imprisoned-ship-fine')).toEqual(['50.00 $']);
+    expect(texts('harbor-imprisoned-ship-name')).toEqual(['Salty Whisker']);
+    expect(texts('harbor-imprisoned-ship-fine')).toEqual(['50.00 $']);
   });
 
   it('The User sees whether the Savings cover the Fine', () => {
     render([anImprisonedShip({ savingsCoverFine: true })]);
-    expect(texts('imprisoned-ship-coverage')).toEqual(['The Savings cover the Fine']);
-    expect((all('imprisoned-ship-pay-fine')[0] as HTMLButtonElement).disabled).toBeFalse();
+    expect(texts('harbor-imprisoned-ship-coverage')).toEqual(['The Savings cover the Fine']);
+    expect((all('harbor-imprisoned-ship-pay-fine')[0] as HTMLButtonElement).disabled).toBeFalse();
     TestBed.resetTestingModule();
 
     render([anImprisonedShip({ savingsCoverFine: false })], { savings: aSavings({ amount: '30.00' }) });
-    expect(texts('imprisoned-ship-coverage')).toEqual(['The Savings do not cover the Fine of 50.00 $']);
-    expect((all('imprisoned-ship-pay-fine')[0] as HTMLButtonElement).disabled).toBeTrue();
+    expect(texts('harbor-imprisoned-ship-coverage')).toEqual(['The Savings do not cover the Fine of 50.00 $']);
+    expect((all('harbor-imprisoned-ship-pay-fine')[0] as HTMLButtonElement).disabled).toBeTrue();
   });
 
   it('Paying the Fine frees the ship', () => {
     const saltyWhisker = anImprisonedShip();
     render([saltyWhisker]);
 
-    (all('imprisoned-ship-pay-fine')[0] as HTMLButtonElement).click();
+    (all('harbor-imprisoned-ship-pay-fine')[0] as HTMLButtonElement).click();
 
     expect(store.dispatch).toHaveBeenCalledWith(HarborActions.payFine({ shipId: saltyWhisker.shipId }));
   });
@@ -74,8 +74,8 @@ describe('ImprisonedShipsComponent (Free an Imprisoned Ship by paying its Fine)'
       fineRefusal: { shipId: saltyWhisker.shipId, message: 'The Savings do not cover the Fine of 50.00 $' },
     });
 
-    expect(texts('imprisoned-ship-fine-refusal')).toEqual(['The Savings do not cover the Fine of 50.00 $']);
-    expect(all('imprisoned-ship-fine-refusal')[0].getAttribute('role')).toBe('alert');
-    expect(texts('imprisoned-ship-name')).toEqual(['Salty Whisker']);
+    expect(texts('harbor-imprisoned-ship-fine-refusal')).toEqual(['The Savings do not cover the Fine of 50.00 $']);
+    expect(all('harbor-imprisoned-ship-fine-refusal')[0].getAttribute('role')).toBe('alert');
+    expect(texts('harbor-imprisoned-ship-name')).toEqual(['Salty Whisker']);
   });
 });

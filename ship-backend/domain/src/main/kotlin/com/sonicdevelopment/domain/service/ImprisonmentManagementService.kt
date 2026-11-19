@@ -55,7 +55,6 @@ class ImprisonmentManagementService(
     private val savingsRepositoryPort: SavingsRepositoryPort,
 ) : ImprisonmentManagementPort {
 
-
     @Transactional
     override fun receiveShipImprisoned(eventId: EventId, shipImprisoned: ShipImprisonedDTO) {
         if (!inboxRepositoryPort.recordConsumedEvent(eventId)) return

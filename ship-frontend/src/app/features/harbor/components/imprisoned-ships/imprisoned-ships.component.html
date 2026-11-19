@@ -5,18 +5,18 @@
     @if (savings(); as savings) {
       <p class="savings">
         <span class="savings__label">Savings</span>
-        <span class="savings__amount" data-testid="imprisoned-savings">{{ savings.amount }} $</span>
+        <span class="savings__amount" data-testid="harbor-imprisoned-savings">{{ savings.amount }} $</span>
       </p>
     }
   </header>
 
   @if (imprisonedShips().length === 0) {
-    <p class="empty" data-testid="imprisoned-ships-empty">No Imprisoned Ships</p>
+    <p class="empty" data-testid="harbor-imprisoned-ships-empty">No Imprisoned Ships</p>
   }
 
   <div class="grid">
     @for (ship of imprisonedShips(); track ship.shipId) {
-      <article class="card" data-testid="imprisoned-ship">
+      <article class="card" data-testid="harbor-imprisoned-ship">
         <div class="head">
           <div class="ring">
             @if (catainImageUrl(ship); as url) {
@@ -35,7 +35,7 @@
             Imprisoned
           </span>
         </div>
-        <h2 class="ship-name" data-testid="imprisoned-ship-name">{{ ship.name }}</h2>
+        <h2 class="ship-name" data-testid="harbor-imprisoned-ship-name">{{ ship.name }}</h2>
         <p class="under">under {{ ship.catain }}</p>
         <p class="home-harbor">
           <mat-icon fontIcon="home" aria-hidden="true"></mat-icon>
@@ -43,20 +43,20 @@
         </p>
         <p class="fine">
           <span class="fine__label">Fine</span>
-          <span class="fine__amount" data-testid="imprisoned-ship-fine">{{ ship.fine }} $</span>
+          <span class="fine__amount" data-testid="harbor-imprisoned-ship-fine">{{ ship.fine }} $</span>
         </p>
         <p class="coverage" [class.coverage--short]="!ship.savingsCoverFine">
           <mat-icon [fontIcon]="ship.savingsCoverFine ? 'check' : 'block'" aria-hidden="true"></mat-icon>
-          <span data-testid="imprisoned-ship-coverage">{{ coverage(ship) }}</span>
+          <span data-testid="harbor-imprisoned-ship-coverage">{{ coverage(ship) }}</span>
         </p>
         @if (refusalFor(ship); as refusal) {
-          <p class="fine-refusal" role="alert" data-testid="imprisoned-ship-fine-refusal">{{ refusal }}</p>
+          <p class="fine-refusal" role="alert" data-testid="harbor-imprisoned-ship-fine-refusal">{{ refusal }}</p>
         }
         <button
           mat-flat-button
           type="button"
           class="pay-fine"
-          data-testid="imprisoned-ship-pay-fine"
+          data-testid="harbor-imprisoned-ship-pay-fine"
           [disabled]="!canPayFine(ship)"
           (click)="payFine(ship)"
         >
