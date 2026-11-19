@@ -458,6 +458,67 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /web/imprisoned-ships:
+    get:
+      summary: List the Imprisoned Ships of this Harbor with their Fine
+      description: >-
+        The ships in this Harbor's fleet that are imprisoned here, at their Home Harbor, and in port, each with
+        its Fine and whether this Harbor's Savings cover it. A ship sailing home imprisoned is not listed while
+        it is at sea, and a Harbor holding another Harbor's ship lists nothing for it. Empty while no ship is
+        imprisoned here.
+      operationId: getImprisonedShips
+      tags: [Harbors]
+      responses:
+        '200':
+          description: The Imprisoned Ships, possibly none
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ImprisonedShip'
+
+  /web/imprisoned-ships/{shipId}/fine-payment:
+    post:
+      summary: Pay the Fine of an Imprisoned Ship and free it
+      description: >-
+        In one transaction the Harbor pays the Fine from its Savings and the ship is no longer imprisoned, so it
+        can get a new Shipping. A refused payment changes nothing. Freeing tells no other browser and publishes
+        nothing. Read the new Imprisoned Ships, fleet and Savings from `/web/imprisoned-ships`, `/web/ships` and
+        `/web/savings`.
+      operationId: payFine
+      tags: [Harbors]
+      parameters:
+        - name: shipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The Fine was paid and the ship is free
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinePayment'
+        '404':
+          description: Ship not found in this Harbor's fleet
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The payment is refused and nothing changes: the ship is not imprisoned here, at its Home Harbor and
+            in port (title "Ship not imprisoned", e.g. `detail` "Sea Biscuit is not imprisoned"), or the Savings
+            do not cover the Fine (title "Savings do not cover", `detail` "The Savings do not cover the Fine of
+            50.00 $").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /web/market/purchases:
     post:
       summary: Buy Cargo at the Market
@@ -736,6 +797,50 @@ components:
           description: >-
             The Delivery Price in dollars: the sum of this Harbor's Prices of every Cargo aboard, as a decimal
             string with two decimals, never a JSON number. `null` while a Cargo aboard has no Price here.
+
+    ImprisonedShip:
+      type: object
+      required: [shipId, name, catain, homeHarbor, fine, savingsCoverFine]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        catain:
+          type: string
+          description: The name of the ship's Catain
+        homeHarbor:
+          type: string
+          description: Harbor Name of the ship's Home Harbor, which is this Harbor
+        fine:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '50.00'
+          description: The Fine in dollars, as a decimal string with two decimals, never a JSON number
+        savingsCoverFine:
+          type: boolean
+          description: Whether this Harbor's Savings hold at least the Fine
+
+    FinePayment:
+      type: object
+      required: [shipId, name, fine, savings]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        fine:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '50.00'
+          description: The Fine paid, in dollars, as a decimal string with two decimals
+        savings:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '950.00'
+          description: The Savings after the payment, in dollars, as a decimal string with two decimals
 
     Savings:
       type: object

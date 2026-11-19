@@ -26,7 +26,7 @@ class Money(amount: BigDecimal) {
     operator fun plus(other: Money): Money = Money(amount.add(other.amount))
 
     /** Orders amounts by value, whatever scale they were given in. */
-    operator fun compareTo(other: Money): Int = TODO("STORY-053")
+    operator fun compareTo(other: Money): Int = amount.compareTo(other.amount)
 
     override fun equals(other: Any?): Boolean = other is Money && other.amount == amount
 

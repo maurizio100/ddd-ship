@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -34,6 +35,12 @@ import org.springframework.stereotype.Service
  * sends a ship home. A second imprisonment of a ship already sent home finds it at sea and changes nothing.
  *
  * The Users at this Harbor are told through [FleetEventsPort] once the transaction commits.
+ *
+ * At its Home Harbor, an Imprisoned Ship in port is freed by paying its [Fine] from the Savings ([payFine]), in one
+ * transaction: the ship is read under its row lock, must be imprisoned here, the Fine is paid by the conditional
+ * debit of the Savings, and only then is the imprisoned flag cleared. Nothing is written before the payment is
+ * accepted. The lock serialises two payments for the same ship: the second finds it free and pays nothing.
+ * Freeing tells no fleet and writes no outbox row.
  */
 @Service
 class ImprisonmentManagementService(
@@ -48,7 +55,6 @@ class ImprisonmentManagementService(
     private val savingsRepositoryPort: SavingsRepositoryPort,
 ) : ImprisonmentManagementPort {
 
-    override fun payFine(shipId: ShipId): FinePaymentDTO? = TODO("STORY-053")
 
     @Transactional
     override fun receiveShipImprisoned(eventId: EventId, shipImprisoned: ShipImprisonedDTO) {
@@ -71,5 +77,16 @@ class ImprisonmentManagementService(
         shippingRepositoryPort.updateActiveShipping(ship)
         shippingOutboxRepository.broadcastShipping(ship, currentHarbor)
         fleetEventsPort.announceShipImprisoned(ship, sailsHome = true)
+    }
+
+    @Transactional
+    override fun payFine(shipId: ShipId): FinePaymentDTO? {
+        val ship = shipRepositoryPort.lockShip(shipId) ?: return null
+        ship.free(currentHarbor)
+        if (!savingsRepositoryPort.pay(Fine.AMOUNT)) {
+            throw SavingsDoNotCoverException(Fine.AMOUNT, "The Savings do not cover the Fine of ${Fine.AMOUNT}")
+        }
+        shipRepositoryPort.free(ship.id)
+        return FinePaymentDTO(ship.id, ship.shipName, Fine.AMOUNT, savingsRepositoryPort.getSavings())
     }
 }

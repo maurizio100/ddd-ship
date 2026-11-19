@@ -2,6 +2,7 @@ package com.sonicdevelopment.domain.model
 
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.RefusedCargoException
+import com.sonicdevelopment.domain.exception.ShipNotImprisonedException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
@@ -180,10 +181,14 @@ class Ship(
     }
 
     /** Whether the ship is an Imprisoned Ship at [currentHarbor], its Home Harbor, and in port: only then has it a Fine to pay. */
-    fun isImprisonedHere(currentHarbor: HarborName): Boolean = TODO("STORY-053")
+    fun isImprisonedHere(currentHarbor: HarborName): Boolean =
+        isImprisoned && homeHarbor == currentHarbor && shippingState() != ShippingState.SHIPPING
 
     /** The paid Fine frees an Imprisoned Ship at [currentHarbor], its Home Harbor; refused for any other ship. */
-    fun free(currentHarbor: HarborName): Unit = TODO("STORY-053")
+    fun free(currentHarbor: HarborName) {
+        if (!isImprisonedHere(currentHarbor)) throw ShipNotImprisonedException("$shipName is not imprisoned")
+        isImprisoned = false
+    }
 
     private fun moveCargoAboardIntoLoadedCargo() {
         cargoLoad.addAll(cargoAboard)

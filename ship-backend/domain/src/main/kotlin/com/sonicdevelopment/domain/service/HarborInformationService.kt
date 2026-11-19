@@ -45,5 +45,20 @@ class HarborInformationService(
         }
     }
 
-    override fun getImprisonedShips(): List<ImprisonedShipDTO> = TODO("STORY-053")
+    /** Whether the Savings cover the Fine is computed when the list is read, from the Savings read once. */
+    override fun getImprisonedShips(): List<ImprisonedShipDTO> {
+        val imprisonedShips = shipRepositoryPort.getAllShips().filter { it.isImprisonedHere(currentHarbor) }
+        if (imprisonedShips.isEmpty()) return emptyList()
+        val savingsCoverFine = savingsRepositoryPort.getSavings() >= Fine.AMOUNT
+        return imprisonedShips.map { ship ->
+            ImprisonedShipDTO(
+                id = ship.id,
+                name = ship.shipName,
+                catain = ship.catainName,
+                homeHarbor = ship.homeHarbor,
+                fine = Fine.AMOUNT,
+                savingsCoverFine = savingsCoverFine,
+            )
+        }
+    }
 }
