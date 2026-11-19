@@ -25,6 +25,9 @@ class Money(amount: BigDecimal) {
     /** This amount and [other] together, exact to the cent. */
     operator fun plus(other: Money): Money = Money(amount.add(other.amount))
 
+    /** Orders amounts by value, whatever scale they were given in. */
+    operator fun compareTo(other: Money): Int = TODO("STORY-053")
+
     override fun equals(other: Any?): Boolean = other is Money && other.amount == amount
 
     override fun hashCode(): Int = amount.hashCode()

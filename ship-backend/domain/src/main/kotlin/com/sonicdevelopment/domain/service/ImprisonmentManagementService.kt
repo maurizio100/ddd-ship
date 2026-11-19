@@ -3,14 +3,17 @@ package com.sonicdevelopment.domain.service
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort.CargoLoadInformation
 import com.sonicdevelopment.domain.ports.driven.FleetEventsPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
+import com.sonicdevelopment.domain.ports.driving.shipping.FinePaymentDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ImprisonmentManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipImprisonedDTO
 import jakarta.transaction.Transactional
@@ -42,7 +45,10 @@ class ImprisonmentManagementService(
     private val quoteRepositoryPort: QuoteRepositoryPort,
     private val shippingOutboxRepository: ShippingOutboxRepository,
     private val fleetEventsPort: FleetEventsPort,
+    private val savingsRepositoryPort: SavingsRepositoryPort,
 ) : ImprisonmentManagementPort {
+
+    override fun payFine(shipId: ShipId): FinePaymentDTO? = TODO("STORY-053")
 
     @Transactional
     override fun receiveShipImprisoned(eventId: EventId, shipImprisoned: ShipImprisonedDTO) {

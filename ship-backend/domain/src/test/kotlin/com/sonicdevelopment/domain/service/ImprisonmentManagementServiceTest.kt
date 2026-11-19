@@ -15,6 +15,7 @@ import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
 import com.sonicdevelopment.domain.ports.driven.FleetEventsPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.QuoteRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.ShippingRepositoryPort
@@ -42,9 +43,10 @@ class ImprisonmentManagementServiceTest {
     private val quotes = mockk<QuoteRepositoryPort>()
     private val outbox = mockk<ShippingOutboxRepository>(relaxed = true)
     private val fleetEvents = mockk<FleetEventsPort>(relaxed = true)
+    private val savings = mockk<SavingsRepositoryPort>()
 
-    private val atPortRoyal = ImprisonmentManagementService(portRoyal, inbox, ships, shippings, cargoPersistence, quotes, outbox, fleetEvents)
-    private val atTortuga = ImprisonmentManagementService(tortuga, inbox, ships, shippings, cargoPersistence, quotes, outbox, fleetEvents)
+    private val atPortRoyal = ImprisonmentManagementService(portRoyal, inbox, ships, shippings, cargoPersistence, quotes, outbox, fleetEvents, savings)
+    private val atTortuga = ImprisonmentManagementService(tortuga, inbox, ships, shippings, cargoPersistence, quotes, outbox, fleetEvents, savings)
 
     private val eventId = EventId(UUID.randomUUID())
     private val saltyWhiskerId = ShipId(UUID.randomUUID())

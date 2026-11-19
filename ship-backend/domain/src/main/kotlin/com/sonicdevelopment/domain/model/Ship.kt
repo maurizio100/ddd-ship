@@ -179,6 +179,12 @@ class Ship(
         isImprisoned = true
     }
 
+    /** Whether the ship is an Imprisoned Ship at [currentHarbor], its Home Harbor, and in port: only then has it a Fine to pay. */
+    fun isImprisonedHere(currentHarbor: HarborName): Boolean = TODO("STORY-053")
+
+    /** The paid Fine frees an Imprisoned Ship at [currentHarbor], its Home Harbor; refused for any other ship. */
+    fun free(currentHarbor: HarborName): Unit = TODO("STORY-053")
+
     private fun moveCargoAboardIntoLoadedCargo() {
         cargoLoad.addAll(cargoAboard)
         cargoAboard = emptyList()

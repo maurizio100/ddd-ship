@@ -119,6 +119,8 @@ class ShipRepositoryAdapter(
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
     }
 
+    override fun free(shipId: ShipId): Unit = TODO("STORY-053")
+
     @Transactional(propagation = Propagation.MANDATORY)
     override fun clearCargoAboard(shipId: ShipId) {
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)

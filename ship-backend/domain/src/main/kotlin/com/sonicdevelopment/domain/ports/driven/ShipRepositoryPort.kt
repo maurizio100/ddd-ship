@@ -73,6 +73,12 @@ interface ShipRepositoryPort {
      */
     fun confiscate(shipId: ShipId)
 
+    /**
+     * The freeing's write: clears the imprisoned flag of an Imprisoned Ship in the fleet; fails for a ship that is
+     * not in the fleet or not imprisoned. Runs in the caller's transaction.
+     */
+    fun free(shipId: ShipId)
+
     /** Deletes the ship's Cargo aboard; runs in the caller's transaction. */
     fun clearCargoAboard(shipId: ShipId)
 }

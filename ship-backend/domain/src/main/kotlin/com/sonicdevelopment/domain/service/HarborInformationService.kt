@@ -7,6 +7,7 @@ import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
+import com.sonicdevelopment.domain.ports.driving.harbor.ImprisonedShipDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborInformationPort
 import com.sonicdevelopment.domain.ports.driving.harbor.KnownHarborsDTO
@@ -43,4 +44,6 @@ class HarborInformationService(
             )
         }
     }
+
+    override fun getImprisonedShips(): List<ImprisonedShipDTO> = TODO("STORY-053")
 }
