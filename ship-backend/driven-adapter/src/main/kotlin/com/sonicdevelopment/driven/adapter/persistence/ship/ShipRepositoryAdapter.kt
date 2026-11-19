@@ -29,7 +29,7 @@ class ShipRepositoryAdapter(
 ): ShipRepositoryPort {
     /**
      * Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row.
-     * The Home Harbor, the Origin Harbor it arrived from, the Incoming flag, the Earnings and the Cargo aboard are written from the ship:
+     * The Home Harbor, the Origin Harbor it arrived from, the Incoming and imprisoned flags, the Earnings and the Cargo aboard are written from the ship:
      * an Arrival overwrites them, and a rename keeps them because the loaded ship carries them. The ship's
      * Cargo aboard rows are replaced, in one transaction with the ship row (joining the caller's, if any).
      */
@@ -50,6 +50,7 @@ class ShipRepositoryAdapter(
             known.homeHarbor = ship.homeHarbor.name
             known.incoming = ship.incoming
             known.earnings = ship.earnings.amount
+            known.imprisoned = ship.imprisoned
             shipPersistenceEntityRepository.save(known)
         }
         cargoAboardRepository.deleteAllByShip_Id(saved.id!!)
@@ -65,6 +66,7 @@ class ShipRepositoryAdapter(
             homeHarbor = ship.homeHarbor.name,
             incoming = ship.incoming,
             earnings = ship.earnings.amount,
+            imprisoned = ship.imprisoned,
         )
 
     /** Only a ship in the fleet is deleted; a ship that left keeps its row and its Shippings as history. */
@@ -102,6 +104,19 @@ class ShipRepositoryAdapter(
         check(shipPersistenceEntityRepository.addEarnings(shipId.id, amount.amount) == 1) {
             "Ship ${shipId.id} is not in the fleet, so it cannot earn $amount"
         }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun lockShip(shipId: ShipId): Ship? =
+        shipPersistenceEntityRepository.findLockedByShipIdAndInFleetTrue(shipId.id)?.let { toShip(it) }
+
+    /** The `UPDATE` must hit the ship's row; only then are its Cargo aboard rows deleted. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun confiscate(shipId: ShipId) {
+        check(shipPersistenceEntityRepository.confiscate(shipId.id) == 1) {
+            "Ship ${shipId.id} is not in the fleet, so its Cargo cannot be confiscated"
+        }
+        cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -143,6 +158,7 @@ class ShipRepositoryAdapter(
                 cargoAboard = cargoAboard,
                 incoming = shipPersistenceEntity.incoming,
                 earnings = Money(shipPersistenceEntity.earnings),
+                imprisoned = shipPersistenceEntity.imprisoned,
             )
         } ?: Ship(
             id = ShipId(shipPersistenceEntity.shipId),
@@ -154,6 +170,7 @@ class ShipRepositoryAdapter(
             cargoAboard = cargoAboard,
             incoming = shipPersistenceEntity.incoming,
             earnings = Money(shipPersistenceEntity.earnings),
+            imprisoned = shipPersistenceEntity.imprisoned,
         )
     }
 

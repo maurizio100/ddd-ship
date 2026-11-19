@@ -227,6 +227,29 @@ class FakeDrivenPortsTest {
     }
 
     @Test
+    fun `confiscate mirrors the adapter - clears Incoming and Cargo aboard, imprisons, only a ship in the fleet`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val rumCargo = SeedData.allCargo().single { it.id == rum }
+        val incoming = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+            cargoAboard = listOf(rumCargo, rumCargo), incoming = true,
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(incoming))
+        fleet.lockShip(incoming.id)!!.isIncoming shouldBe true
+
+        fleet.confiscate(incoming.id)
+
+        val confiscated = fleet.getShipDetails(incoming.id)!!
+        confiscated.isIncoming shouldBe false
+        confiscated.isImprisoned shouldBe true
+        confiscated.cargoAboard shouldBe emptyList()
+        shouldThrow<IllegalStateException> { fleet.confiscate(ShipId(UUID.randomUUID())) }
+        fleet.removeFromFleet(incoming.id)
+        fleet.lockShip(incoming.id) shouldBe null
+        shouldThrow<IllegalStateException> { fleet.confiscate(incoming.id) }
+    }
+
+    @Test
     fun `rememberPrice keeps the first Price and reports false after`() {
         val prices = InMemoryPrices(InMemoryCargoCatalog())
 

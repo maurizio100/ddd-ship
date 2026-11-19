@@ -1,7 +1,7 @@
 import {inject, Injectable, InjectionToken} from '@angular/core';
 import {Observable} from 'rxjs';
 import {environment} from '../../../../environments/environment';
-import {FleetEvent, ShipArrived, ShipLeft} from '../models/fleet-event';
+import {FleetEvent, ShipArrived, ShipImprisoned, ShipLeft} from '../models/fleet-event';
 
 /** Builds the EventSource for a URL; specs provide a fake. */
 export const EVENT_SOURCE_FACTORY = new InjectionToken<(url: string) => EventSource>('EVENT_SOURCE_FACTORY', {
@@ -36,6 +36,8 @@ export class FleetEventsService {
         subscriber.next({type: 'ship-arrived', ship: JSON.parse((event as MessageEvent).data) as ShipArrived}));
       source.addEventListener('ship-left', (event) =>
         subscriber.next({type: 'ship-left', ship: JSON.parse((event as MessageEvent).data) as ShipLeft}));
+      source.addEventListener('ship-imprisoned', (event) =>
+        subscriber.next({type: 'ship-imprisoned', ship: JSON.parse((event as MessageEvent).data) as ShipImprisoned}));
       return () => source.close();
     });
   }

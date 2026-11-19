@@ -16,7 +16,7 @@ class FleetEventEmittersTest {
 
     private val emitters = FleetEventEmitters(heartbeatIntervalMillis = 60_000)
 
-    private val blackPearl = ShipArrivedFleetEvent(UUID.randomUUID(), "Black Pearl", "Tortuga")
+    private val blackPearl = ShipArrivedFleetEvent(UUID.randomUUID(), "Black Pearl", "Tortuga", imprisoned = false)
 
     @AfterEach
     fun shutDown() {

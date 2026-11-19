@@ -22,6 +22,8 @@ import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ImprisonmentManagementPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ShipImprisonedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
@@ -243,6 +245,9 @@ class FailedChangeLeavesNoTraceTest {
 
     @Autowired
     lateinit var countingShipRepository: CountingShipRepository
+
+    @Autowired
+    lateinit var imprisonmentManagementPort: ImprisonmentManagementPort
 
     @BeforeEach
     fun everythingWorksAgain() {
@@ -542,6 +547,33 @@ class FailedChangeLeavesNoTraceTest {
 
         shippingRowOf(arrival.shipId.id) shouldBe before
         count("ships_cargos_aboard") shouldBe 2
+        count("shipping_outbox") shouldBe outboxBefore
+    }
+
+    @Test
+    fun `A confiscation whose outbox write fails leaves the ship Incoming with its Cargo aboard, no Shipping, no inbox row and no outbox row`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
+        val shippingsBefore = count("shippings")
+        val outboxBefore = count("shipping_outbox")
+        val eventId = UUID.randomUUID()
+        failingOutbox.armed = true
+
+        shouldThrow<IllegalStateException> {
+            imprisonmentManagementPort.receiveShipImprisoned(
+                EventId(eventId),
+                ShipImprisonedDTO(saltyWhisker, "Salty Whisker", HarborName("Port Royal"), HarborName("Tortuga")),
+            )
+        }
+
+        shipIncoming(saltyWhisker) shouldBe true
+        jdbcTemplate.queryForObject(
+            "SELECT ship_imprisoned FROM ships WHERE ship_id = ?", Boolean::class.java, saltyWhisker.id
+        ) shouldBe false
+        count("ships_cargos_aboard") shouldBe 3
+        count("shippings") shouldBe shippingsBefore
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM inbox_events WHERE event_id = ?", Int::class.java, eventId
+        ) shouldBe 0
         count("shipping_outbox") shouldBe outboxBefore
     }
 

@@ -166,6 +166,33 @@ class ArrivalManagementServiceTest {
     }
 
     @Test
+    fun `a ship sent home imprisoned is saved imprisoned on its Arrival at its Home Harbor`() {
+        val saved = slot<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+
+        service.receiveShippingPublished(eventId, blackPearl.copy(cargoIds = emptyList(), homeHarbor = portRoyal, imprisoned = true))
+
+        saved.captured.imprisoned shouldBe true
+        saved.captured.incoming shouldBe false
+    }
+
+    @Test
+    fun `a ship flagged imprisoned arriving away from its Home Harbor, or without one, is not imprisoned`() {
+        val saved = mutableListOf<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+        val withoutHomeHarbor = EventId(UUID.randomUUID())
+        every { inbox.recordConsumedEvent(withoutHomeHarbor) } returns true
+
+        service.receiveShippingPublished(eventId, blackPearl.copy(homeHarbor = HarborName("Isla de Muerta"), imprisoned = true))
+        service.receiveShippingPublished(
+            withoutHomeHarbor,
+            blackPearl.copy(shipId = ShipId(UUID.randomUUID()), shippingId = ShippingId(UUID.randomUUID()), imprisoned = true),
+        )
+
+        saved.map { it.imprisoned } shouldBe listOf(false, false)
+    }
+
+    @Test
     fun `an arriving ship keeps the Earnings it carries`() {
         val saved = slot<InitialShipInformation>()
         every { ships.saveNewShip(capture(saved)) } returns Unit

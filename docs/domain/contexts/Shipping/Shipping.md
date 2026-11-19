@@ -34,12 +34,13 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 | Shipping (another Harbor) | Harbor Opened | Event |
 | Shipping (another Harbor) | Shipping Published, addressed to this Harbor | Event |
 | Shipping (another Harbor) | Ship Arrived, for a ship this Harbor Released | Event |
+| CoastGuard | Ship Imprisoned (topic `hexagonship-coast-guard`), naming the ship, the Harbor holding it and its Home Harbor | Event |
 
 ## Outbound communication
 | To | Message | Kind |
 |----|---------|------|
 | Shipping (other Harbors) | Harbor Opened | Event |
-| Shipping (other Harbors) | Shipping Published | Event |
+| Shipping (other Harbors) | Shipping Published, carrying `shipEventData.imprisoned`, true on the voyage home after a Confiscation | Event |
 | Shipping (the Origin Harbor) | Ship Arrived | Event |
 | HarborTerminal | Shipping Published | Event |
 | Fleet | Take the arrived ship into the fleet | Command |
@@ -58,6 +59,9 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - A ship has Cargo aboard only while it is not at sea; the Current Weight counts the Cargo aboard and the Loaded Cargo. An Incoming Ship always has Cargo aboard, a ship that arrives with no Cargo is not Incoming, and a ship at sea never has Cargo aboard.
 - An Incoming Ship is unloaded or refused at most once: of an unloading and a refusal of the same ship, at most one takes effect.
 - Cargo a Home Harbor refused stays aboard and cannot be unloaded into the Stock while preparing; it becomes Loaded Cargo on the next Release.
+- An imprisonment is carried out only by the Harbor named as holding the ship, and only while the ship is in its fleet and not at sea; otherwise the ship escapes. The Confiscation takes all its Cargo aboard and Loaded Cargo into no Stock and pays nothing. Away from its Home Harbor the ship is Released there with no Cargo, flagged imprisoned, without a User; at its Home Harbor it becomes an Imprisoned Ship. One imprisonment takes effect at most once.
+- An Imprisoned Ship can neither get a new Shipping nor have a Shipping Released ("… is imprisoned"). A flagged Arrival makes the ship an Imprisoned Ship only at its Home Harbor.
+- At its Home Harbor, a confiscated ship that was being prepared keeps its `PREPARING` Shipping with no Loaded Cargo; it cannot Release it while imprisoned.
 
 ## Assumptions and open questions
 - ⚠ needs review: the Sailors Code is `mod 14` (0–13) while 15 Shipping Quotes are seeded (0–14); the last quote is unreachable.
