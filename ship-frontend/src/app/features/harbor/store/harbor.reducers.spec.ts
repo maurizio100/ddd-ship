@@ -1,6 +1,6 @@
 import { harborReducers, initialState } from './harbor.reducers';
 import * as HarborActions from './harbor.actions';
-import { aSavings, aStockedCargo, anIncomingShipListing } from '../../../../testing/fixtures';
+import { aFinePayment, aSavings, aStockedCargo, anImprisonedShip, anIncomingShipListing } from '../../../../testing/fixtures';
 
 describe('harborReducers', () => {
   it('starts without Savings', () => {
@@ -217,5 +217,58 @@ describe('harborReducers', () => {
     );
 
     expect(state.refuseFailure).toBeNull();
+  });
+
+  describe('the Fine', () => {
+    const shipId = '5f1d7c2e-0000-4000-8000-000000000002';
+
+    it('starts with no Imprisoned Ships, no notice, no refusal and no payment in flight', () => {
+      expect(initialState.imprisonedShips).toEqual([]);
+      expect(initialState.fineNotice).toBeNull();
+      expect(initialState.fineRefusal).toBeNull();
+      expect(initialState.payingFineShipIds).toEqual([]);
+    });
+
+    it('loadImprisonedShipsSuccess stores the Imprisoned Ships', () => {
+      const state = harborReducers(initialState, HarborActions.loadImprisonedShipsSuccess({ imprisonedShips: [anImprisonedShip()] }));
+
+      expect(state.imprisonedShips).toEqual([anImprisonedShip()]);
+    });
+
+    it('payFine marks the payment in flight and clears an earlier refusal', () => {
+      const state = harborReducers(
+        { ...initialState, fineRefusal: { shipId, message: 'nope' } },
+        HarborActions.payFine({ shipId }),
+      );
+
+      expect(state.payingFineShipIds).toEqual([shipId]);
+      expect(state.fineRefusal).toBeNull();
+    });
+
+    it('payFineSuccess sets the notice and ends the payment', () => {
+      const state = harborReducers(
+        { ...initialState, payingFineShipIds: [shipId, 'other'] },
+        HarborActions.payFineSuccess({ payment: aFinePayment() }),
+      );
+
+      expect(state.fineNotice).toEqual(aFinePayment());
+      expect(state.payingFineShipIds).toEqual(['other']);
+    });
+
+    it('payFineFailure sets the refusal for the ship and ends the payment', () => {
+      const state = harborReducers(
+        { ...initialState, payingFineShipIds: [shipId] },
+        HarborActions.payFineFailure({ shipId, error: 'boom', refusal: 'The Savings do not cover the Fine of 50.00 $' }),
+      );
+
+      expect(state.fineRefusal).toEqual({ shipId, message: 'The Savings do not cover the Fine of 50.00 $' });
+      expect(state.payingFineShipIds).toEqual([]);
+    });
+
+    it('dismissFineNotice clears the notice', () => {
+      const state = harborReducers({ ...initialState, fineNotice: aFinePayment() }, HarborActions.dismissFineNotice());
+
+      expect(state.fineNotice).toBeNull();
+    });
   });
 });
