@@ -41,10 +41,12 @@ class ShippingManagementService(
      * Releases the ship to [destinationHarbor], which must be one of the Known Harbors; otherwise
      * nothing is written. The Shipping and its Shipping Published (with this Harbor as Origin Harbor)
      * are written in one transaction. Cargo that was aboard (refused by the Home Harbor) sails as Loaded Cargo.
+     * The ship is read under its row lock ([ShipRepositoryPort.lockShip]), so a concurrent confiscation and this
+     * Release are serialised: the later one finds the ship already at sea or imprisoned.
      */
     @Transactional
     override fun releaseShipping(shipId: ShipId, destinationHarbor: HarborName): ShippingDetailsDTO? {
-        val foundShip = shipRepositoryPort.getShipDetails(shipId) ?: return null
+        val foundShip = shipRepositoryPort.lockShip(shipId) ?: return null
         if (destinationHarbor !in knownHarborRepositoryPort.getKnownHarbors()) {
             throw UnknownHarborException("${destinationHarbor.name} is not a Known Harbor")
         }
