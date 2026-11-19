@@ -74,9 +74,9 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
   navigation pills (Fleet; Harbor once the harbor management page exists).
 - **Page header** — italic `muted` kicker line above an IM Fell English heading.
 - **Fleet** — a responsive grid of ship cards: ship picture, status chip (In port / Preparing / At
-  sea), the Catain portrait in a brass ring overlapping the picture, Ship Name, "under `<Catain>`",
-  "Home Harbor `<Harbor>`", "Arrived from `<Harbor>`" when set, and the card's actions. Arrival notices are an `ink` bar with a
-  dismiss button above the grid.
+  sea / Imprisoned, the last an `ink` chip with a brass lock icon), the Catain portrait in a brass ring overlapping the picture, Ship Name, "under `<Catain>`",
+  "Home Harbor `<Harbor>`", "Arrived from `<Harbor>`" when set, and the card's actions. Arrival notices (", imprisoned" appended for an imprisoned Arrival) and imprisonment notices (lock icon) are `ink` bars with a
+  dismiss button above the grid; a refused new Shipping is an `oxblood` alert in the ship card's actions.
 - **Create ship** — Ship Name field, then the Catain grid as radio cards with large portraits; the
   selected Catain is lifted, framed in `oxblood` and badged. It stays a real radio group.
 - **Load Cargo** — Available Cargo as crate cards (picture, Stock badge, Weight) dragged onto the

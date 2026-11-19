@@ -166,7 +166,7 @@ describe('HarborEffects', () => {
   });
 
   it('watchArrivals$ reloads the Incoming Ships and the Savings when a ship arrives and when the stream (re)connects, until stopped', () => {
-    const arrived = ShipActions.shipArrived({ shipId: 'id', shipName: 'Salty Whisker', originHarbor: 'Tortuga' });
+    const arrived = ShipActions.shipArrived({ shipId: 'id', shipName: 'Salty Whisker', originHarbor: 'Tortuga', imprisoned: false });
     const emitted: Action[] = [];
     effects.watchArrivals$.subscribe((action) => emitted.push(action));
     actions$.next(HarborActions.watchArrivals());

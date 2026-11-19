@@ -11,6 +11,8 @@ export interface Ship {
   incoming: boolean;
   /** The Earnings the ship carries until it reaches its Home Harbor, a decimal string with two decimals, '0.00' for none. */
   earnings: string;
+  /** True for an Imprisoned Ship, or a ship at sea coming home imprisoned. */
+  imprisoned: boolean;
 }
 
 export enum ShippingState {

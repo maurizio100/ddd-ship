@@ -62,6 +62,31 @@ class ShippingManagementServiceTest {
     }
 
     @Test
+    fun `releasing reads the ship under its row lock before it publishes, so a concurrent confiscation cannot race it`() {
+        val ship = givenShip(aShip())
+        givenKnownHarbors("Port Royal")
+
+        service.releaseShipping(ship.id, HarborName("Port Royal"))
+
+        verifyOrder {
+            shipRepositoryPort.lockShip(ship.id)
+            shippingRepositoryPort.updateActiveShipping(ship)
+            shippingOutboxRepository.broadcastShipping(ship, HarborName("Tortuga"))
+        }
+        verify(exactly = 0) { shipRepositoryPort.getShipDetails(any()) }
+    }
+
+    @Test
+    fun `releasing a ship that is not in the fleet returns null and writes nothing`() {
+        every { shipRepositoryPort.lockShip(any()) } returns null
+
+        service.releaseShipping(aShip().id, HarborName("Port Royal")) shouldBe null
+
+        verify(exactly = 0) { shippingRepositoryPort.updateActiveShipping(any()) }
+        verify(exactly = 0) { shippingOutboxRepository.broadcastShipping(any(), any()) }
+    }
+
+    @Test
     fun `releasing a ship with Cargo aboard writes it as Loaded Cargo and clears the Cargo aboard before publishing`() {
         val rum = aCargo(name = "Rum", weight = 5.5F)
         val ship = givenShip(aShipRefusedAtHome(rum, rum))
@@ -147,7 +172,7 @@ class ShippingManagementServiceTest {
         }
 
     private fun givenShip(ship: Ship): Ship {
-        every { shipRepositoryPort.getShipDetails(ship.id) } returns ship
+        every { shipRepositoryPort.lockShip(ship.id) } returns ship
         return ship
     }
 

@@ -48,6 +48,8 @@ import org.springframework.stereotype.Service
  * none. At its Home Harbor the ship's Earnings go into the Savings and the ship carries none; the credit sits
  * behind the inbox and Arrival guards, so a redelivered or re-published Arrival credits nothing twice, and it
  * rolls back with the rest of the Arrival. At any other Harbor the ship keeps the Earnings it carries.
+ * A ship flagged imprisoned (sent home after a Confiscation) joins as an Imprisoned Ship at its Home Harbor only;
+ * elsewhere the flag is dropped. The flag is written with the ship, behind the same guards: no write of its own.
  *
  * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
  * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
@@ -104,6 +106,7 @@ class ArrivalManagementService(
             cargoAboard = cargo,
             incoming = cargo.isNotEmpty(),
             earnings = shippingPublished.earnings,
+            imprisoned = shippingPublished.imprisoned && (shippingPublished.homeHarbor ?: originHarbor) == currentHarbor,
         )
         val homecoming = ship.bringEarningsHome(currentHarbor)
         if (homecoming != Money.dollars(0)) savingsRepositoryPort.receive(homecoming)

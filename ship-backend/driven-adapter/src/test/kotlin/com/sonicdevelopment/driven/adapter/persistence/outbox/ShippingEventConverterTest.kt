@@ -77,7 +77,22 @@ class ShippingEventConverterTest {
             .path("shipEventData").path("earnings").asText() shouldBe "120.50"
     }
 
-    private fun aShipWith(shipping: Shipping, earnings: Money = Money.dollars(0)) = Ship(
+    @Test
+    fun `shipping-published carries whether the ship sails home imprisoned`() {
+        val shipping = Shipping(
+            ShippingId(UUID.randomUUID()), ShippingQuote("Fair winds"), ShippingState.SHIPPING, HarborName("Isla de Muerta")
+        )
+
+        val imprisoned = ShippingEventConverter.toShippingEvent(aShipWith(shipping, imprisoned = true), HarborName("Tortuga"))
+        val free = ShippingEventConverter.toShippingEvent(aShipWith(shipping), HarborName("Tortuga"))
+
+        imprisoned.shipEventData.imprisoned shouldBe true
+        ObjectMapper().readTree(ObjectMapper().writeValueAsString(imprisoned))
+            .path("shipEventData").path("imprisoned").asBoolean() shouldBe true
+        free.shipEventData.imprisoned shouldBe false
+    }
+
+    private fun aShipWith(shipping: Shipping, earnings: Money = Money.dollars(0), imprisoned: Boolean = false) = Ship(
         id = com.sonicdevelopment.domain.model.values.ShipId(UUID.randomUUID()),
         name = "Black Pearl",
         catainId = CatainId(UUID.randomUUID()),
@@ -86,5 +101,6 @@ class ShippingEventConverterTest {
         activeShipping = shipping,
         cargoLoad = mutableListOf(),
         earnings = earnings,
+        imprisoned = imprisoned,
     )
 }

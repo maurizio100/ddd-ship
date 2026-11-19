@@ -27,7 +27,7 @@ class SseFleetEventsAdapterTest {
         catainName = "Whiskers",
         homeHarbor = HarborName("Port Royal"),
     )
-    private val arrived = ShipArrivedFleetEvent(blackPearl.id.id, "Black Pearl", "Tortuga")
+    private val arrived = ShipArrivedFleetEvent(blackPearl.id.id, "Black Pearl", "Tortuga", imprisoned = false)
 
     @AfterEach
     fun clearSynchronization() {
@@ -53,6 +53,35 @@ class SseFleetEventsAdapterTest {
         }
         verify(exactly = 1) {
             emitters.broadcast("ship-left", ShipLeftFleetEvent(blackPearl.id.id, "Black Pearl", null))
+        }
+    }
+
+    @Test
+    fun `an imprisoned ship arriving is pushed with imprisoned`() {
+        val imprisoned = Ship(
+            id = blackPearl.id, name = "Black Pearl", catainId = blackPearl.catainId, catainName = "Whiskers",
+            homeHarbor = HarborName("Port Royal"), imprisoned = true,
+        )
+
+        adapter.announceShipArrived(imprisoned, HarborName("Tortuga"))
+
+        verify(exactly = 1) {
+            emitters.broadcast("ship-arrived", ShipArrivedFleetEvent(blackPearl.id.id, "Black Pearl", "Tortuga", imprisoned = true))
+        }
+    }
+
+    @Test
+    fun `an imprisonment is pushed with the Home Harbor once the transaction commits`() {
+        TransactionSynchronizationManager.initSynchronization()
+
+        adapter.announceShipImprisoned(blackPearl, sailsHome = true)
+
+        verify(exactly = 0) { emitters.broadcast(any(), any()) }
+
+        commit()
+
+        verify(exactly = 1) {
+            emitters.broadcast("ship-imprisoned", ShipImprisonedFleetEvent(blackPearl.id.id, "Black Pearl", "Port Royal", sailsHome = true))
         }
     }
 

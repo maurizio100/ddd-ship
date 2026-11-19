@@ -98,6 +98,12 @@
   refusal, so 0 rows means a concurrent unloading or refusal won: the caller throws and its other writes
   roll back. A Home Harbor refusing its own ship uses `endIncoming`, the same `UPDATE` without deleting
   the Cargo aboard rows. Never clear the flag with `saveNewShip` (read-modify-write).
+- `ships.ship_imprisoned` (BOOLEAN NOT NULL, default false, `V19__ships_imprisoned.sql`) is written by `saveNewShip` from the ship and set
+  only by `confiscate`, one conditional `UPDATE` that also clears the Incoming flag. A confiscation and a Release first read the ship under its row lock
+  (`lockShip`, `SELECT … FOR UPDATE`), so they run one after the other: a concurrent unloading, refusal or Release finds the ship no longer Incoming,
+  at sea or imprisoned and rolls back.
+- A ship sent home from the holding Harbor keeps `ship_imprisoned = true` in that Harbor's row, so `/web/ships` reports `imprisoned` true for it while it
+  is at sea; the fleet page shows such a ship "At sea", and Ship Arrived removes it from the fleet.
 
 ## Arrivals
 
