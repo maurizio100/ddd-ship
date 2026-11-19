@@ -60,9 +60,11 @@ class Ship(
         }
 
     /**
-     * Starts a new Shipping; Cargo aboard that the Home Harbor refused stays aboard beside it. Refused for an Incoming Ship and for a ship whose Active Shipping is not `DONE`.
+     * Starts a new Shipping; Cargo aboard that the Home Harbor refused stays aboard beside it. Refused for an
+     * Imprisoned Ship, an Incoming Ship and a ship whose Active Shipping is not `DONE`.
      */
     fun createNewShipping() {
+        if (isImprisoned) throw NewShippingRefusedException("$shipName is imprisoned")
         if (isIncoming) throw NewShippingRefusedException("$shipName must be unloaded or refused first")
 
         if (activeShipping == null) {
@@ -78,7 +80,9 @@ class Ship(
         throw NewShippingRefusedException("$shipName already has an Active Shipping")
     }
 
+    /** Releases the `PREPARING` Active Shipping to [destinationHarbor]; refused for an Imprisoned Ship. */
     fun release(shippingQuote: ShippingQuote, destinationHarbor: HarborName) {
+        if (isImprisoned) throw ShippingNotPreparingException("$shipName is imprisoned")
         val preparing = activeShipping?.takeIf { it.shippingState == ShippingState.PREPARING }
             ?: throw ShippingNotPreparingException("$shipName is not being prepared")
         moveCargoAboardIntoLoadedCargo()
@@ -148,9 +152,31 @@ class Ship(
         isIncoming = false
     }
 
-    fun confiscate(currentHarbor: HarborName): Boolean = false
+    /**
+     * The Coast Guard's imprisonment is carried out at [currentHarbor], which holds the ship. A ship at sea
+     * escapes: `false` is returned and nothing changes. Otherwise all its Cargo is confiscated: the Cargo aboard,
+     * the Loaded Cargo and the Incoming flag are cleared, and `true` is returned. At its Home Harbor the ship
+     * becomes an Imprisoned Ship in place. Anywhere else it keeps a `PREPARING` Active Shipping or starts a new
+     * one, ready for [sailHomeImprisoned].
+     */
+    fun confiscate(currentHarbor: HarborName): Boolean {
+        if (shippingState() == ShippingState.SHIPPING) return false
+        cargoAboard = emptyList()
+        cargoLoad.clear()
+        currentWeight = 0.0F
+        isIncoming = false
+        if (homeHarbor == currentHarbor) {
+            isImprisoned = true
+        } else if (shippingState() != ShippingState.PREPARING) {
+            activeShipping = Shipping(ShippingId(UUID.randomUUID()))
+        }
+        return true
+    }
 
+    /** A confiscated ship is Released to its Home Harbor, without a User, and sails there as an Imprisoned Ship. */
     fun sailHomeImprisoned(shippingQuote: ShippingQuote) {
+        release(shippingQuote, homeHarbor)
+        isImprisoned = true
     }
 
     private fun moveCargoAboardIntoLoadedCargo() {

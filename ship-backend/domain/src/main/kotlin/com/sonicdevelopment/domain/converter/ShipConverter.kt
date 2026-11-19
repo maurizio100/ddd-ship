@@ -17,6 +17,7 @@ object ShipConverter {
             homeHarbor = ship.homeHarbor.name,
             incoming = ship.isIncoming,
             earnings = ship.earnings,
+            imprisoned = ship.isImprisoned,
         )
 
     fun toShipDetailDTO(ship: Ship) =

@@ -21,10 +21,11 @@ class SseFleetEventsAdapter(
 ) : FleetEventsPort {
 
     override fun announceShipArrived(ship: Ship, originHarbor: HarborName) {
-        afterCommit(SHIP_ARRIVED, ShipArrivedFleetEvent(ship.id.id, ship.shipName, originHarbor.name, imprisoned = false))
+        afterCommit(SHIP_ARRIVED, ShipArrivedFleetEvent(ship.id.id, ship.shipName, originHarbor.name, ship.isImprisoned))
     }
 
     override fun announceShipImprisoned(ship: Ship, sailsHome: Boolean) {
+        afterCommit(SHIP_IMPRISONED, ShipImprisonedFleetEvent(ship.id.id, ship.shipName, ship.homeHarbor.name, sailsHome))
     }
 
     override fun announceShipLeft(ship: Ship, destinationHarbor: HarborName?) {
@@ -52,6 +53,7 @@ class SseFleetEventsAdapter(
     companion object {
         const val SHIP_ARRIVED = "ship-arrived"
         const val SHIP_LEFT = "ship-left"
+        const val SHIP_IMPRISONED = "ship-imprisoned"
         private val log = LoggerFactory.getLogger(SseFleetEventsAdapter::class.java)
     }
 }

@@ -33,6 +33,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         val cargoAboard: List<Cargo>,
         val incoming: Boolean,
         val earnings: Money,
+        val imprisoned: Boolean,
     )
 
     private data class ShippingRecord(
@@ -60,6 +61,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[ship.shipId] = ShipRecord(
             ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom, ship.homeHarbor,
             ship.cargoAboard.map { Cargo(it.id, it.name, it.weight) }, ship.incoming, ship.earnings,
+            ship.imprisoned,
         )
     }
 
@@ -105,9 +107,15 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[shipId] = record.copy(earnings = record.earnings + amount)
     }
 
-    override fun lockShip(shipId: ShipId): Ship? = TODO()
+    /** The calls are synchronized, so there is no concurrent writer to lock out. */
+    override fun lockShip(shipId: ShipId): Ship? = getShipDetails(shipId)
 
-    override fun confiscate(shipId: ShipId): Unit = TODO()
+    /** Like the adapter's `UPDATE`: only a ship in the fleet, anything else fails. */
+    @Synchronized
+    override fun confiscate(shipId: ShipId) {
+        val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
+        ships[shipId] = record.copy(incoming = false, imprisoned = true, cargoAboard = emptyList())
+    }
 
     @Synchronized
     override fun clearCargoAboard(shipId: ShipId) {
@@ -181,6 +189,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
             cargoAboard = record.cargoAboard.map { Cargo(it.id, it.name, it.weight) },
             incoming = record.incoming,
             earnings = record.earnings,
+            imprisoned = record.imprisoned,
         )
     }
 }
