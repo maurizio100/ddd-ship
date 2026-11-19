@@ -13,7 +13,7 @@ flowchart LR
     User -->|"manage ships, load cargo, release"| HS
     HS -->|"shipping-published"| Kafka
     Kafka -->|"shipping-published"| Term
-    CG["Coast Guard<br/>(ship-coast-guard, planned)"]
+    CG["Coast Guard<br/>(ship-coast-guard)"]
     Kafka -->|"shipping-published"| CG
     CG -->|"ship-imprisoned"| Kafka
     Kafka -->|"ship-imprisoned"| HS
@@ -23,7 +23,7 @@ flowchart LR
 |---|---|---|
 | User | Ship data, Catain choice, Cargo to load, Release command | Ship lists, ship details, Shipping Summary, Catain Images |
 | Harbor Terminal | — | `shipping-published` events (via Kafka) |
-| Coast Guard (decided, not built) | `ship-imprisoned` events (via Kafka) | `shipping-published` events (via Kafka) |
+| Coast Guard (built) | `ship-imprisoned` events (via Kafka) | `shipping-published` events (via Kafka) |
 
 The Harbor Terminal lives in this repo but is a separate deployable and consumer; it is treated as a
 neighbour that depends only on the published event. The Coast Guard ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)) is a neighbour of
@@ -70,7 +70,7 @@ additional flag that it comes home imprisoned, so the Home Harbor imprisons it o
 | Backend → MinIO | S3 API | Catain Images, bucket `catains`. |
 | PostgreSQL → Kafka | Debezium (Kafka Connect) CDC on `shipping_outbox` | Outbox EventRouter → topic `hexagonship-shipping`: `shipping-published` and, since STORY-006, `ship-arrived` (both `aggregate_type` `shipping`, keyed by the Shipping id). |
 | Kafka → Harbor Terminal | Kafka consumer, group `ship-terminal` | JSON payload. |
-| Kafka → Coast Guard → Kafka | Kafka Streams, `application.id` per Coast Guard | Decided, not built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): reads `hexagonship-shipping`, writes `ship-imprisoned` to `hexagonship-coast-guard` directly, not through an outbox. Every Harbor consumes that topic through its inbox. |
+| Kafka → Coast Guard → Kafka | Kafka Streams, `application.id` per Coast Guard | Built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): reads `hexagonship-shipping`, writes `ship-imprisoned` to `hexagonship-coast-guard` directly, not through an outbox. Every Harbor consuming that topic through its inbox is decided, not built. |
 | Kafka → backend | Kafka consumer, one group per Harbor | `hexagonship-shipping` (built, STORY-006) and `hexagonship-harbor`; idempotent inbox per [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md). |
 | PostgreSQL → Kafka, `hexagonship-harbor` | Debezium outbox router, `aggregate_type` `harbor` | Log-compacted topic keyed by a UUIDv5 of the Harbor Name ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). |
 

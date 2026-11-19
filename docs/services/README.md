@@ -13,6 +13,6 @@ in step.
 ## Components
 
 - [ship-backend](ship-backend/README.md) — REST API, domain logic, persistence and outbox for Fleet, CargoLoading and Shipping
-- [ship-coast-guard](ship-coast-guard/README.md) — Kafka Streams app that imprisons ships carrying Contraband too often (CoastGuard; planned, ADR-0011)
+- [ship-coast-guard](ship-coast-guard/README.md) — Kafka Streams app that imprisons ships carrying Contraband too often (CoastGuard; built, ADR-0011)
 - [ship-frontend](ship-frontend/README.md) — Angular/NgRx UI for managing ships, loading Cargo and Releasing
 - [ship-terminal](ship-terminal/README.md) — Kafka consumer that announces departed ships (HarborTerminal)

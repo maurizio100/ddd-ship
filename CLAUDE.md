@@ -8,6 +8,7 @@ Pet project for trying out Hexagonal Architecture, Domain-Driven Design and the 
   `driving-adapter`, `driven-adapter`, `application`); Spring Data JPA
 - **ship-frontend** — Angular 20 with NgRx, served by nginx; Karma + Jasmine for tests
 - **ship-terminal** — standalone Kotlin Kafka consumer (Maven)
+- **ship-coast-guard** — standalone Kotlin Kafka Streams app (Maven)
 - **Data** — PostgreSQL 13 (schema owned by Flyway), MinIO for Catain Images
 - **Messaging** — Transactional outbox → Kafka Connect / Debezium 3.0 → Kafka
 - **Runtime** — Docker Compose locally, Kubernetes manifests in `k8s/`; images built by GitHub Actions
@@ -20,6 +21,7 @@ cd ship-backend  && ./mvnw -q verify                    # whole backend once bef
 cd ship-backend  && ./mvnw verify -Pdb  # + Docker tests; locally only for persistence/migration/transaction changes, CI runs it always
 cd ship-frontend && npm test -- --watch=false --browsers=ChromeHeadless   # frontend tests (Karma/Jasmine); plain npm test watches forever
 cd ship-frontend && npm start          # frontend dev server
+cd ship-coast-guard && mvn -q verify   # Coast Guard tests (TopologyTestDriver, no broker)
 cd ship-terminal && mvn package        # terminal build
 docker compose -f docker-compose.yml up -d                # app only (frontend, backend, Postgres, MinIO)
 docker compose -f docker-compose-kafka.yml up -d          # Kafka + Kafka Connect
@@ -73,7 +75,7 @@ Each component's docs live in its own folder, fronted by a `README.md` that stat
 purpose and indexes the folder's documents. Before working on a story, read the `README.md` of the
 component(s) it touches and open only the documents its index points you at:
 - `docs/services/ship-backend/README.md` — REST API, domain logic, persistence and outbox for Fleet, CargoLoading and Shipping
-- `docs/services/ship-coast-guard/README.md` — Kafka Streams app that imprisons ships carrying Contraband too often (CoastGuard; planned, ADR-0011)
+- `docs/services/ship-coast-guard/README.md` — Kafka Streams app that imprisons ships carrying Contraband too often (CoastGuard; built, ADR-0011)
 - `docs/services/ship-frontend/README.md` — Angular/NgRx UI for managing ships, loading Cargo and Releasing
 - `docs/services/ship-terminal/README.md` — Kafka consumer that announces departed ships (HarborTerminal)
 
