@@ -3,6 +3,7 @@ import {provideRouter, Router} from '@angular/router';
 import {AppComponent} from './app.component';
 import {provideMaterialSymbols} from './app.config';
 import {HarborNameService} from './core/harbor-name.service';
+import {MockStore, provideMockStore} from '@ngrx/store/testing';
 import {Observable, of, throwError} from 'rxjs';
 
 describe('AppComponent', () => {
@@ -105,5 +106,43 @@ describe('AppComponent Harbor Name variants', () => {
     expect(byTestId('wordmark')).not.toBeNull();
     expect(byTestId('nav-fleet')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('router-outlet')).not.toBeNull();
+  });
+});
+
+describe('AppComponent (the Imprisoned Ships pill)', () => {
+  let fixture: ComponentFixture<AppComponent>;
+  const byTestId = (id: string): HTMLElement | null =>
+    fixture.nativeElement.querySelector(`[data-testid="${id}"]`);
+
+  const setUp = async (imprisonedShips: unknown[] | null) => {
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideMaterialSymbols(),
+        provideRouter([{path: 'ships', children: []}, {path: 'imprisoned', children: []}]),
+        provideMockStore({initialState: imprisonedShips === null ? {} : {harbor: {imprisonedShips}}}),
+        {provide: HarborNameService, useValue: {getHarborName: () => of('Tortuga')}}
+      ]
+    }).compileComponents();
+    TestBed.inject(MockStore);
+    fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+  };
+
+  it('The Imprisoned Ships are not offered while there are none', async () => {
+    await setUp([]);
+    expect(byTestId('nav-imprisoned')).toBeNull();
+  });
+
+  it('is not offered while the harbor feature is not registered', async () => {
+    await setUp(null);
+    expect(byTestId('nav-imprisoned')).toBeNull();
+  });
+
+  it('offers the Imprisoned Ships page while this Harbor holds one', async () => {
+    await setUp([{shipId: '5f1d7c2e-0000-4000-8000-000000000002', name: 'Salty Whisker'}]);
+    const pill = byTestId('nav-imprisoned') as HTMLAnchorElement;
+    expect(pill.textContent?.trim()).toBe('Imprisoned Ships');
+    expect(pill.getAttribute('href')).toBe('/imprisoned');
   });
 });
