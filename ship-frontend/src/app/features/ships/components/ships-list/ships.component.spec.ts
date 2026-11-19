@@ -440,3 +440,45 @@ describe('ShipsComponent (A Harbor carries out an imprisonment)', () => {
     expect(all('new-shipping-refusal')[0].getAttribute('role')).toBe('alert');
   });
 });
+
+describe('ShipsComponent (an Imprisoned Ship on the fleet page)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+  let store: MockStore;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          initialState: {
+            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null },
+            catains: { catains: [], loading: false, error: null },
+          },
+        }),
+      ],
+    });
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  it('a ship at sea home as an imprisoned ship shows "At sea", not "Imprisoned"', () => {
+    render([anAvailableShip({ imprisoned: true, shippingState: ShippingState.SHIPPING })]);
+
+    expect(all('ship-status').map((status) => status.textContent!.trim())).toEqual(['At sea']);
+  });
+
+  it('New shipping asks the store to start the new Shipping', () => {
+    const blackPearl = anAvailableShip({ shippingState: ShippingState.IDLE });
+    render([blackPearl]);
+
+    all('new-shipping')[0].click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(ShipActions.createShipping({ ship: blackPearl }));
+  });
+});

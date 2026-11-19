@@ -61,12 +61,24 @@ describe('FleetEventsService', () => {
     const received: FleetEvent[] = [];
     const subscription = service.events().subscribe((event) => received.push(event));
 
-    opened[0].push('ship-arrived', { shipId: 'id-1', shipName: 'Black Pearl', originHarbor: 'Tortuga' });
+    opened[0].push('ship-arrived', { shipId: 'id-1', shipName: 'Black Pearl', originHarbor: 'Tortuga', imprisoned: false });
     opened[0].push('ship-left', { shipId: 'id-2', shipName: 'Interceptor', destinationHarbor: 'Port Royal' });
 
     expect(received).toEqual([
-      { type: 'ship-arrived', ship: { shipId: 'id-1', shipName: 'Black Pearl', originHarbor: 'Tortuga' } },
+      { type: 'ship-arrived', ship: { shipId: 'id-1', shipName: 'Black Pearl', originHarbor: 'Tortuga', imprisoned: false } },
       { type: 'ship-left', ship: { shipId: 'id-2', shipName: 'Interceptor', destinationHarbor: 'Port Royal' } },
+    ]);
+    subscription.unsubscribe();
+  });
+
+  it('maps ship-imprisoned to a fleet event', () => {
+    const received: FleetEvent[] = [];
+    const subscription = service.events().subscribe((event) => received.push(event));
+
+    opened[0].push('ship-imprisoned', { shipId: 'id-1', shipName: 'Salty Whisker', homeHarbor: 'Tortuga', sailsHome: true });
+
+    expect(received).toEqual([
+      { type: 'ship-imprisoned', ship: { shipId: 'id-1', shipName: 'Salty Whisker', homeHarbor: 'Tortuga', sailsHome: true } },
     ]);
     subscription.unsubscribe();
   });

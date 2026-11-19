@@ -116,6 +116,7 @@ export function anArrivalNotice(overrides: Partial<ArrivalNotice> = {}): Arrival
     shipId: '5f1d7c2e-0000-4000-8000-000000000001',
     shipName: 'Black Pearl',
     originHarbor: 'Tortuga',
+    imprisoned: false,
     ...overrides,
   };
 }
