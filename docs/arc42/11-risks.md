@@ -36,3 +36,7 @@ decisions** — each needs a call from the project owner (fix, accept, or turn i
   confiscate Cargo. The once-per-Shipping-id check and the reset after an imprisonment must stay ahead of
   the count, and the event id must stay derived from the tipping Shipping id; a slip imprisons a ship that
   did not earn it, or twice.
+- **Confiscation handling** (`ImprisonmentManagementService.receiveShipImprisoned`): it consumes an
+  at-least-once event, writes Shipping Published and races User unloading, refusal and Release. Every write
+  stays after the inbox, holding-Harbor and at-sea guards and the row lock (`lockShip`, which `releaseShipping`
+  takes too), in one transaction with the outbox row.

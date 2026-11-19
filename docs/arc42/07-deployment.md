@@ -74,7 +74,7 @@ slug, and each project has its own default network. Only backend and PostgreSQL 
 
 - one Debezium outbox connector per Harbor in `kafka-connect/connectors/shipping-outbox-<slug>.json`, with its own connector name, `database.hostname` and replication slot;
 - the topic `hexagonship-harbor` created with `cleanup.policy=compact` before the first Harbor starts, by `kafka-connect/connect-helpers/create-harbor-topic` ([ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md));
-- decided, not built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): every backend also consumes `hexagonship-coast-guard`;
+- per [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md), every backend also consumes `hexagonship-coast-guard` (listener id `coast-guard-events`, the Harbor's consumer group); until the topic exists the listener only logs missing-topic warnings (inferred, spring-kafka default);
 - Kafka reachable from every backend ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)).
 
 **Kubernetes (planned):** one namespace per Harbor. This requires Kafka in the cluster first (R-4).
