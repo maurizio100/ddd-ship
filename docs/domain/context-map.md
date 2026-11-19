@@ -18,7 +18,7 @@
 > A Harbor's money: Cargo Prices, the Harbor's Savings, paying for delivered Cargo, buying Cargo at the Market, and the Earnings ships collect and bring home. Candidate context; Prices, Savings, Market, Delivery Price, collecting Earnings on unloading and crediting Earnings on Arrival at the Home Harbor are built.
 
 ### 6. CoastGuard
-> Watches the seas between all Harbors: counts per ship the voyages carrying Contraband and imprisons a ship that does so too often. Planned (coast-guard ideation, 2026-11-18), not built.
+> Watches the seas between all Harbors: counts per ship the voyages carrying Contraband and imprisons a ship that does so too often. Built: counting and publishing Ship Imprisoned. Planned (coast-guard ideation, 2026-11-18): the Harbor side (Confiscation, Fine).
 
 ---
 
@@ -34,7 +34,7 @@
 | 6 | CargoLoading | Trade | Customer-Supplier (CS) | assumed | Built (STORY-025, STORY-045): Cargo bought at the Market and Cargo unloaded from an Incoming Ship go into CargoLoading's Stock. |
 | 7 | Trade | Shipping | Customer-Supplier (CS) | assumed | Built (STORY-045): Shipping asks Trade to pay the Delivery Price when an Incoming Ship is unloaded (refused if Savings fall short). In the same unloading, the Delivery Price becomes the ship's Earnings away from its Home Harbor, or goes back into the Savings at once at its Home Harbor. An Arrival at the ship's Home Harbor credits the Earnings it carries to the Savings. Planned (coast-guard ideation, 2026-11-18): Shipping asks Trade to pay the Fine that frees an Imprisoned Ship (refused if Savings fall short; the ship stays imprisoned). |
 | 8 | Trade | Fleet | Customer-Supplier (CS) | assumed | Planned (crew ideation, 2026-10-05). Fleet asks Trade to pay the Hiring Fee from the Harbor's Savings when a Recruit is Hired (refused if Savings fall short). |
-| 9 | Shipping | CoastGuard | Open Host Service (OHS) U:OHS D:CF | assumed | Planned (coast-guard ideation, 2026-11-18). The Coast Guard reads every Shipping Published from Kafka and copies the event model as-is, like HarborTerminal; it recognises Contraband by Cargo name. |
+| 9 | Shipping | CoastGuard | Open Host Service (OHS) U:OHS D:CF | assumed | Built: the Coast Guard reads every Shipping Published from Kafka and copies the event model as-is, like HarborTerminal; it recognises Contraband by Cargo name. |
 | 10 | CoastGuard | Shipping | Open Host Service (OHS) U:OHS D:CF | assumed | Planned (coast-guard ideation, 2026-11-18). The Coast Guard publishes Ship Imprisoned; Shipping at the Harbor holding the ship carries out the Confiscation as told, and the Home Harbor learns that its ship is imprisoned. |
 
 ---

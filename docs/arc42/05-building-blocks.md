@@ -18,7 +18,7 @@ flowchart LR
     BE --> DB
     BE --> S3
     DB -->|"CDC shipping_outbox"| CDC --> K --> TERM
-    CG["ship-coast-guard<br/>Kafka Streams (planned)"]
+    CG["ship-coast-guard<br/>Kafka Streams"]
     K -->|"shipping-published"| CG
     CG -->|"ship-imprisoned"| K
     K -->|"ship-imprisoned"| BE
@@ -30,7 +30,7 @@ flowchart LR
 | ship-backend | All domain logic and persistence; writes the outbox; pushes fleet changes to the frontend. | REST `/web/ships`, `/web/ships/{id}/cargos`, `/web/ships/{id}/shippings`, `/web/cargos`, `/web/catains`, `/web/harbors`, `/web/stock`, `/web/savings`, `/web/incoming-ships`, `/web/incoming-ships/{id}/unloading`, `/web/incoming-ships/{id}/refusal`, `/web/market/purchases`; SSE `/web/fleet-events` (`ship-backend/openapi.yml`). Decided, not built: Ship Class and Hiring Recruits ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)). | Fleet, CargoLoading, Shipping, Trade |
 | Kafka Connect (Debezium) | Turns outbox rows into events on `hexagonship-<aggregate_type>`. | Connector config in `kafka-connect/connectors/` | — (infrastructure) |
 | ship-terminal | Prints each departed ship. | Consumes `hexagonship-shipping` | HarborTerminal |
-| ship-coast-guard (decided, not built, [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)) | Counts each ship's voyages carrying Contraband across all Harbors and imprisons a ship on the third within 10 minutes. Keeps its own copy of the event model and its counts in a Kafka Streams state store. | Consumes `hexagonship-shipping`; produces `ship-imprisoned` on `hexagonship-coast-guard` | CoastGuard |
+| ship-coast-guard (built, [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)) | Counts each ship's voyages carrying Contraband across all Harbors and imprisons a ship on the third within 10 minutes. Keeps its own copy of the event model and its counts in the Kafka Streams state store `ship-watches`. | Consumes `hexagonship-shipping`; produces `ship-imprisoned` on `hexagonship-coast-guard` | CoastGuard |
 
 ### Harbors
 
