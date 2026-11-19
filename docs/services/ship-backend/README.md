@@ -11,6 +11,7 @@ ship's own Home Harbor, puts it back into the Savings at once); the Earnings tra
 Shipping Published; when the ship arrives at its Home Harbor, its Earnings go into the Savings. Or the User refuses it: nothing is paid, and the backend
 Releases it to its Home Harbor with its Cargo aboard, or, at its own Home Harbor, keeps it in the fleet with
 that Cargo aboard to be delivered to another Harbor.
+At its Home Harbor the User frees an Imprisoned Ship by paying its Fine (50.00 $) from the Savings, in one transaction (`/web/imprisoned-ships`).
 When it consumes Ship Arrived for a ship it Released, it sets that Shipping to `DONE` and the ship
 leaves its fleet.
 It does not publish to Kafka itself (Debezium does that), and it renders no UI.

@@ -289,7 +289,7 @@ sequenceDiagram
 
 Nothing is published: the Crew leaves the Harbor only with the ship, in `shipping-published`.
 
-## 6.9 The Coast Guard imprisons a ship (Confiscation built, the Fine not built yet)
+## 6.9 The Coast Guard imprisons a ship
 
 Per [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md). The Coast Guard reads every `shipping-published` beside the Harbors; the Arrival at the
 Destination Harbor (6.4) does not wait for it. It counts each Shipping id once per Ship Id, and the third
