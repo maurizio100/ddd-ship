@@ -182,9 +182,23 @@ class ShippingEventListenerTest {
         }
     }
 
-    /** [homeHarbor] and [earnings] are JSON values written into `shipEventData`, or left out when `null`. */
-    private fun aShippingPublishedPayload(homeHarbor: String? = null, earnings: String? = null) = """
-        {"shipEventData":{"shipId":"$shipId","shipName":"Black Pearl"${homeHarbor?.let { ",\"homeHarbor\":$it" } ?: ""}${earnings?.let { ",\"earnings\":$it" } ?: ""}},
+    @Test
+    fun `maps the imprisoned flag of the ship, and a missing one to false`() {
+        val imprisoned = UUID.randomUUID()
+        val withoutFlag = UUID.randomUUID()
+
+        listener.onShippingEvent(aRecord(id = imprisoned, payload = aShippingPublishedPayload(imprisoned = "true")))
+        listener.onShippingEvent(aRecord(id = withoutFlag, payload = aShippingPublishedPayload()))
+
+        verify(exactly = 1) {
+            arrivalManagementPort.receiveShippingPublished(EventId(imprisoned), match { it.imprisoned })
+            arrivalManagementPort.receiveShippingPublished(EventId(withoutFlag), match { !it.imprisoned })
+        }
+    }
+
+    /** [homeHarbor], [earnings] and [imprisoned] are JSON values written into `shipEventData`, or left out when `null`. */
+    private fun aShippingPublishedPayload(homeHarbor: String? = null, earnings: String? = null, imprisoned: String? = null) = """
+        {"shipEventData":{"shipId":"$shipId","shipName":"Black Pearl"${homeHarbor?.let { ",\"homeHarbor\":$it" } ?: ""}${earnings?.let { ",\"earnings\":$it" } ?: ""}${imprisoned?.let { ",\"imprisoned\":$it" } ?: ""}},
          "shippingEventData":{"shippingId":"$shippingId","weight":7.5,"shippingQuote":"Fair winds",
            "cargo":[{"cargoId":"$rumId","cargoName":"Rum"},{"cargoId":"$silkId","cargoName":"Silk"}],
            "originHarbor":"Tortuga","destinationHarbor":"Port Royal"},

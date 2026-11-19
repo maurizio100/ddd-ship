@@ -398,6 +398,103 @@ class ShipRepositoryAdapterTest {
     }
 
     @Test
+    fun `saveNewShip round-trips the imprisoned flag, and a later save overwrites it`() {
+        val ship = Ship(
+            name = "Salty Whisker", catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), imprisoned = true,
+        )
+        ships.saveNewShip(InitialShipInformation.fromShip(ship))
+        flushAndClear()
+
+        ships.getShipDetails(ship.id)!!.isImprisoned shouldBe true
+
+        ships.saveNewShip(InitialShipInformation.fromShip(renamed(ship, "Salty Whisker")))
+        flushAndClear()
+
+        ships.getShipDetails(ship.id)!!.isImprisoned shouldBe false
+    }
+
+    @Test
+    fun `confiscate clears the Incoming flag and the Cargo aboard and sets the imprisoned flag`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum(), rum()))
+        val blackPearl = anIncomingShip("Black Pearl", listOf(sugar()))
+        ships.lockShip(saltyWhisker.id)!!.isIncoming shouldBe true
+
+        ships.confiscate(saltyWhisker.id)
+
+        val confiscated = ships.getShipDetails(saltyWhisker.id)!!
+        confiscated.isIncoming shouldBe false
+        confiscated.isImprisoned shouldBe true
+        confiscated.cargoAboard.shouldBeEmpty()
+        aboardRowsFor(saltyWhisker.id) shouldBe 0
+        ships.getShipDetails(blackPearl.id)!!.isIncoming shouldBe true
+        aboardRowsFor(blackPearl.id) shouldBe 1
+    }
+
+    @Test
+    fun `lockShip finds only a ship in the fleet, and confiscate fails for any other`() {
+        val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum()))
+        ships.removeFromFleet(saltyWhisker.id)
+        flushAndClear()
+
+        ships.lockShip(saltyWhisker.id) shouldBe null
+        ships.lockShip(ShipId(UUID.randomUUID())) shouldBe null
+        shouldThrow<IllegalStateException> { ships.confiscate(saltyWhisker.id) }
+        aboardRowsFor(saltyWhisker.id) shouldBe 1
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun `lockShip and confiscate require a transaction`() {
+        shouldThrow<IllegalTransactionStateException> { ships.lockShip(ShipId(UUID.randomUUID())) }
+        shouldThrow<IllegalTransactionStateException> { ships.confiscate(ShipId(UUID.randomUUID())) }
+    }
+
+    @Test
+    fun `free clears the imprisoned flag of an Imprisoned Ship in the fleet and of no other ship`() {
+        val saltyWhisker = anImprisonedShip("Salty Whisker")
+        val seaBiscuit = anImprisonedShip("Sea Biscuit")
+        // read under its lock before the update, as the Fine payment does
+        ships.lockShip(saltyWhisker.id)!!.isImprisoned shouldBe true
+
+        ships.free(saltyWhisker.id)
+
+        ships.getShipDetails(saltyWhisker.id)!!.isImprisoned shouldBe false
+        ships.getShipDetails(seaBiscuit.id)!!.isImprisoned shouldBe true
+    }
+
+    @Test
+    fun `free fails for a ship that is not imprisoned or not in the fleet`() {
+        val notImprisoned = anIncomingShip("Salty Whisker", listOf(rum()))
+        val left = anImprisonedShip("Sea Biscuit")
+        ships.removeFromFleet(left.id)
+        flushAndClear()
+
+        shouldThrow<IllegalStateException> { ships.free(notImprisoned.id) }
+        shouldThrow<IllegalStateException> { ships.free(left.id) }
+        shouldThrow<IllegalStateException> { ships.free(ShipId(UUID.randomUUID())) }
+        jdbcTemplate.queryForObject(
+            "SELECT ship_imprisoned FROM ships WHERE ship_id = ?", Boolean::class.java, left.id.id
+        ) shouldBe true
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun `free requires a transaction`() {
+        shouldThrow<IllegalTransactionStateException> { ships.free(ShipId(UUID.randomUUID())) }
+    }
+
+    private fun anImprisonedShip(name: String): Ship {
+        val ship = Ship(
+            name = name, catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), imprisoned = true,
+        )
+        ships.saveNewShip(InitialShipInformation.fromShip(ship))
+        flushAndClear()
+        return ship
+    }
+
+    @Test
     fun `addEarnings adds to the Earnings of a ship in the fleet`() {
         val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum()))
         val blackPearl = anIncomingShip("Black Pearl", listOf(sugar()))

@@ -12,14 +12,15 @@ data class ShippingPublishedInboundEvent(
     val shippingEventData: ShippingEventData,
 ) {
     /**
-     * [homeHarbor] and [earnings] are missing in events from Harbors that do not send them yet; [earnings] is
-     * a decimal string with two decimals.
+     * [homeHarbor], [earnings] and [imprisoned] are missing in events from Harbors that do not send them yet;
+     * [earnings] is a decimal string with two decimals.
      */
     data class ShipEventData(
         val shipId: UUID,
         val shipName: String,
         val homeHarbor: String? = null,
         val earnings: String? = null,
+        val imprisoned: Boolean? = null,
     )
 
     data class CatainEventData(val catainId: UUID)

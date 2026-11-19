@@ -2,10 +2,12 @@ import { AvailableCargo, Cargo } from '../app/features/shipping/models/cargo';
 import { KnownHarbors } from '../app/features/shipping/models/known-harbors';
 import { Ship, ShippingState } from '../app/features/shipping/models/ship';
 import { ShippingSummary } from '../app/features/shipping/models/shipping-summary';
-import { ArrivalNotice } from '../app/features/ships/models/fleet-event';
+import { ArrivalNotice, ImprisonmentNotice } from '../app/features/ships/models/fleet-event';
 import { PurchaseRequest } from '../app/features/harbor/models/purchase-request';
 import { Savings } from '../app/features/harbor/models/savings';
 import { IncomingShip } from '../app/features/harbor/models/incoming-ship';
+import { ImprisonedShip } from '../app/features/harbor/models/imprisoned-ship';
+import { FinePayment } from '../app/features/harbor/models/fine-payment';
 import { StockedCargo } from '../app/features/harbor/models/stocked-cargo';
 import { Catain } from '../app/features/catains/model/catain';
 import {
@@ -57,6 +59,7 @@ export function anAvailableShip(overrides: Partial<AvailableShip> = {}): Availab
     arrivedFrom: null,
     incoming: false,
     earnings: '0.00',
+    imprisoned: false,
     ...overrides,
   };
 }
@@ -115,6 +118,17 @@ export function anArrivalNotice(overrides: Partial<ArrivalNotice> = {}): Arrival
     shipId: '5f1d7c2e-0000-4000-8000-000000000001',
     shipName: 'Black Pearl',
     originHarbor: 'Tortuga',
+    imprisoned: false,
+    ...overrides,
+  };
+}
+
+/** What the User is told when the Coast Guard imprisons "Salty Whisker" here and it sails home to "Tortuga". */
+export function anImprisonmentNotice(overrides: Partial<ImprisonmentNotice> = {}): ImprisonmentNotice {
+  return {
+    shipId: '5f1d7c2e-0000-4000-8000-000000000002',
+    shipName: 'Salty Whisker',
+    homeHarbor: 'Tortuga',
     ...overrides,
   };
 }
@@ -146,4 +160,28 @@ export function aSavings(overrides: Partial<Savings> = {}): Savings {
 
 export function aPurchaseRequest(overrides: Partial<PurchaseRequest> = {}): PurchaseRequest {
   return { cargoId: 'c0a8f3a2-0000-4000-8000-000000000009', quantity: 1, ...overrides };
+}
+
+/** An Imprisoned Ship as listed at its Home Harbor: "Salty Whisker" with a Fine of 50.00 the Savings cover. */
+export function anImprisonedShip(overrides: Partial<ImprisonedShip> = {}): ImprisonedShip {
+  return {
+    shipId: '5f1d7c2e-0000-4000-8000-000000000002',
+    name: 'Salty Whisker',
+    catain: 'Captain Whiskers',
+    homeHarbor: 'Tortuga',
+    fine: '50.00',
+    savingsCoverFine: true,
+    ...overrides,
+  };
+}
+
+/** The payment of the Fine of "Salty Whisker": 50.00 paid, 950.00 left. */
+export function aFinePayment(overrides: Partial<FinePayment> = {}): FinePayment {
+  return {
+    shipId: '5f1d7c2e-0000-4000-8000-000000000002',
+    name: 'Salty Whisker',
+    fine: '50.00',
+    savings: '950.00',
+    ...overrides,
+  };
 }

@@ -31,3 +31,16 @@ decisions** — each needs a call from the project owner (fix, accept, or turn i
   Kafka event and moves money (Earnings into the Savings). Every state change must stay after the inbox and
   `arrivals` guards and inside the one transaction with the Ship Arrived outbox row; a write moved above a
   guard credits the Savings twice on redelivery or re-publication.
+- **Coast Guard counting** (`ShipWatch.record`, `ShipWatchKeeper` in ship-coast-guard): it consumes the
+  at-least-once `hexagonship-shipping` and publishes `ship-imprisoned`, which every Harbor consumes to
+  confiscate Cargo. The once-per-Shipping-id check and the reset after an imprisonment must stay ahead of
+  the count, and the event id must stay derived from the tipping Shipping id; a slip imprisons a ship that
+  did not earn it, or twice.
+- **Confiscation handling** (`ImprisonmentManagementService.receiveShipImprisoned`): it consumes an
+  at-least-once event, writes Shipping Published and races User unloading, refusal and Release. Every write
+  stays after the inbox, holding-Harbor and at-sea guards and the row lock (`lockShip`, which `releaseShipping`
+  takes too), in one transaction with the outbox row.
+- **Fine payment** (`ImprisonmentManagementService.payFine`): it debits the Savings and frees an Imprisoned
+  Ship. The order lock (`lockShip`) → `Ship.free` guard → conditional Savings debit → conditional `free` write
+  must stay, in one transaction; a write moved above the debit frees a ship nobody paid for, and dropping the
+  lock lets two concurrent payments race.

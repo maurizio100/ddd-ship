@@ -11,7 +11,7 @@
     @for (notice of arrivalNotices(); track notice.shipId) {
       <div class="notice">
         <mat-icon class="notice-icon" fontIcon="anchor" aria-hidden="true"></mat-icon>
-        <p class="notice-text" data-testid="ships-arrival-notice">{{ notice.shipName }} arrived from {{ notice.originHarbor }}</p>
+        <p class="notice-text" data-testid="ships-arrival-notice">{{ notice.shipName }} arrived from {{ notice.originHarbor }}{{ notice.imprisoned ? ', imprisoned' : '' }}</p>
         <button
           mat-icon-button
           type="button"
@@ -24,6 +24,38 @@
         </button>
       </div>
     }
+    @for (notice of imprisonmentNotices(); track notice.shipId) {
+      <div class="notice">
+        <mat-icon class="notice-icon" fontIcon="lock" aria-hidden="true"></mat-icon>
+        <p class="notice-text" data-testid="ships-imprisonment-notice">The Coast Guard imprisoned {{ notice.shipName }}: its Cargo is confiscated and it sails home to {{ notice.homeHarbor }}</p>
+        <button
+          mat-icon-button
+          type="button"
+          class="notice-dismiss"
+          aria-label="Dismiss"
+          data-testid="ships-imprisonment-notice-dismiss"
+          (click)="dismissImprisonment(notice)"
+        >
+          <mat-icon fontIcon="close"></mat-icon>
+        </button>
+      </div>
+    }
+    @if (fineNotice(); as notice) {
+      <div class="notice">
+        <mat-icon class="notice-icon" fontIcon="lock_open" aria-hidden="true"></mat-icon>
+        <p class="notice-text" data-testid="ships-fine-notice">{{ notice.name }} is free: the Fine of {{ notice.fine }} $ is paid, the Savings are {{ notice.savings }} $</p>
+        <button
+          mat-icon-button
+          type="button"
+          class="notice-dismiss"
+          aria-label="Dismiss"
+          data-testid="ships-fine-notice-dismiss"
+          (click)="dismissFineNotice()"
+        >
+          <mat-icon fontIcon="close"></mat-icon>
+        </button>
+      </div>
+    }
   </div>
 
   <div class="grid">
@@ -31,7 +63,12 @@
       <article class="card" data-testid="ship">
         <div class="picture">
           <img [src]="getImageUrl(ship)" alt="" data-testid="ship-picture" />
-          <span class="status" data-testid="ship-status">{{ statusLabel(ship) }}</span>
+          <span class="status" [class.status--imprisoned]="isImprisoned(ship)">
+            @if (isImprisoned(ship)) {
+              <mat-icon fontIcon="lock" aria-hidden="true"></mat-icon>
+            }
+            <span data-testid="ship-status">{{ statusLabel(ship) }}</span>
+          </span>
         </div>
         <div class="body">
           <div class="ring" data-testid="ship-catain">
@@ -63,7 +100,33 @@
               Arrived from {{ ship.arrivedFrom }}
             </p>
           }
+          @if (imprisonedShipFor(ship); as imprisoned) {
+            <div class="fine" data-testid="ship-fine">
+              <p class="fine__amount">Fine {{ imprisoned.fine }} $</p>
+              <p class="fine__coverage" [class.fine__coverage--short]="!imprisoned.savingsCoverFine">
+                <mat-icon [fontIcon]="imprisoned.savingsCoverFine ? 'check' : 'block'" aria-hidden="true"></mat-icon>
+                <span data-testid="ship-fine-coverage">{{ fineCoverage(imprisoned) }}</span>
+              </p>
+              @if (fineRefusalFor(ship); as refusal) {
+                <p class="fine__refusal" role="alert" data-testid="ship-fine-refusal">{{ refusal }}</p>
+              }
+              <button
+                mat-flat-button
+                type="button"
+                class="fine__pay"
+                data-testid="ship-pay-fine"
+                [disabled]="!canPayFine(imprisoned)"
+                (click)="payFine(ship)"
+              >
+                <mat-icon fontIcon="lock_open"></mat-icon>
+                Pay Fine
+              </button>
+            </div>
+          }
           <div class="actions">
+            @if (refusalFor(ship); as refusal) {
+              <p class="new-shipping-refusal" role="alert" data-testid="new-shipping-refusal">{{ refusal }}</p>
+            }
             @if (ship.incoming) {
               <p class="incoming" data-testid="ship-incoming">{{ ship.name }} must be unloaded or refused first</p>
             }

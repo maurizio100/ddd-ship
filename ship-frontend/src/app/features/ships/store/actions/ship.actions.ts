@@ -1,7 +1,8 @@
 import {createAction, props} from "@ngrx/store";
 import {Ship} from "../../models/ship";
 import {NewShipRequest} from "../../models/new-ship-request";
-import {ShipArrived, ShipLeft} from "../../models/fleet-event";
+import {ShipArrived, ShipImprisoned, ShipLeft} from "../../models/fleet-event";
+import {ShippingSummary} from "../../../shipping/models/shipping-summary";
 
 const shipActions = {
   loadShips: '[Ship] Load Ships',
@@ -15,6 +16,11 @@ const shipActions = {
   shipArrived: '[Ship] Ship Arrived',
   shipLeft: '[Ship] Ship Left',
   dismissArrivalNotice: '[Ship] Dismiss Arrival Notice',
+  shipImprisoned: '[Ship] Ship Imprisoned',
+  dismissImprisonmentNotice: '[Ship] Dismiss Imprisonment Notice',
+  createShipping: '[Ship] Create Shipping',
+  createShippingSuccess: '[Ship] Create Shipping Success',
+  createShippingFailure: '[Ship] Create Shipping Failure',
 }
 
 export const loadShips = createAction(
@@ -69,4 +75,32 @@ export const shipLeft = createAction(
 export const dismissArrivalNotice = createAction(
   shipActions.dismissArrivalNotice,
   props<{shipId: string}>()
+);
+
+/** Pushed by the backend: the Coast Guard imprisoned a ship here and its Cargo is confiscated. */
+export const shipImprisoned = createAction(
+  shipActions.shipImprisoned,
+  props<ShipImprisoned>()
+);
+
+export const dismissImprisonmentNotice = createAction(
+  shipActions.dismissImprisonmentNotice,
+  props<{shipId: string}>()
+);
+
+/** The User starts a new Shipping for a ship. */
+export const createShipping = createAction(
+  shipActions.createShipping,
+  props<{ship: Ship}>()
+);
+
+export const createShippingSuccess = createAction(
+  shipActions.createShippingSuccess,
+  props<{shippingSummary: ShippingSummary}>()
+);
+
+/** The new Shipping was refused; [error] is what the User is told. */
+export const createShippingFailure = createAction(
+  shipActions.createShippingFailure,
+  props<{shipId: string; error: string}>()
 );

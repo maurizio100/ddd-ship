@@ -14,14 +14,14 @@ its own fleet, Stock and Savings, and ships sail between Harbors. Derived from t
 
 - Voyage: [ship created](contexts/Fleet/Fleet.md) → [new Shipping](contexts/Shipping/Shipping.md) → [Cargo loaded](contexts/CargoLoading/CargoLoading.md) → [Release](contexts/Shipping/Shipping.md) → [departure announced](contexts/HarborTerminal/HarborTerminal.md) → [Arrival at the Destination Harbor, Ship Arrived](contexts/Shipping/Shipping.md) → [ship joins its fleet](contexts/Fleet/Fleet.md)
 - Delivery: [Incoming Ship](contexts/Shipping/Shipping.md) → [Delivery Price paid from Savings](contexts/Trade/Trade.md) → [Cargo into Stock](contexts/CargoLoading/CargoLoading.md) — or [Refused Delivery, back to the Home Harbor](contexts/Shipping/Shipping.md) → [Earnings credited at the Home Harbor](contexts/Trade/Trade.md)
-- Imprisonment (planned): [Shipping Published](contexts/Shipping/Shipping.md) → [Contraband counted, Ship Imprisoned](contexts/CoastGuard/CoastGuard.md) → [Confiscation, voyage home](contexts/Shipping/Shipping.md) → [Fine paid from Savings](contexts/Trade/Trade.md) → [ship freed](contexts/Shipping/Shipping.md)
+- Imprisonment (built): [Shipping Published](contexts/Shipping/Shipping.md) → [Contraband counted, Ship Imprisoned](contexts/CoastGuard/CoastGuard.md) → [Confiscation, voyage home](contexts/Shipping/Shipping.md) → [Fine paid from Savings](contexts/Trade/Trade.md) → [ship freed](contexts/Shipping/Shipping.md)
 
 ## Bounded contexts
 
 | Context | What it covers | Terms |
 |---|---|---|
 | [CargoLoading](contexts/CargoLoading/CargoLoading.md) | Loading Cargo onto ships within the Max Weight | [glossary](contexts/CargoLoading/glossary.md) |
-| [CoastGuard](contexts/CoastGuard/CoastGuard.md) | Imprisoning ships that carry Contraband too often (planned) | [glossary](contexts/CoastGuard/glossary.md) |
+| [CoastGuard](contexts/CoastGuard/CoastGuard.md) | Imprisoning ships that carry Contraband too often (counting, Ship Imprisoned, Confiscation, Fine and freeing built) | [glossary](contexts/CoastGuard/glossary.md) |
 | [Fleet](contexts/Fleet/Fleet.md) | Ship registry and Catain roster | [glossary](contexts/Fleet/glossary.md) |
 | [HarborTerminal](contexts/HarborTerminal/HarborTerminal.md) | Departure board consuming Shipping Published | [glossary](contexts/HarborTerminal/glossary.md) |
 | [Shipping](contexts/Shipping/Shipping.md) | Voyage lifecycle and Release | [glossary](contexts/Shipping/glossary.md) |

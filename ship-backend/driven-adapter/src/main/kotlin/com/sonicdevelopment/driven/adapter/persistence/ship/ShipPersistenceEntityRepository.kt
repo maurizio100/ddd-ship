@@ -1,6 +1,8 @@
 package com.sonicdevelopment.driven.adapter.persistence.ship
 
+import jakarta.persistence.LockModeType
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -14,6 +16,34 @@ interface ShipPersistenceEntityRepository: JpaRepository<ShipPersistenceEntity, 
     fun findByShipId(shipId: UUID): ShipPersistenceEntity?
     fun findAllByInFleetTrue(): List<ShipPersistenceEntity>
     fun findByShipIdAndInFleetTrue(shipId: UUID): ShipPersistenceEntity?
+
+    /** The ship in the fleet, read with `SELECT … FOR UPDATE`: its row stays locked until the transaction ends. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    fun findLockedByShipIdAndInFleetTrue(shipId: UUID): ShipPersistenceEntity?
+
+    /**
+     * The confiscation of a ship in the fleet: clears the Incoming flag and sets the imprisoned flag; returns the
+     * number of updated rows (1 or 0). Clears the persistence context, so a ship loaded before is read again.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(
+        nativeQuery = true,
+        value = "UPDATE ships SET ship_incoming = false, ship_imprisoned = true " +
+            "WHERE ship_id = :shipId AND ship_in_fleet = true"
+    )
+    fun confiscate(@Param("shipId") shipId: UUID): Int
+
+    /**
+     * Clears the imprisoned flag of an Imprisoned Ship in the fleet; returns the number of updated rows (1 or 0).
+     * Clears the persistence context, so a ship loaded before is read again with the new flag.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(
+        nativeQuery = true,
+        value = "UPDATE ships SET ship_imprisoned = false " +
+            "WHERE ship_id = :shipId AND ship_in_fleet = true AND ship_imprisoned = true"
+    )
+    fun free(@Param("shipId") shipId: UUID): Int
 
     /**
      * Clears the Incoming flag of an Incoming Ship in the fleet; returns the number of updated rows (1 or 0).

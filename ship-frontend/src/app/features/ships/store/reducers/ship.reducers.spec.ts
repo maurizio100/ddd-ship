@@ -1,7 +1,7 @@
 import { initialState, shipReducers } from './ship.reducers';
 import * as ShipActions from '../actions/ship.actions';
 import { ShipState } from '../selectors/ship.selectors';
-import { anArrivalNotice, anAvailableShip } from '../../../../../testing/fixtures';
+import { anArrivalNotice, anAvailableShip, anImprisonmentNotice } from '../../../../../testing/fixtures';
 
 describe('shipReducers (A Harbor sees ships arrive and leave as they happen)', () => {
   const blackPearl = anAvailableShip();
@@ -40,5 +40,50 @@ describe('shipReducers (A Harbor sees ships arrive and leave as they happen)', (
     const state = shipReducers(told, ShipActions.dismissArrivalNotice({ shipId: anArrivalNotice().shipId }));
 
     expect(state.arrivalNotices).toEqual([flyingDutchmanNotice]);
+  });
+});
+
+describe('shipReducers (A Harbor carries out an imprisonment)', () => {
+  const saltyWhisker = { shipId: anImprisonmentNotice().shipId, shipName: 'Salty Whisker', homeHarbor: 'Tortuga' };
+
+  it('an imprisonment of a ship that sails home adds one notice per ship', () => {
+    const first = shipReducers(initialState, ShipActions.shipImprisoned({ ...saltyWhisker, sailsHome: true }));
+    const again = shipReducers(first, ShipActions.shipImprisoned({ ...saltyWhisker, sailsHome: true }));
+
+    expect(first.imprisonmentNotices).toEqual([anImprisonmentNotice()]);
+    expect(again.imprisonmentNotices).toEqual([anImprisonmentNotice()]);
+  });
+
+  it('an imprisonment in place at the Home Harbor adds no notice', () => {
+    const state = shipReducers(initialState, ShipActions.shipImprisoned({ ...saltyWhisker, sailsHome: false }));
+
+    expect(state.imprisonmentNotices).toEqual([]);
+  });
+
+  it('dismissing an imprisonment notice removes it', () => {
+    const other = anImprisonmentNotice({ shipId: 'other', shipName: 'Black Pearl' });
+    const told: ShipState = { ...initialState, imprisonmentNotices: [anImprisonmentNotice(), other] };
+
+    const state = shipReducers(told, ShipActions.dismissImprisonmentNotice({ shipId: anImprisonmentNotice().shipId }));
+
+    expect(state.imprisonmentNotices).toEqual([other]);
+  });
+
+  it('an imprisoned Arrival keeps imprisoned in its notice', () => {
+    const state = shipReducers(initialState, ShipActions.shipArrived(anArrivalNotice({ imprisoned: true })));
+
+    expect(state.arrivalNotices).toEqual([anArrivalNotice({ imprisoned: true })]);
+  });
+
+  it('a refused new Shipping is kept until the next attempt or reload', () => {
+    const ship = anAvailableShip({ imprisoned: true });
+    const refused = shipReducers(
+      initialState,
+      ShipActions.createShippingFailure({ shipId: ship.id, error: 'Black Pearl is imprisoned' }),
+    );
+
+    expect(refused.newShippingRefusal).toEqual({ shipId: ship.id, message: 'Black Pearl is imprisoned' });
+    expect(shipReducers(refused, ShipActions.createShipping({ ship })).newShippingRefusal).toBeNull();
+    expect(shipReducers(refused, ShipActions.loadShipsSuccess({ ships: [ship] })).newShippingRefusal).toBeNull();
   });
 });

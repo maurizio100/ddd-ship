@@ -53,6 +53,7 @@ class ShippingEventListener(
             destinationHarbor = toHarborName(event.shippingEventData.destinationHarbor),
             homeHarbor = toHarborName(event.shipEventData.homeHarbor),
             earnings = event.shipEventData.earnings?.takeIf { it.isNotBlank() }?.let { Money.of(it) } ?: Money.dollars(0),
+            imprisoned = event.shipEventData.imprisoned ?: false,
         )
 
     private fun toShipArrivedDTO(event: ShipArrivedInboundEvent) =

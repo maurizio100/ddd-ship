@@ -1,5 +1,10 @@
 import {
+  selectFineNotice,
+  selectFineRefusal,
+  selectHasImprisonedShips,
+  selectImprisonedShips,
   selectIncomingShips,
+  selectPayingFineShipIds,
   selectPurchaseRefusal,
   selectRefuseFailure,
   selectRefusingShipIds,
@@ -10,7 +15,7 @@ import {
   selectUnloadingShipIds,
   selectUnloadRefusal,
 } from './harbor.selectors';
-import { aSavings, aStockedCargo, anIncomingShipListing } from '../../../../testing/fixtures';
+import { aFinePayment, aSavings, aStockedCargo, anImprisonedShip, anIncomingShipListing } from '../../../../testing/fixtures';
 
 describe('harbor selectors', () => {
   const stock = [aStockedCargo({ name: 'Rum', quantity: 0 })];
@@ -44,4 +49,37 @@ describe('harbor selectors', () => {
   it('selectRefuseFailure reads the refuse failure', () =>
     expect(selectRefuseFailure(root)).toBe('Salty Whisker is not an Incoming Ship anymore'));
   it('selectRefusingShipIds reads refusingShipIds', () => expect(selectRefusingShipIds(root)).toEqual(['s2']));
+
+  describe('the Imprisoned Ships', () => {
+    const imprisoned = {
+      harbor: {
+        ...root.harbor,
+        imprisonedShips: [anImprisonedShip()],
+        fineNotice: aFinePayment(),
+        fineRefusal: { shipId: 's3', message: 'The Savings do not cover the Fine of 50.00 $' },
+        payingFineShipIds: ['s3'],
+      },
+    };
+
+    it('selectImprisonedShips reads the Imprisoned Ships', () =>
+      expect(selectImprisonedShips(imprisoned)).toEqual([anImprisonedShip()]));
+    it('selectFineNotice reads the Fine notice', () => expect(selectFineNotice(imprisoned)).toEqual(aFinePayment()));
+    it('selectFineRefusal reads the Fine refusal', () =>
+      expect(selectFineRefusal(imprisoned)).toEqual({ shipId: 's3', message: 'The Savings do not cover the Fine of 50.00 $' }));
+    it('selectPayingFineShipIds reads payingFineShipIds', () => expect(selectPayingFineShipIds(imprisoned)).toEqual(['s3']));
+
+    it('the Fine selectors read nothing while the harbor feature is not registered', () => {
+      expect(selectImprisonedShips({})).toEqual([]);
+      expect(selectFineNotice({})).toBeNull();
+      expect(selectFineRefusal({})).toBeNull();
+      expect(selectPayingFineShipIds({})).toEqual([]);
+    });
+
+    it('selectHasImprisonedShips is false without a harbor feature and with none, and true with one', () => {
+      expect(selectHasImprisonedShips({})).toBeFalse();
+      expect(selectHasImprisonedShips(root as never)).toBeFalse();
+      expect(selectHasImprisonedShips({ harbor: { ...root.harbor, imprisonedShips: [] } } as never)).toBeFalse();
+      expect(selectHasImprisonedShips(imprisoned as never)).toBeTrue();
+    });
+  });
 });

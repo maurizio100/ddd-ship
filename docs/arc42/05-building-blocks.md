@@ -18,7 +18,7 @@ flowchart LR
     BE --> DB
     BE --> S3
     DB -->|"CDC shipping_outbox"| CDC --> K --> TERM
-    CG["ship-coast-guard<br/>Kafka Streams (planned)"]
+    CG["ship-coast-guard<br/>Kafka Streams"]
     K -->|"shipping-published"| CG
     CG -->|"ship-imprisoned"| K
     K -->|"ship-imprisoned"| BE
@@ -30,7 +30,7 @@ flowchart LR
 | ship-backend | All domain logic and persistence; writes the outbox; pushes fleet changes to the frontend. | REST `/web/ships`, `/web/ships/{id}/cargos`, `/web/ships/{id}/shippings`, `/web/cargos`, `/web/catains`, `/web/harbors`, `/web/stock`, `/web/savings`, `/web/incoming-ships`, `/web/incoming-ships/{id}/unloading`, `/web/incoming-ships/{id}/refusal`, `/web/market/purchases`; SSE `/web/fleet-events` (`ship-backend/openapi.yml`). Decided, not built: Ship Class and Hiring Recruits ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)). | Fleet, CargoLoading, Shipping, Trade |
 | Kafka Connect (Debezium) | Turns outbox rows into events on `hexagonship-<aggregate_type>`. | Connector config in `kafka-connect/connectors/` | — (infrastructure) |
 | ship-terminal | Prints each departed ship. | Consumes `hexagonship-shipping` | HarborTerminal |
-| ship-coast-guard (decided, not built, [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)) | Counts each ship's voyages carrying Contraband across all Harbors and imprisons a ship on the third within 10 minutes. Keeps its own copy of the event model and its counts in a Kafka Streams state store. | Consumes `hexagonship-shipping`; produces `ship-imprisoned` on `hexagonship-coast-guard` | CoastGuard |
+| ship-coast-guard (built, [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)) | Counts each ship's voyages carrying Contraband across all Harbors and imprisons a ship on the third within 10 minutes. Keeps its own copy of the event model and its counts in the Kafka Streams state store `ship-watches`. | Consumes `hexagonship-shipping`; produces `ship-imprisoned` on `hexagonship-coast-guard` | CoastGuard |
 
 ### Harbors
 
@@ -102,7 +102,7 @@ Per [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idemp
 ports, and `driven-adapter` holds the **inbox adapter** that records consumed event ids and the store
 for the Known Harbors. Stock is persisted next to the Cargo catalog; Prices and Savings are persisted the same way, behind
 driven ports of the Trade concepts. A ship's Home Harbor and its Earnings are persisted with the ship. Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): a ship's Ship Class and Crew are persisted with the
-ship, and each Harbor's Recruit Pool next to it. Decided, not built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): a Kafka listener for
+ship, and each Harbor's Recruit Pool next to it. Per [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md): a Kafka listener for
 `ship-imprisoned` on `hexagonship-coast-guard`, through the same inbox, and the imprisoned state persisted
 with the ship.
 

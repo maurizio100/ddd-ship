@@ -2,9 +2,23 @@
 
 The look and interaction rules for the UI: a "captain's chart" theme built on Angular Material and the
 Angular CDK ([decision 0001](decisions/0001-build-the-ui-on-angular-material-with-a-pirate-theme.md)).
-The approved mockup is the visual reference: https://claude.ai/artifact/DcvRaKWmvmaU348SqFS4gz.
+The approved mockup of the pirate redesign is kept for history: https://claude.ai/artifact/DcvRaKWmvmaU348SqFS4gz; the design system below is the current visual reference.
 Screens not yet migrated still use the old hand-written CSS; every redesign story moves one screen onto
 these rules.
+
+## Design system
+
+The Hexagonship design system (https://claude.ai/artifact/EMavsufZDSEPPMWJiBF9PN) mirrors these
+guidelines: the tokens, the type scale and the screen components (app bar, ship card, crate card,
+deck, Incoming Ship row and the rest) with their exact values, and the ship and Cargo pictures. Its
+components are static HTML/CSS renditions hand-written from this component's templates and styles,
+first synced from `ship-frontend@1385e47`; the Angular code stays the source of truth.
+
+- Visual prototypes for a story are built from the design system, so they look like the app.
+- A story that changes a token, a component's look or the wording rules updates the design system
+  in the same story: the token in its `tokens.json`, the component's preview and README, and the
+  brand book where a rule changed. A change to these guidelines changes the design system with it.
+- Where the design system and the code disagree, the code wins; fix the design system.
 
 ## Theme
 
@@ -57,12 +71,13 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
 ## Screen patterns
 
 - **App bar** — `ink` bar with brass underline: wordmark, a chip with the current Harbor Name, and
-  navigation pills (Fleet; Harbor once the harbor management page exists).
+  navigation pills (Fleet, Harbor, and Imprisoned Ships only while this Harbor holds an Imprisoned Ship).
 - **Page header** — italic `muted` kicker line above an IM Fell English heading.
 - **Fleet** — a responsive grid of ship cards: ship picture, status chip (In port / Preparing / At
-  sea), the Catain portrait in a brass ring overlapping the picture, Ship Name, "under `<Catain>`",
-  "Home Harbor `<Harbor>`", "Arrived from `<Harbor>`" when set, and the card's actions. Arrival notices are an `ink` bar with a
-  dismiss button above the grid.
+  sea / Imprisoned, the last an `ink` chip with a brass lock icon), the Catain portrait in a brass ring overlapping the picture, Ship Name, "under `<Catain>`",
+  "Home Harbor `<Harbor>`", "Arrived from `<Harbor>`" when set, and the card's actions. Arrival notices (", imprisoned" appended for an imprisoned Arrival) and imprisonment notices (lock icon) are `ink` bars with a
+  dismiss button above the grid; a refused new Shipping is an `oxblood` alert in the ship card's actions. An Imprisoned Ship's card carries a Fine panel (the Fine, whether the Savings cover it, a filled Pay Fine button); a paid Fine is an `ink` notice bar with a dismiss button that also dismisses itself after 8 s.
+- **Imprisoned Ships** — kicker "Held in the harbor brig", one card per Imprisoned Ship with its Fine and Pay Fine.
 - **Create ship** — Ship Name field, then the Catain grid as radio cards with large portraits; the
   selected Catain is lifted, framed in `oxblood` and badged. It stays a real radio group.
 - **Load Cargo** — Available Cargo as crate cards (picture, Stock badge, Weight) dragged onto the

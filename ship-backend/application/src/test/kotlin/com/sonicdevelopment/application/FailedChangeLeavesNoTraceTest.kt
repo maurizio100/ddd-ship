@@ -22,6 +22,8 @@ import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import com.sonicdevelopment.domain.ports.driven.StockRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ImprisonmentManagementPort
+import com.sonicdevelopment.domain.ports.driving.shipping.ShipImprisonedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
@@ -111,6 +113,7 @@ class FailedChangeLeavesNoTraceTest {
         var earningsAddedThrough = 0
         var concurrentUnloadWins = false
         var concurrentChange: (() -> Unit)? = null
+        var freeFails = false
         private val concurrentTransaction = TransactionTemplate(transactionManager).apply {
             propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
         }
@@ -129,6 +132,11 @@ class FailedChangeLeavesNoTraceTest {
         override fun unloadIncomingShip(shipId: ShipId): Boolean {
             concurrentWriterCommits(shipId)
             return real.unloadIncomingShip(shipId)
+        }
+
+        override fun free(shipId: ShipId) {
+            check(!freeFails) { "The freeing write fails" }
+            real.free(shipId)
         }
 
         private fun concurrentWriterCommits(shipId: ShipId) {
@@ -244,6 +252,9 @@ class FailedChangeLeavesNoTraceTest {
     @Autowired
     lateinit var countingShipRepository: CountingShipRepository
 
+    @Autowired
+    lateinit var imprisonmentManagementPort: ImprisonmentManagementPort
+
     @BeforeEach
     fun everythingWorksAgain() {
         jdbcTemplate.truncateMutableTables()
@@ -255,6 +266,7 @@ class FailedChangeLeavesNoTraceTest {
         countingShipRepository.savesThrough = 0
         countingShipRepository.concurrentUnloadWins = false
         countingShipRepository.concurrentChange = null
+        countingShipRepository.freeFails = false
         failingOutbox.armed = false
         failingOutbox.shipArrivedArmed = false
         failingStock.armed = false
@@ -544,6 +556,54 @@ class FailedChangeLeavesNoTraceTest {
         count("ships_cargos_aboard") shouldBe 2
         count("shipping_outbox") shouldBe outboxBefore
     }
+
+    @Test
+    fun `A confiscation whose outbox write fails leaves the ship Incoming with its Cargo aboard, no Shipping, no inbox row and no outbox row`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar()
+        val shippingsBefore = count("shippings")
+        val outboxBefore = count("shipping_outbox")
+        val eventId = UUID.randomUUID()
+        failingOutbox.armed = true
+
+        shouldThrow<IllegalStateException> {
+            imprisonmentManagementPort.receiveShipImprisoned(
+                EventId(eventId),
+                ShipImprisonedDTO(saltyWhisker, "Salty Whisker", HarborName("Port Royal"), HarborName("Tortuga")),
+            )
+        }
+
+        shipIncoming(saltyWhisker) shouldBe true
+        jdbcTemplate.queryForObject(
+            "SELECT ship_imprisoned FROM ships WHERE ship_id = ?", Boolean::class.java, saltyWhisker.id
+        ) shouldBe false
+        count("ships_cargos_aboard") shouldBe 3
+        count("shippings") shouldBe shippingsBefore
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM inbox_events WHERE event_id = ?", Int::class.java, eventId
+        ) shouldBe 0
+        count("shipping_outbox") shouldBe outboxBefore
+    }
+
+    @Test
+    fun `A Fine payment whose freeing write fails leaves the Savings unchanged and the ship imprisoned`() {
+        val saltyWhisker = anIncomingShipWithTwoRumAndOneSugar(homeHarbor = HarborName("Port Royal"))
+        imprisonmentManagementPort.receiveShipImprisoned(
+            EventId(UUID.randomUUID()),
+            ShipImprisonedDTO(saltyWhisker, "Salty Whisker", HarborName("Port Royal"), HarborName("Port Royal")),
+        )
+        shipImprisoned(saltyWhisker) shouldBe true
+        countingShipRepository.freeFails = true
+
+        shouldThrow<IllegalStateException> { imprisonmentManagementPort.payFine(saltyWhisker) }
+
+        // the Fine was really paid before the freeing write failed
+        countingSavings.paysThrough shouldBe 1
+        savingsAmount() shouldBe STARTING_SAVINGS
+        shipImprisoned(saltyWhisker) shouldBe true
+    }
+
+    private fun shipImprisoned(shipId: ShipId): Boolean =
+        jdbcTemplate.queryForObject("SELECT ship_imprisoned FROM ships WHERE ship_id = ?", Boolean::class.java, shipId.id)!!
 
     private fun shippingPublishedRows() = jdbcTemplate.queryForObject(
         "SELECT count(*) FROM shipping_outbox WHERE event_type = 'shipping-published'", Int::class.java

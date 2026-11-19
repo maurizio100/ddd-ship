@@ -72,6 +72,20 @@ class ShipControllerTest {
     }
 
     @Test
+    fun `the ships overview carries whether a ship is imprisoned`() {
+        every { shipInformationPort.getAllShips() } returns listOf(
+            ShipDTO(blackPearl, "Black Pearl", "Whiskers", ShippingState.IDLE, homeHarbor = "Port Royal", imprisoned = true),
+            ShipDTO(interceptor, "Interceptor", "Whiskers", ShippingState.IDLE, homeHarbor = "Tortuga"),
+        )
+
+        mockMvc.get("/web/ships").andExpect {
+            status { isOk() }
+            jsonPath("$[0].imprisoned") { value(true) }
+            jsonPath("$[1].imprisoned") { value(false) }
+        }
+    }
+
+    @Test
     fun `GET web ships returns each ship's earnings as a decimal string`() {
         every { shipInformationPort.getAllShips() } returns listOf(
             ShipDTO(blackPearl, "Black Pearl", "Whiskers", ShippingState.IDLE, homeHarbor = "Port Royal", earnings = Money.of("80.5")),

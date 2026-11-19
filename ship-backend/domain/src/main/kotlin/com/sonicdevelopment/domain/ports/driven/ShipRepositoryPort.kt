@@ -9,8 +9,9 @@ import com.sonicdevelopment.domain.model.values.ShipId
 
 interface ShipRepositoryPort {
     /**
-     * Saves the ship by its Ship Id, in the fleet. Its Incoming flag is written from [InitialShipInformation.incoming]
-     * and its Cargo aboard is replaced by [InitialShipInformation.cargoAboard].
+     * Saves the ship by its Ship Id, in the fleet. Its Incoming and imprisoned flags are written from
+     * [InitialShipInformation.incoming] and [InitialShipInformation.imprisoned], and its Cargo aboard is replaced by
+     * [InitialShipInformation.cargoAboard].
      */
     fun saveNewShip(ship: InitialShipInformation)
 
@@ -24,11 +25,13 @@ interface ShipRepositoryPort {
         val incoming: Boolean,
         /** The Earnings the ship carries until it reaches its Home Harbor. */
         val earnings: Money,
+        /** Whether the ship is an Imprisoned Ship, or sails home as one. */
+        val imprisoned: Boolean,
     ) {
         companion object {
             fun fromShip(ship: Ship) = InitialShipInformation(
                 ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom, ship.homeHarbor, ship.cargoAboard, ship.isIncoming,
-                ship.earnings,
+                ship.earnings, ship.isImprisoned,
             )
         }
     }
@@ -57,6 +60,24 @@ interface ShipRepositoryPort {
 
     /** Adds [amount] to the Earnings of a ship in the fleet in one atomic step; runs in the caller's transaction. */
     fun addEarnings(shipId: ShipId, amount: Money)
+
+    /**
+     * The ship in this Harbor's fleet, read under its row lock, which is held until the caller's transaction ends;
+     * `null` for a ship that is not in the fleet. Runs in the caller's transaction.
+     */
+    fun lockShip(shipId: ShipId): Ship?
+
+    /**
+     * The confiscation's write: clears the Incoming flag, sets the imprisoned flag and deletes the Cargo aboard of a
+     * ship in the fleet; fails for a ship that is not in the fleet. Runs in the caller's transaction.
+     */
+    fun confiscate(shipId: ShipId)
+
+    /**
+     * The freeing's write: clears the imprisoned flag of an Imprisoned Ship in the fleet; fails for a ship that is
+     * not in the fleet or not imprisoned. Runs in the caller's transaction.
+     */
+    fun free(shipId: ShipId)
 
     /** Deletes the ship's Cargo aboard; runs in the caller's transaction. */
     fun clearCargoAboard(shipId: ShipId)

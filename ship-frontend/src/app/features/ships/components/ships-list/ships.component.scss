@@ -72,6 +72,8 @@
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border-radius: 16px;
   background: var(--hs-card);
@@ -103,7 +105,25 @@
   font-size: 14px;
 }
 
+.status--imprisoned {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--hs-ink);
+  color: var(--hs-raised);
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--hs-brass);
+  }
+}
+
 .body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: 0 16px 16px;
 }
 
@@ -159,7 +179,12 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.actions button {
+  flex: 1 1 100%;
 }
 
 .at-sea,
@@ -167,4 +192,59 @@
   margin: 0;
   font-style: italic;
   color: var(--hs-muted);
+}
+
+.new-shipping-refusal {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-weight: 600;
+}
+
+/* The Fine panel of an Imprisoned Ship listed at its Home Harbor. */
+.fine {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--hs-border);
+  background: var(--hs-raised);
+
+  &__amount {
+    margin: 0;
+    font-family: 'IM Fell English', serif;
+    font-size: 22px;
+  }
+
+  &__coverage {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 4px 0 0;
+
+    mat-icon {
+      color: var(--hs-brass);
+    }
+
+    &--short {
+      font-style: italic;
+      color: var(--hs-muted);
+    }
+  }
+
+  &__refusal {
+    margin: 8px 0 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    font-weight: 600;
+  }
+
+  &__pay {
+    width: 100%;
+    margin-top: 12px;
+  }
 }

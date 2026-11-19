@@ -10,8 +10,11 @@ import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
 import { MarketService } from '../services/market.service';
 import { IncomingShipsService } from '../services/incoming-ships.service';
+import { ImprisonedShipsService } from '../services/imprisoned-ships.service';
+import { Router } from '@angular/router';
+import { fakeAsync, tick } from '@angular/core/testing';
 import * as ShipActions from '../../ships/store/actions/ship.actions';
-import { aSavings, aStockedCargo, anIncomingShipListing } from '../../../../testing/fixtures';
+import { aFinePayment, aSavings, aStockedCargo, anImprisonedShip, anIncomingShipListing } from '../../../../testing/fixtures';
 
 describe('HarborEffects', () => {
   let actions$: ReplaySubject<Action>;
@@ -20,6 +23,8 @@ describe('HarborEffects', () => {
   let savingsService: jasmine.SpyObj<SavingsService>;
   let marketService: jasmine.SpyObj<MarketService>;
   let incomingShipsService: jasmine.SpyObj<IncomingShipsService>;
+  let imprisonedShipsService: jasmine.SpyObj<ImprisonedShipsService>;
+  let router: jasmine.SpyObj<Router>;
 
   beforeEach(() => {
     actions$ = new ReplaySubject<Action>();
@@ -27,6 +32,9 @@ describe('HarborEffects', () => {
     savingsService = jasmine.createSpyObj<SavingsService>('SavingsService', ['getSavings']);
     marketService = jasmine.createSpyObj<MarketService>('MarketService', ['buyCargo']);
     incomingShipsService = jasmine.createSpyObj<IncomingShipsService>('IncomingShipsService', ['getIncomingShips', 'unload', 'refuse']);
+    imprisonedShipsService = jasmine.createSpyObj<ImprisonedShipsService>('ImprisonedShipsService', ['getImprisonedShips', 'payFine']);
+    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    router.navigate.and.returnValue(Promise.resolve(true));
     TestBed.configureTestingModule({
       providers: [
         HarborEffects,
@@ -35,6 +43,8 @@ describe('HarborEffects', () => {
         { provide: SavingsService, useValue: savingsService },
         { provide: MarketService, useValue: marketService },
         { provide: IncomingShipsService, useValue: incomingShipsService },
+        { provide: ImprisonedShipsService, useValue: imprisonedShipsService },
+        { provide: Router, useValue: router },
       ],
     });
     effects = TestBed.inject(HarborEffects);
@@ -166,7 +176,7 @@ describe('HarborEffects', () => {
   });
 
   it('watchArrivals$ reloads the Incoming Ships and the Savings when a ship arrives and when the stream (re)connects, until stopped', () => {
-    const arrived = ShipActions.shipArrived({ shipId: 'id', shipName: 'Salty Whisker', originHarbor: 'Tortuga' });
+    const arrived = ShipActions.shipArrived({ shipId: 'id', shipName: 'Salty Whisker', originHarbor: 'Tortuga', imprisoned: false });
     const emitted: Action[] = [];
     effects.watchArrivals$.subscribe((action) => emitted.push(action));
     actions$.next(HarborActions.watchArrivals());
@@ -302,5 +312,116 @@ describe('HarborEffects', () => {
     actions$.next(HarborActions.refuseIncomingShipFailure({ shipId: 'b1a2c3d4-0000-4000-8000-000000000001', error: 'boom', refusal: 'nope' }));
 
     expect(emitted).toEqual([HarborActions.loadIncomingShips(), HarborActions.loadIncomingShips()]);
+  });
+
+  describe('the Fine', () => {
+    const shipId = '5f1d7c2e-0000-4000-8000-000000000002';
+
+    it('loadImprisonedShips$ emits loadImprisonedShipsSuccess with the service result', () => {
+      imprisonedShipsService.getImprisonedShips.and.returnValue(of([anImprisonedShip()]));
+      const emitted: Action[] = [];
+      effects.loadImprisonedShips$.subscribe((action) => emitted.push(action));
+
+      actions$.next(HarborActions.loadImprisonedShips());
+
+      expect(emitted).toEqual([HarborActions.loadImprisonedShipsSuccess({ imprisonedShips: [anImprisonedShip()] })]);
+    });
+
+    it('loadImprisonedShips$ emits loadImprisonedShipsFailure when the service fails', () => {
+      const error = new Error('boom');
+      imprisonedShipsService.getImprisonedShips.and.returnValue(throwError(() => error));
+      const emitted: Action[] = [];
+      effects.loadImprisonedShips$.subscribe((action) => emitted.push(action));
+
+      actions$.next(HarborActions.loadImprisonedShips());
+
+      expect(emitted).toEqual([HarborActions.loadImprisonedShipsFailure({ error })]);
+    });
+
+    it('payFine$ pays the Fine and emits payFineSuccess with the payment', () => {
+      imprisonedShipsService.payFine.and.returnValue(of(aFinePayment()));
+      const emitted: Action[] = [];
+      effects.payFine$.subscribe((action) => emitted.push(action));
+
+      actions$.next(HarborActions.payFine({ shipId }));
+
+      expect(imprisonedShipsService.payFine).toHaveBeenCalledWith(shipId);
+      expect(emitted).toEqual([HarborActions.payFineSuccess({ payment: aFinePayment() })]);
+    });
+
+    it('payFine$ emits payFineFailure with the refusal from the Problem Details', () => {
+      const error = new HttpErrorResponse({
+        status: 409,
+        error: { title: 'Savings do not cover', detail: 'The Savings do not cover the Fine of 50.00 $' },
+      });
+      imprisonedShipsService.payFine.and.returnValue(throwError(() => error));
+      const emitted: Action[] = [];
+      effects.payFine$.subscribe((action) => emitted.push(action));
+
+      actions$.next(HarborActions.payFine({ shipId }));
+
+      expect(emitted).toEqual([
+        HarborActions.payFineFailure({ shipId, error, refusal: 'The Savings do not cover the Fine of 50.00 $' }),
+      ]);
+    });
+
+    it('payFine$ falls back to a general refusal when the error has no detail', () => {
+      const error = new HttpErrorResponse({ status: 0 });
+      imprisonedShipsService.payFine.and.returnValue(throwError(() => error));
+      const emitted: Action[] = [];
+      effects.payFine$.subscribe((action) => emitted.push(action));
+
+      actions$.next(HarborActions.payFine({ shipId }));
+
+      expect(emitted).toEqual([HarborActions.payFineFailure({ shipId, error, refusal: 'The Fine could not be paid' })]);
+    });
+
+    it('refreshAfterFinePaid$ reloads the Imprisoned Ships, the Savings and the fleet', () => {
+      const emitted: Action[] = [];
+      effects.refreshAfterFinePaid$.subscribe((action) => emitted.push(action));
+
+      actions$.next(HarborActions.payFineSuccess({ payment: aFinePayment() }));
+
+      expect(emitted).toEqual([HarborActions.loadImprisonedShips(), HarborActions.loadSavings(), ShipActions.loadShips()]);
+    });
+
+    it('showFleetAfterFinePaid$ shows the fleet', () => {
+      effects.showFleetAfterFinePaid$.subscribe();
+
+      actions$.next(HarborActions.payFineSuccess({ payment: aFinePayment() }));
+
+      expect(router.navigate).toHaveBeenCalledWith(['/ships']);
+    });
+
+    it('dismissFineNotice$ dismisses the Fine notice after a while', fakeAsync(() => {
+      const emitted: Action[] = [];
+      const subscription = effects.dismissFineNotice$.subscribe((action) => emitted.push(action));
+
+      actions$.next(HarborActions.payFineSuccess({ payment: aFinePayment() }));
+      tick(7999);
+      expect(emitted).toEqual([]);
+      tick(1);
+
+      expect(emitted).toEqual([HarborActions.dismissFineNotice()]);
+      subscription.unsubscribe();
+    }));
+
+    it('refreshAfterRefusedFine$ reloads the Imprisoned Ships and the Savings', () => {
+      const emitted: Action[] = [];
+      effects.refreshAfterRefusedFine$.subscribe((action) => emitted.push(action));
+
+      actions$.next(HarborActions.payFineFailure({ shipId, error: 'boom', refusal: 'nope' }));
+
+      expect(emitted).toEqual([HarborActions.loadImprisonedShips(), HarborActions.loadSavings()]);
+    });
+
+    it('refreshImprisonedShipsWithFleet$ reloads the Imprisoned Ships whenever the fleet is loaded', () => {
+      const emitted: Action[] = [];
+      effects.refreshImprisonedShipsWithFleet$.subscribe((action) => emitted.push(action));
+
+      actions$.next(ShipActions.loadShipsSuccess({ ships: [] }));
+
+      expect(emitted).toEqual([HarborActions.loadImprisonedShips()]);
+    });
   });
 });

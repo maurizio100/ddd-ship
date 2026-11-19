@@ -2,15 +2,27 @@ import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
 import {Store} from "@ngrx/store";
 import {Ship, ShippingState} from "../../models/ship";
-import {selectAllShips, selectArrivalNotices} from "../../store/selectors/ship.selectors";
-import {ArrivalNotice} from "../../models/fleet-event";
-import {ShipService} from "../../services/ship.service";
+import {
+  selectAllShips,
+  selectArrivalNotices,
+  selectImprisonmentNotices,
+  selectNewShippingRefusal
+} from "../../store/selectors/ship.selectors";
+import {ArrivalNotice, ImprisonmentNotice} from "../../models/fleet-event";
 import * as ShipActions from "../../store/actions/ship.actions";
 import * as CatainsActions from "../../../catains/store/catains.actions";
 import {selectAllCatains} from "../../../catains/store/catains.selectors";
 import {environment} from "../../../../../environments/environment";
 import {MatButtonModule} from "@angular/material/button";
 import {MatIconModule} from "@angular/material/icon";
+import * as HarborActions from "../../../harbor/store/harbor.actions";
+import {
+  selectFineNotice,
+  selectFineRefusal,
+  selectImprisonedShips,
+  selectPayingFineShipIds
+} from "../../../harbor/store/harbor.selectors";
+import {fineCoverage, ImprisonedShip} from "../../../harbor/models/imprisoned-ship";
 
 @Component({
   selector: 'app-ships',
@@ -24,11 +36,18 @@ import {MatIconModule} from "@angular/material/icon";
 })
 export class ShipsComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store<{ships: Ship[]}>);
-  private readonly shipService = inject(ShipService);
   private readonly router = inject(Router);
 
   ships = this.store.selectSignal(selectAllShips);
   arrivalNotices = this.store.selectSignal(selectArrivalNotices);
+  imprisonmentNotices = this.store.selectSignal(selectImprisonmentNotices);
+  newShippingRefusal = this.store.selectSignal(selectNewShippingRefusal);
+  imprisonedShips = this.store.selectSignal(selectImprisonedShips);
+  fineNotice = this.store.selectSignal(selectFineNotice);
+  fineRefusal = this.store.selectSignal(selectFineRefusal);
+  payingFineShipIds = this.store.selectSignal(selectPayingFineShipIds);
+
+  readonly fineCoverage = fineCoverage;
 
   catains = this.store.selectSignal(selectAllCatains);
   private readonly failedImages = signal<ReadonlySet<string>>(new Set());
@@ -39,6 +58,7 @@ export class ShipsComponent implements OnInit, OnDestroy {
     this.store.dispatch(CatainsActions.loadCatains());
     this.store.dispatch(ShipActions.loadShips());
     this.store.dispatch(ShipActions.watchFleet());
+    this.store.dispatch(HarborActions.loadImprisonedShips());
   }
 
   ngOnDestroy(): void {
@@ -49,12 +69,42 @@ export class ShipsComponent implements OnInit, OnDestroy {
     this.store.dispatch(ShipActions.dismissArrivalNotice({shipId: notice.shipId}));
   }
 
+  dismissImprisonment(notice: ImprisonmentNotice) {
+    this.store.dispatch(ShipActions.dismissImprisonmentNotice({shipId: notice.shipId}));
+  }
+
+  dismissFineNotice() {
+    this.store.dispatch(HarborActions.dismissFineNotice());
+  }
+
+  /** The listing of [ship] as an Imprisoned Ship here, with its Fine; null when it has no Fine to pay here. */
+  imprisonedShipFor(ship: Ship): ImprisonedShip | null {
+    return this.imprisonedShips().find((imprisoned) => imprisoned.shipId === ship.id) ?? null;
+  }
+
+  /** Why the last Fine payment for [ship] was refused; null if it was not. */
+  fineRefusalFor(ship: Ship): string | null {
+    const refusal = this.fineRefusal();
+    return refusal?.shipId === ship.id ? refusal.message : null;
+  }
+
+  /** The Pay Fine button stays disabled while the Savings fall short or the payment is in flight. */
+  canPayFine(imprisoned: ImprisonedShip): boolean {
+    return imprisoned.savingsCoverFine && !this.payingFineShipIds().includes(imprisoned.shipId);
+  }
+
+  payFine(ship: Ship) {
+    this.store.dispatch(HarborActions.payFine({shipId: ship.id}));
+  }
+
   createShipping(ship: Ship) {
-    this.shipService
-      .createShipping(ship)
-      .subscribe((shippingSummary) =>
-        this.router.navigate([`ships/${shippingSummary.shipId}/cargo`])
-      );
+    this.store.dispatch(ShipActions.createShipping({ship}));
+  }
+
+  /** What the User is told about a new Shipping the backend refused for [ship]; null if none was refused. */
+  refusalFor(ship: Ship): string | null {
+    const refusal = this.newShippingRefusal();
+    return refusal?.shipId === ship.id ? refusal.message : null;
   }
 
   editShipping(ship: Ship) {
@@ -65,9 +115,10 @@ export class ShipsComponent implements OnInit, OnDestroy {
     return '/img/ship.jpg';
   }
 
-  /** An Incoming Ship must be unloaded or refused before it can start a new Shipping. */
+  /** An Imprisoned Ship gets no new Shipping; an Incoming Ship must be unloaded or refused first. */
   canCreateNewShipping(ship: Ship): boolean {
     return (
+      !ship.imprisoned &&
       !ship.incoming &&
       (ship.shippingState === ShippingState.IDLE || ship.shippingState === ShippingState.DONE)
     );
@@ -86,7 +137,13 @@ export class ShipsComponent implements OnInit, OnDestroy {
     return ship.shippingState === ShippingState.SHIPPING;
   }
 
+  /** An Imprisoned Ship in port; a ship at sea home as one is shown "At sea" until it arrives. */
+  isImprisoned(ship: Ship): boolean {
+    return ship.imprisoned && ship.shippingState !== ShippingState.SHIPPING;
+  }
+
   statusLabel(ship: Ship): string {
+    if (this.isImprisoned(ship)) return 'Imprisoned';
     switch (ship.shippingState) {
       case ShippingState.PREPARING:
         return 'Preparing';

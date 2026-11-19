@@ -2,7 +2,7 @@
 
 The Hexagonship web UI: the list of Available Ships, creating a ship with its Catain, loading and
 unloading Cargo (and showing the Cargo a Home Harbor refused aboard the ship), Releasing a ship, the Shipping Summary, and the harbor management page with the Stock, the
-Savings, the Market and the Incoming Ships, which it unloads or refuses. It holds the UI state in NgRx stores and
+Savings, the Market and the Incoming Ships, which it unloads or refuses, and the Imprisoned Ships page, where the User pays the Fine that frees an Imprisoned Ship (also from its fleet card). It holds the UI state in NgRx stores and
 gets all its data from ship-backend over REST. It has no domain rules of its own: the backend
 decides whether a load or a Release is allowed. The harbor terminal is not part of it.
 
@@ -47,5 +47,5 @@ Read this index first and then open **only** the documents your task needs.
 | Document | What it contains | Read it when |
 | --- | --- | --- |
 | `guidelines/` | Architecture (layout, routing, components), state and data (NgRx), testing. `guidelines/README.md` indexes them. | Writing or reviewing production or test code in this component |
-| `design-guidelines.md` | The pirate theme: colour tokens and their Angular Material mapping, fonts, component shapes, UI wording, screen patterns, accessibility | Building or restyling any screen |
+| `design-guidelines.md` | The pirate theme: colour tokens and their Angular Material mapping, fonts, component shapes, UI wording, screen patterns, accessibility, and the design system that mirrors them | Building or restyling any screen, or prototyping one for a story |
 | `decisions/` | Component-scoped mini-ADRs — decisions binding only this component. `decisions/README.md` indexes them all. | Planning or reviewing a change: scan the index, open the entries that bear on it, and check the change does not contradict one. |

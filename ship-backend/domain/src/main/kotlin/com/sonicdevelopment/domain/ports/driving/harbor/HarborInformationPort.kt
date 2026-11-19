@@ -13,4 +13,10 @@ interface HarborInformationPort {
      * this Harbor's Prices of every Cargo aboard, `null` if one of them has no Price here.
      */
     fun getIncomingShips(): List<IncomingShipDTO>
+
+    /**
+     * The Imprisoned Ships at this, their Home, Harbor and in port, each with its Fine and whether the Savings
+     * cover it. A ship sent home imprisoned is not listed while it is at sea.
+     */
+    fun getImprisonedShips(): List<ImprisonedShipDTO>
 }

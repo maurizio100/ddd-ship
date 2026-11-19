@@ -5,10 +5,11 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { ShipsComponent } from './ships.component';
 import { Ship, ShippingState } from '../../models/ship';
 import { ShipService } from '../../services/ship.service';
+import * as HarborActions from '../../../harbor/store/harbor.actions';
 import * as ShipActions from '../../store/actions/ship.actions';
-import { anArrivalNotice, anAvailableShip, anIncomingShip } from '../../../../../testing/fixtures';
+import { aFinePayment, anArrivalNotice, anAvailableShip, anImprisonedShip, anImprisonmentNotice, anIncomingShip, aSavings } from '../../../../../testing/fixtures';
 import { Catain } from '../../../catains/model/catain';
-import { ArrivalNotice } from '../../models/fleet-event';
+import { ArrivalNotice, ImprisonmentNotice } from '../../models/fleet-event';
 
 describe('ShipsComponent (The voyage ends at the Origin Harbor)', () => {
   let fixture: ComponentFixture<ShipsComponent>;
@@ -355,5 +356,199 @@ describe('ShipsComponent (Unloading earns the ship its Earnings)', () => {
     render([anAvailableShip({ name: 'Salty Whisker', earnings: '0.00' })]);
 
     expect(earnings()).toEqual([]);
+  });
+});
+
+describe('ShipsComponent (A Harbor carries out an imprisonment)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(
+    ships: Ship[],
+    state: {
+      arrivalNotices?: ArrivalNotice[];
+      imprisonmentNotices?: ImprisonmentNotice[];
+      newShippingRefusal?: { shipId: string; message: string } | null;
+    } = {},
+  ): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          initialState: {
+            ships: {
+              ships,
+              loading: false,
+              error: null,
+              arrivalNotices: state.arrivalNotices ?? [],
+              imprisonmentNotices: state.imprisonmentNotices ?? [],
+              newShippingRefusal: state.newShippingRefusal ?? null,
+            },
+            catains: { catains: [], loading: false, error: null },
+          },
+        }),
+        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  const texts = (testId: string): string[] => all(testId).map((element) => element.textContent!.trim());
+
+  it('The User is told when the Coast Guard imprisons a ship here', () => {
+    render([anIncomingShip({ shippingState: ShippingState.SHIPPING, imprisoned: true })], {
+      imprisonmentNotices: [anImprisonmentNotice()],
+    });
+
+    expect(texts('ships-imprisonment-notice')).toEqual([
+      'The Coast Guard imprisoned Salty Whisker: its Cargo is confiscated and it sails home to Tortuga',
+    ]);
+  });
+
+  it('At its Home Harbor the ship is imprisoned in place', () => {
+    render([anIncomingShip({ incoming: false, imprisoned: true, homeHarbor: 'Tortuga', shippingState: null })]);
+
+    expect(texts('ship-status')).toEqual(['Imprisoned']);
+    expect(all('new-shipping')).toEqual([]);
+  });
+
+  it('A ship sent home imprisoned is imprisoned on its Arrival', () => {
+    render([anIncomingShip({ incoming: false, imprisoned: true, arrivedFrom: 'Port Royal' })], {
+      arrivalNotices: [
+        anArrivalNotice({
+          shipId: anIncomingShip().id,
+          shipName: 'Salty Whisker',
+          originHarbor: 'Port Royal',
+          imprisoned: true,
+        }),
+      ],
+    });
+
+    expect(texts('ships-arrival-notice')).toEqual(['Salty Whisker arrived from Port Royal, imprisoned']);
+  });
+
+  it('An Imprisoned Ship cannot get a new Shipping', () => {
+    const saltyWhisker = anIncomingShip({ incoming: false, imprisoned: true, shippingState: null });
+    render([saltyWhisker], {
+      newShippingRefusal: { shipId: saltyWhisker.id, message: 'Salty Whisker is imprisoned' },
+    });
+
+    expect(texts('new-shipping-refusal')).toEqual(['Salty Whisker is imprisoned']);
+    expect(all('new-shipping-refusal')[0].getAttribute('role')).toBe('alert');
+  });
+});
+
+describe('ShipsComponent (an Imprisoned Ship on the fleet page)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+  let store: MockStore;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          initialState: {
+            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null },
+            catains: { catains: [], loading: false, error: null },
+          },
+        }),
+      ],
+    });
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  it('a ship at sea home as an imprisoned ship shows "At sea", not "Imprisoned"', () => {
+    render([anAvailableShip({ imprisoned: true, shippingState: ShippingState.SHIPPING })]);
+
+    expect(all('ship-status').map((status) => status.textContent!.trim())).toEqual(['At sea']);
+  });
+
+  it('New shipping asks the store to start the new Shipping', () => {
+    const blackPearl = anAvailableShip({ shippingState: ShippingState.IDLE });
+    render([blackPearl]);
+
+    all('new-shipping')[0].click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(ShipActions.createShipping({ ship: blackPearl }));
+  });
+});
+
+describe('ShipsComponent (Free an Imprisoned Ship by paying its Fine)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+  let store: MockStore;
+
+  const saltyWhiskerImprisoned = () => anIncomingShip({ incoming: false, imprisoned: true, shippingState: null });
+
+  function render(ships: Ship[], harbor: Record<string, unknown> = {}): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          initialState: {
+            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null },
+            catains: { catains: [], loading: false, error: null },
+            harbor: {
+              stock: [], savings: aSavings(), incomingShips: [], loading: false, error: null,
+              imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [],
+              ...harbor,
+            },
+          },
+        }),
+      ],
+    });
+    store = TestBed.inject(MockStore);
+    spyOn(store, 'dispatch');
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+  const texts = (testId: string): string[] => all(testId).map((el) => el.textContent!.trim());
+
+  it('The User sees whether the Savings cover the Fine', () => {
+    render([saltyWhiskerImprisoned()], { imprisonedShips: [anImprisonedShip({ savingsCoverFine: true })] });
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.loadImprisonedShips());
+    expect(texts('ship-fine')[0]).toContain('Fine 50.00 $');
+    expect(texts('ship-fine-coverage')).toEqual(['The Savings cover the Fine']);
+    expect((all('ship-pay-fine')[0] as HTMLButtonElement).disabled).toBeFalse();
+    TestBed.resetTestingModule();
+
+    render([saltyWhiskerImprisoned()], {
+      savings: aSavings({ amount: '30.00' }),
+      imprisonedShips: [anImprisonedShip({ savingsCoverFine: false })],
+    });
+    expect(texts('ship-fine-coverage')).toEqual(['The Savings do not cover the Fine of 50.00 $']);
+    expect((all('ship-pay-fine')[0] as HTMLButtonElement).disabled).toBeTrue();
+  });
+
+  it('Paying the Fine frees the ship', () => {
+    const imprisoned = anImprisonedShip();
+    render([saltyWhiskerImprisoned()], { imprisonedShips: [imprisoned] });
+    (all('ship-pay-fine')[0] as HTMLButtonElement).click();
+    expect(store.dispatch).toHaveBeenCalledWith(HarborActions.payFine({ shipId: imprisoned.shipId }));
+    TestBed.resetTestingModule();
+
+    // once paid, the fleet shows the notice and the freed ship can get a new Shipping
+    render([anIncomingShip({ incoming: false, imprisoned: false, shippingState: ShippingState.IDLE })], {
+      fineNotice: aFinePayment(),
+    });
+    expect(texts('ships-fine-notice')[0]).toContain(
+      'Salty Whisker is free: the Fine of 50.00 $ is paid, the Savings are 950.00 $',
+    );
+    expect(all('ship-fine')).toEqual([]);
+    expect(all('new-shipping').length).toBe(1);
   });
 });

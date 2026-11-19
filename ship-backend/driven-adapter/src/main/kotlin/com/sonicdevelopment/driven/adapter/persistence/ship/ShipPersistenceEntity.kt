@@ -41,5 +41,9 @@ class ShipPersistenceEntity(
     /** The Earnings the ship carries until it reaches its Home Harbor; only grows through an atomic update. */
     @Column(name = "ship_earnings")
     var earnings: BigDecimal = BigDecimal.ZERO,
+
+    /** Whether the ship is an Imprisoned Ship, or sails home as one from the Harbor that confiscated its Cargo. */
+    @Column(name = "ship_imprisoned")
+    var imprisoned: Boolean = false,
 ) {
 }
