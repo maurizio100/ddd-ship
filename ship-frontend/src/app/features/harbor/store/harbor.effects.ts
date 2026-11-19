@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, concatMap, map, of, switchMap, takeUntil } from 'rxjs';
+import { catchError, concatMap, EMPTY, map, Observable, of, switchMap, takeUntil } from 'rxjs';
+import { Action } from '@ngrx/store';
 import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
@@ -162,4 +163,12 @@ export class HarborEffects {
       map(() => HarborActions.loadIncomingShips()),
     ),
   );
+
+  loadImprisonedShips$ = createEffect(() => EMPTY as Observable<Action>);
+  payFine$ = createEffect(() => EMPTY as Observable<Action>);
+  refreshAfterFinePaid$ = createEffect(() => EMPTY as Observable<Action>);
+  showFleetAfterFinePaid$ = createEffect(() => EMPTY, { dispatch: false });
+  dismissFineNotice$ = createEffect(() => EMPTY as Observable<Action>);
+  refreshAfterRefusedFine$ = createEffect(() => EMPTY as Observable<Action>);
+  refreshImprisonedShipsWithFleet$ = createEffect(() => EMPTY as Observable<Action>);
 }

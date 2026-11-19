@@ -13,6 +13,10 @@ export const initialState: HarborState = {
   unloadingShipIds: [],
   refuseFailure: null,
   refusingShipIds: [],
+  imprisonedShips: [],
+  fineNotice: null,
+  fineRefusal: null,
+  payingFineShipIds: [],
 };
 
 export const harborReducers = createReducer(
