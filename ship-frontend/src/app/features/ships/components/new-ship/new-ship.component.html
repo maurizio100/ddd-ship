@@ -49,6 +49,11 @@
           </label>
         }
       </div>
+      @if (shipClassesUnavailable$ | async) {
+        <p class="alert" role="alert" data-testid="ship-classes-unavailable">
+          The Ship Classes could not be loaded. Reload the page to try again.
+        </p>
+      }
     </section>
 
     <section class="catain-section">

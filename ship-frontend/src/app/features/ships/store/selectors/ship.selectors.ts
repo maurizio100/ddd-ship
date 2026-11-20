@@ -12,6 +12,8 @@ export interface ShipState {
   ships: Ship[];
   /** The Ship Classes on offer with their Crew Capacity, as the backend lists them. */
   shipClasses: ShipClassOffer[];
+  /** Whether the last load of the Ship Classes failed, so none can be chosen. */
+  shipClassesUnavailable: boolean;
   loading: boolean;
   error: string | null;
   /** Ships that have just arrived, until the notice is dismissed. */
@@ -32,6 +34,11 @@ export const selectAllShips = createSelector(
 export const selectShipClasses = createSelector(
   selectShipsState,
   state => state.shipClasses
+);
+
+export const selectShipClassesUnavailable = createSelector(
+  selectShipsState,
+  state => state.shipClassesUnavailable
 );
 
 export const selectError = createSelector(

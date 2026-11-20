@@ -233,4 +233,16 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
     expect(all('catain-image').length).toBe(1);
     expect(all('catain-image-fallback').length).toBe(1);
   });
+
+  it('Ship Classes that fail to load are announced in the picker', async () => {
+    await render();
+    expect(all('ship-classes-unavailable')).toEqual([]);
+
+    store.setState({ catains: { catains: [whiskers, mittens], loading: false, error: null }, ships: { shipClasses: [], shipClassesUnavailable: true } });
+    fixture.detectChanges();
+
+    const alert = all('ship-classes-unavailable');
+    expect(alert.length).toBe(1);
+    expect(alert[0].textContent).toContain('The Ship Classes could not be loaded');
+  });
 });

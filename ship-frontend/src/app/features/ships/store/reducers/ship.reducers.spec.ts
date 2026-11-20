@@ -12,6 +12,15 @@ describe('shipReducers (Ship Classes are offered with their Crew Capacity)', () 
 
     expect(state.shipClasses).toEqual(shipClasses);
   });
+
+  it('marks the Ship Classes unavailable when they fail to load, until they load', () => {
+    const failed = shipReducers(initialState, ShipActions.loadShipClassesFailure({ error: 'Http failure' }));
+    expect(failed.shipClassesUnavailable).toBeTrue();
+    expect(failed.error).toBeNull();
+
+    const loaded = shipReducers(failed, ShipActions.loadShipClassesSuccess({ shipClasses: [] }));
+    expect(loaded.shipClassesUnavailable).toBeFalse();
+  });
 });
 
 describe('shipReducers (A Harbor sees ships arrive and leave as they happen)', () => {

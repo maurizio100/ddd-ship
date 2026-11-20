@@ -9,7 +9,7 @@ import {Ship} from "../../models/ship";
 import {Catain} from "../../../catains/model/catain";
 import {SHIP_CLASS_LABELS, ShipClass} from "../../models/ship";
 import {NewShipRequest} from "../../models/new-ship-request";
-import {selectShipClasses} from "../../store/selectors/ship.selectors";
+import {selectShipClasses, selectShipClassesUnavailable} from "../../store/selectors/ship.selectors";
 import * as ShipActions from "../../store/actions/ship.actions";
 import * as CatainsActions from "../../../catains/store/catains.actions";
 import {MatFormFieldModule} from "@angular/material/form-field";
@@ -43,6 +43,7 @@ export class NewShipComponent implements OnInit {
   catains$ = this.catainStore.select(state => state.catains.catains);
 
   shipClasses$ = this.shipStore.select(selectShipClasses);
+  shipClassesUnavailable$ = this.shipStore.select(selectShipClassesUnavailable);
 
   shipRequest: Omit<NewShipRequest, 'shipClass'> & { shipClass: ShipClass | null } = {
     name: '',
