@@ -1085,7 +1085,7 @@ components:
     ShipArrivedFleetEvent:
       type: object
       description: Data of the `ship-arrived` fleet event
-      required: [shipId, shipName, originHarbor, imprisoned]
+      required: [shipId, shipName, originHarbor, imprisoned, crew]
       properties:
         shipId:
           type: string
@@ -1098,6 +1098,11 @@ components:
         imprisoned:
           type: boolean
           description: Whether the ship arrived at its Home Harbor as an Imprisoned Ship, sent home after a Confiscation
+        crew:
+          type: array
+          description: Names of the Crew Members that arrived aboard; empty for a ship without Crew
+          items:
+            type: string
 
     ShipImprisonedFleetEvent:
       type: object
