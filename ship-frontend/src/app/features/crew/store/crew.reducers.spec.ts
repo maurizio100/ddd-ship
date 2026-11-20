@@ -54,4 +54,37 @@ describe('crew reducers', () => {
       'Port Royal',
     );
   });
+
+  it('dismissCrewMember marks the Crew Member in flight and clears the refusal', () => {
+    const state = { ...initialState, dismissRefusal: { crewMemberId: 'c0', message: 'no' } };
+
+    const next = crewReducers(state, CrewActions.dismissCrewMember({ shipId: 's', crewMemberId: 'c1' }));
+
+    expect(next.dismissingCrewMemberIds).toEqual(['c1']);
+    expect(next.dismissRefusal).toBeNull();
+  });
+
+  it('dismissCrewMemberSuccess clears the flight and leaves the new-in-pool list alone', () => {
+    const state = { ...initialState, dismissingCrewMemberIds: ['c1'], newInPoolRecruitIds: ['r9'] };
+
+    const next = crewReducers(state, CrewActions.dismissCrewMemberSuccess({ crewMemberId: 'c1' }));
+
+    expect(next.dismissingCrewMemberIds).toEqual([]);
+    expect(next.newInPoolRecruitIds).toEqual(['r9']);
+  });
+
+  it('dismissCrewMemberFailure clears the flight and keeps the refusal', () => {
+    const state = { ...initialState, dismissingCrewMemberIds: ['c1'] };
+
+    const next = crewReducers(state, CrewActions.dismissCrewMemberFailure({ crewMemberId: 'c1', error: {}, refusal: 'no' }));
+
+    expect(next.dismissingCrewMemberIds).toEqual([]);
+    expect(next.dismissRefusal).toEqual({ crewMemberId: 'c1', message: 'no' });
+  });
+
+  it('loadHarborName clears a dismiss refusal', () => {
+    const state = { ...initialState, dismissRefusal: { crewMemberId: 'c1', message: 'no' } };
+
+    expect(crewReducers(state, CrewActions.loadHarborName()).dismissRefusal).toBeNull();
+  });
 });
