@@ -1,5 +1,5 @@
 import {createAction, props} from "@ngrx/store";
-import {Ship} from "../../models/ship";
+import {Ship, ShipClassOffer} from "../../models/ship";
 import {NewShipRequest} from "../../models/new-ship-request";
 import {ShipArrived, ShipImprisoned, ShipLeft} from "../../models/fleet-event";
 import {ShippingSummary} from "../../../shipping/models/shipping-summary";
@@ -8,6 +8,9 @@ const shipActions = {
   loadShips: '[Ship] Load Ships',
   loadShipsSuccess: '[Ship] Load Ships Success',
   loadShipsFailed: '[Ship] Load Ships Failed',
+  loadShipClasses: '[Ship] Load Ship Classes',
+  loadShipClassesSuccess: '[Ship] Load Ship Classes Success',
+  loadShipClassesFailure: '[Ship] Load Ship Classes Failure',
   addShip: '[Ship] Add Ship',
   addShipSuccess: '[Ship] Add Ship Success',
   addShipFailure: '[Ship] Add Ship Failure',
@@ -44,6 +47,20 @@ export const addShip = createAction(
 export const addShipSuccess = createAction(
   shipActions.addShipSuccess,
   props<Ship>()
+);
+
+export const loadShipClasses = createAction(
+  shipActions.loadShipClasses
+);
+
+export const loadShipClassesSuccess = createAction(
+  shipActions.loadShipClassesSuccess,
+  props<{shipClasses: ShipClassOffer[]}>()
+);
+
+export const loadShipClassesFailure = createAction(
+  shipActions.loadShipClassesFailure,
+  props<{error: string}>()
 );
 
 export const addShipFailure = createAction(

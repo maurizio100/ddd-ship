@@ -8,6 +8,7 @@ import * as ShipActions from '../actions/ship.actions';
 import { FleetEventsService } from '../../services/fleet-events.service';
 import { ShipService } from '../../services/ship.service';
 import { FleetEvent } from '../../models/fleet-event';
+import { ShipClass } from '../../models/ship';
 import { anArrivalNotice, anAvailableShip, aShippingSummary } from '../../../../../testing/fixtures';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -21,7 +22,7 @@ describe('ShipEffects (fleet events)', () => {
   beforeEach(() => {
     actions$ = new ReplaySubject<Action>();
     pushed = new Subject<FleetEvent>();
-    shipService = jasmine.createSpyObj<ShipService>('ShipService', ['getShips', 'addShip', 'createShipping']);
+    shipService = jasmine.createSpyObj<ShipService>('ShipService', ['getShips', 'getShipClasses', 'addShip', 'createShipping']);
     const fleetEventsService = jasmine.createSpyObj<FleetEventsService>('FleetEventsService', ['events']);
     fleetEventsService.events.and.returnValue(pushed);
     TestBed.configureTestingModule({
@@ -85,6 +86,27 @@ describe('ShipEffects (fleet events)', () => {
 
     expect(shipService.getShips).toHaveBeenCalledTimes(2);
     expect(emitted).toEqual([ShipActions.loadShipsSuccess({ ships: [anAvailableShip()] })]);
+  });
+
+  it('loadShipClasses$ maps the offered Ship Classes to success', () => {
+    const shipClasses = [{ shipClass: ShipClass.BRIG, crewCapacity: 4 }];
+    shipService.getShipClasses.and.returnValue(of(shipClasses));
+    const emitted: Action[] = [];
+    effects.loadShipClasses$.subscribe((action) => emitted.push(action));
+
+    actions$.next(ShipActions.loadShipClasses());
+
+    expect(emitted).toEqual([ShipActions.loadShipClassesSuccess({ shipClasses })]);
+  });
+
+  it('loadShipClasses$ maps a failed request to failure', () => {
+    shipService.getShipClasses.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    const emitted: Action[] = [];
+    effects.loadShipClasses$.subscribe((action) => emitted.push(action));
+
+    actions$.next(ShipActions.loadShipClasses());
+
+    expect(emitted).toEqual([ShipActions.loadShipClassesFailure({ error: jasmine.any(String) as unknown as string })]);
   });
 
   it('refetchOnShipLeft$ reloads the fleet so a stale in-flight load cannot resurrect the ship', () => {
