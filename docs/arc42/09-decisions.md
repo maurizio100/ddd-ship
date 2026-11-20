@@ -15,3 +15,4 @@ Index of the architecture decision records in [`../adr/`](../adr/README.md). Mai
 - [ADR-0009: Carry the Crew with the ship and fill Recruit Pools per Harbor](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md) — Accepted — integration · ship-backend
 - [ADR-0010: Test each component in isolation](../adr/0010-test-each-component-in-isolation.md) — Accepted — crosscutting · ship-backend, ship-frontend
 - [ADR-0011: Imprison Contraband runners with a Coast Guard built on Kafka Streams](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md) — Accepted — structure · ship-coast-guard, ship-backend
+- [ADR-0012: Derive Recruit Portraits from the cat's identity](../adr/0012-derive-recruit-portraits-from-the-cats-identity.md) — Accepted — integration · ship-backend, ship-frontend
