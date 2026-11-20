@@ -1,7 +1,9 @@
 package com.sonicdevelopment.driving.adapter.web.fleetevents
 
+import com.sonicdevelopment.domain.model.CrewMember
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShipId
 import io.mockk.every
@@ -67,6 +69,27 @@ class SseFleetEventsAdapterTest {
 
         verify(exactly = 1) {
             emitters.broadcast("ship-arrived", ShipArrivedFleetEvent(blackPearl.id.id, "Black Pearl", "Tortuga", imprisoned = true))
+        }
+    }
+
+    @Test
+    fun `an arrival is pushed with the names of its Crew`() {
+        val withCrew = Ship(
+            id = blackPearl.id, name = "Black Pearl", catainId = blackPearl.catainId, catainName = "Whiskers",
+            homeHarbor = HarborName("Port Royal"),
+            crew = listOf(
+                CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Brave"),
+                CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Sly"),
+            ),
+        )
+
+        adapter.announceShipArrived(withCrew, HarborName("Tortuga"))
+
+        verify(exactly = 1) {
+            emitters.broadcast(
+                "ship-arrived",
+                ShipArrivedFleetEvent(blackPearl.id.id, "Black Pearl", "Tortuga", false, crew = listOf("Mittens", "Patch")),
+            )
         }
     }
 
