@@ -45,11 +45,11 @@ export const shipReducers = createReducer(
     error: error
   })),
 
-  on(ShipActions.shipArrived, (state, {shipId, shipName, originHarbor, imprisoned}) => ({
+  on(ShipActions.shipArrived, (state, {shipId, shipName, originHarbor, imprisoned, crew}) => ({
     ...state,
     arrivalNotices: [
       ...state.arrivalNotices.filter(notice => notice.shipId !== shipId),
-      {shipId, shipName, originHarbor, imprisoned, crew: []}
+      {shipId, shipName, originHarbor, imprisoned, crew: crew ?? []}
     ]
   })),
 
