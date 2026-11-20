@@ -57,6 +57,7 @@ class ShipCrewControllerTest {
             jsonPath("$.crewMember.id") { value(recruitId.toString()) }
             jsonPath("$.crewMember.name") { value("Mittens") }
             jsonPath("$.crewMember.trait") { value("Strong Paws") }
+            jsonPath("$.crewMember.refund") { value("25.00") }
             jsonPath("$.hiringFee") { value("50.00") }
             jsonPath("$.savings") { value("950.00") }
             jsonPath("$.newRecruit.id") { value(newRecruit.toString()) }
