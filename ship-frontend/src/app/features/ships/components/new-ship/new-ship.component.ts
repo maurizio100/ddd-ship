@@ -7,6 +7,7 @@ import {take} from "rxjs";
 import {FormsModule} from "@angular/forms";
 import {Ship} from "../../models/ship";
 import {Catain} from "../../../catains/model/catain";
+import {ShipClass} from "../../models/ship";
 import {NewShipRequest} from "../../models/new-ship-request";
 import * as ShipActions from "../../store/actions/ship.actions";
 import * as CatainsActions from "../../../catains/store/catains.actions";
@@ -43,6 +44,7 @@ export class NewShipComponent implements OnInit {
   shipRequest: NewShipRequest = {
     name: '',
     catainId: '',
+    shipClass: null as unknown as ShipClass,
   };
 
   private readonly failedImages = signal<ReadonlySet<string>>(new Set());

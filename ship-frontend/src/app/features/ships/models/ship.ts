@@ -13,6 +13,8 @@ export interface Ship {
   earnings: string;
   /** True for an Imprisoned Ship, or a ship at sea coming home imprisoned. */
   imprisoned: boolean;
+  shipClass: ShipClass;
+  crewCapacity: number;
 }
 
 export enum ShippingState {
@@ -21,3 +23,15 @@ export enum ShippingState {
   SHIPPING = 'SHIPPING',
   DONE = 'DONE',
 }
+
+export enum ShipClass {
+  SLOOP = 'SLOOP',
+  BRIG = 'BRIG',
+  GALLEON = 'GALLEON',
+}
+
+export const SHIP_CLASS_LABELS: Record<ShipClass, string> = {
+  [ShipClass.SLOOP]: 'Sloop',
+  [ShipClass.BRIG]: 'Brig',
+  [ShipClass.GALLEON]: 'Galleon',
+};

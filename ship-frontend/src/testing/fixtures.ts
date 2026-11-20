@@ -12,6 +12,7 @@ import { StockedCargo } from '../app/features/harbor/models/stocked-cargo';
 import { Catain } from '../app/features/catains/model/catain';
 import {
   Ship as AvailableShip,
+  ShipClass as AvailableShipClass,
   ShippingState as AvailableShipShippingState,
 } from '../app/features/ships/models/ship';
 
@@ -60,6 +61,8 @@ export function anAvailableShip(overrides: Partial<AvailableShip> = {}): Availab
     incoming: false,
     earnings: '0.00',
     imprisoned: false,
+    shipClass: AvailableShipClass.SLOOP,
+    crewCapacity: 2,
     ...overrides,
   };
 }
