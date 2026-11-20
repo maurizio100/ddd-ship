@@ -16,10 +16,11 @@ const RECRUITS: Recruit[] = ['Mittens', 'Patch', 'Saffron', 'Biscuit', 'Pepper']
   id: `00000000-0000-4000-8000-00000000000${i}`,
   name,
   trait: `trait ${i}`,
+  portrait: { fur: 'grey', coat: i % 2 ? 'tuxedo' : 'spotted', eyes: 'amber', accessory: 'bandana' } as const,
   hiringFee: '50.00',
 }));
 
-const MITTENS = { id: '00000000-0000-4000-8000-0000000000aa', name: 'Mittens', trait: 'Strong Paws' };
+const MITTENS = { id: '00000000-0000-4000-8000-0000000000aa', name: 'Mittens', trait: 'Strong Paws', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const };
 const NO_REFUSAL = null;
 
 describe('CrewComponent (A Harbor offers five Recruits)', () => {
@@ -92,7 +93,33 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
     expect(rows.length).toBe(5);
     expect(all('crew-recruit-name').map((n) => n.textContent!.trim())).toEqual(RECRUITS.map((r) => r.name));
     expect(all('crew-recruit-trait').map((n) => n.textContent!.trim())).toEqual(RECRUITS.map((r) => r.trait));
-    expect(rows[1].querySelector('[aria-hidden="true"]')!.textContent!.trim()).toBe('P');
+  });
+
+  it('shows a portrait for every Recruit of the pool', () => {
+    render();
+
+    const rows = all('crew-recruit');
+    rows.forEach((row, i) => {
+      const svg = row.querySelector('app-cat-portrait svg')!;
+      expect(svg.getAttribute('role')).toBe('img');
+      expect(svg.getAttribute('aria-label')).toBe(`Portrait of ${RECRUITS[i].name}`);
+      expect(svg.getAttribute('data-coat')).toBe(RECRUITS[i].portrait.coat);
+    });
+  });
+
+  it('no Recruit row is drawn without a portrait image', () => {
+    render();
+
+    expect(all('crew-recruit').filter((row) => !row.querySelector('app-cat-portrait svg'))).toEqual([]);
+  });
+
+  it('shows a Crew Member with the portrait it came with', () => {
+    const portrait = { fur: 'black', coat: 'tuxedo', eyes: 'blue', accessory: 'earring' } as const;
+    render({ ship: { shipClass: ShipClass.SLOOP, crewCapacity: 2, crew: [{ ...MITTENS, portrait }] } });
+
+    const svg = all('crew-member')[0].querySelector('app-cat-portrait svg')!;
+    expect(svg.getAttribute('aria-label')).toBe('Portrait of Mittens');
+    expect([svg.getAttribute('data-fur'), svg.getAttribute('data-coat'), svg.getAttribute('data-eyes'), svg.getAttribute('data-accessory')]).toEqual(['black', 'tuxedo', 'blue', 'earring']);
   });
 
   it('shows the header, the capacity and the free berths of the ship', () => {

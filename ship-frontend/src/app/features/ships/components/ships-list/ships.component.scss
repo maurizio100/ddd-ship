@@ -262,29 +262,34 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--hs-sand);
+  font-weight: 600;
 
   mat-icon {
     color: var(--hs-brass);
   }
 }
 
-.crew-initials {
+.crew-portraits {
   display: inline-flex;
 }
 
-.crew-initial {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 2px solid var(--hs-brass);
+.crew-portrait {
   border-radius: 50%;
-  font-size: 0.8rem;
+  background: var(--hs-sand);
 
   & + & {
     margin-left: -8px;
   }
+
+  --crew-portrait-size: 32px;
+}
+
+.crew-portrait ::ng-deep svg {
+  width: var(--crew-portrait-size);
+  height: var(--crew-portrait-size);
 }
 
 .crew-names {

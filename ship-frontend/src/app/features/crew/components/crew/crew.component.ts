@@ -2,6 +2,7 @@ import { Component, computed, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { CatPortraitComponent } from '../cat-portrait/cat-portrait.component';
 import { Store } from '@ngrx/store';
 import * as HarborActions from '../../../harbor/store/harbor.actions';
 import * as ShipActions from '../../../ships/store/actions/ship.actions';
@@ -24,7 +25,7 @@ import {
   selector: 'app-crew',
   templateUrl: './crew.component.html',
   styleUrl: './crew.component.scss',
-  imports: [RouterLink, MatIconModule, MatButtonModule],
+  imports: [RouterLink, MatIconModule, MatButtonModule, CatPortraitComponent],
 })
 export class CrewComponent implements OnInit {
   private readonly store = inject(Store);
@@ -86,9 +87,5 @@ export class CrewComponent implements OnInit {
 
   dismiss(shipId: string, crewMemberId: string): void {
     this.store.dispatch(dismissCrewMember({ shipId, crewMemberId }));
-  }
-
-  initial(name: string): string {
-    return name.charAt(0).toUpperCase();
   }
 }

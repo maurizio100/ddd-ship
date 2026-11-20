@@ -263,7 +263,12 @@ describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)',
     );
   });
 
-  const crewMember = (id: number, name: string, trait: string) => ({ id: `c0ffee00-0000-4000-8000-00000000000${id}`, name, trait });
+  const crewMember = (id: number, name: string, trait: string) => ({
+    id: `c0ffee00-0000-4000-8000-00000000000${id}`,
+    name,
+    trait,
+    portrait: { fur: 'cream', coat: 'spotted', eyes: 'blue', accessory: 'earring' } as const,
+  });
 
   it('The Crew arrives with the ship', () => {
     const saltyWhisker = anAvailableShip({
@@ -284,6 +289,22 @@ describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)',
     ]);
     expect(all('ship-crew-count').map((count) => count.textContent!.replace(/\s+/g, ' ').trim())).toEqual(['Crew 2 / 4']);
     expect(all('ship-crew-names').map((names) => names.textContent!.trim())).toEqual(['Mittens, Patch']);
+  });
+
+  it('A Crew Member is shown at the Harbor with the portrait it came with', () => {
+    render([
+      anAvailableShip({
+        name: 'Salty Whisker',
+        arrivedFrom: 'Tortuga',
+        crewCapacity: 4,
+        crew: [crewMember(1, 'Mittens', 'Strong Paws'), crewMember(2, 'Patch', 'Sharp Eyes')],
+      }),
+    ], []);
+
+    const svgs = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="ship-crew-portraits"] svg')) as SVGElement[];
+    expect(svgs.map((svg) => svg.getAttribute('aria-label'))).toEqual(['Portrait of Mittens', 'Portrait of Patch']);
+    expect(svgs.map((svg) => svg.getAttribute('data-fur'))).toEqual(['cream', 'cream']);
+    expect(fixture.nativeElement.querySelector('[data-testid="ship-crew-count"] mat-icon')!.getAttribute('fonticon')).toBe('groups');
   });
 
   it('A ship returning to a Harbor shows its current Crew', () => {

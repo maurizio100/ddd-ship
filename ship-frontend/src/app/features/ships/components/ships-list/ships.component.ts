@@ -22,6 +22,7 @@ import {
   selectImprisonedShips,
   selectPayingFineShipIds
 } from "../../../harbor/store/harbor.selectors";
+import {CatPortraitComponent} from "../../../crew/components/cat-portrait/cat-portrait.component";
 import {fineCoverage, ImprisonedShip} from "../../../harbor/models/imprisoned-ship";
 
 @Component({
@@ -31,7 +32,8 @@ import {fineCoverage, ImprisonedShip} from "../../../harbor/models/imprisoned-sh
   imports: [
     RouterLink,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    CatPortraitComponent
   ]
 })
 export class ShipsComponent implements OnInit, OnDestroy {
@@ -121,10 +123,6 @@ export class ShipsComponent implements OnInit, OnDestroy {
 
   crewNames(ship: Ship): string {
     return ship.crew.map((member) => member.name).join(', ');
-  }
-
-  initial(name: string): string {
-    return name.charAt(0).toUpperCase();
   }
 
   editShipping(ship: Ship) {

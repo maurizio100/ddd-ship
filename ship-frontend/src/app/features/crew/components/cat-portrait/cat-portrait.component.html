@@ -1,0 +1,72 @@
+<svg
+  class="portrait"
+  [class.portrait--ring]="ring()"
+  viewBox="0 0 48 48"
+  role="img"
+  [attr.aria-label]="'Portrait of ' + name()"
+  [attr.data-fur]="portrait().fur"
+  [attr.data-coat]="portrait().coat"
+  [attr.data-eyes]="portrait().eyes"
+  [attr.data-accessory]="portrait().accessory"
+>
+  <circle class="portrait__ground" cx="24" cy="24" r="23" />
+  <g class="portrait__cat">
+    <path class="portrait__fur portrait__line" [attr.fill]="fur()" d="M9 25 L10 7 L21 14 Z" />
+    <path class="portrait__fur portrait__line" [attr.fill]="fur()" d="M39 25 L38 7 L27 14 Z" />
+    <path class="portrait__inner-ear" d="M12 20 L12.5 11 L18 15 Z" />
+    <path class="portrait__inner-ear" d="M36 20 L35.5 11 L30 15 Z" />
+    <ellipse class="portrait__fur portrait__line" [attr.fill]="fur()" cx="24" cy="28" rx="15" ry="13" />
+
+    @switch (portrait().coat) {
+      @case ('tabby') {
+        <g class="portrait__mark portrait__mark--stroke">
+          <path d="M24 15 V21" />
+          <path d="M19 16 L20.5 21" />
+          <path d="M29 16 L27.5 21" />
+          <path d="M10 28 H14" />
+          <path d="M10.5 32 L14 31" />
+          <path d="M38 28 H34" />
+          <path d="M37.5 32 L34 31" />
+        </g>
+      }
+      @case ('tuxedo') {
+        <path class="portrait__mark portrait__mark--white" d="M24 31 C19 31 17 36 20 39.500 C22 41 26 41 28 39.500 C31 36 29 31 24 31 Z" />
+      }
+      @case ('spotted') {
+        <g class="portrait__mark">
+          <circle cx="16" cy="22" r="2.500" />
+          <circle cx="33" cy="24" r="3" />
+          <circle cx="29" cy="17" r="1.800" />
+        </g>
+      }
+    }
+
+    <ellipse class="portrait__eye-white" cx="18" cy="27" rx="3.500" ry="3.800" />
+    <ellipse class="portrait__eye-white" cx="30" cy="27" rx="3.500" ry="3.800" />
+    <ellipse [attr.fill]="eyeColour()" cx="18" cy="27" rx="2.600" ry="3.200" />
+    <ellipse [attr.fill]="eyeColour()" cx="30" cy="27" rx="2.600" ry="3.200" />
+    <ellipse class="portrait__pupil" cx="18" cy="27" rx="1" ry="2.400" />
+    <ellipse class="portrait__pupil" cx="30" cy="27" rx="1" ry="2.400" />
+    <path class="portrait__nose" d="M22 32 H26 L24 34.500 Z" />
+    <path class="portrait__line portrait__mouth" d="M24 34.500 V36 M24 36 Q21.500 38 19.500 36.500 M24 36 Q26.500 38 28.500 36.500" />
+
+    @switch (portrait().accessory) {
+      @case ('eye-patch') {
+        <path class="portrait__line portrait__strap" d="M8 19 L30 25" />
+        <ellipse class="portrait__patch" cx="30" cy="27" rx="5" ry="5.500" />
+      }
+      @case ('bandana') {
+        <path class="portrait__bandana portrait__line" d="M10 18 Q24 12 38 18 L36 22 Q24 17 12 22 Z" />
+        <circle class="portrait__dot" cx="18" cy="18" r="0.900" />
+        <circle class="portrait__dot" cx="24" cy="16.500" r="0.900" />
+        <circle class="portrait__dot" cx="30" cy="18" r="0.900" />
+      }
+      @case ('earring') {
+        <circle class="portrait__earring" cx="10.500" cy="23" r="2.200" />
+      }
+    }
+  </g>
+  @if (ring()) {
+    <circle class="portrait__ring" cx="24" cy="24" r="23" />
+  }
+</svg>

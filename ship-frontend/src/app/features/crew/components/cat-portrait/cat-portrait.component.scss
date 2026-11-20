@@ -1,0 +1,82 @@
+:host {
+  display: inline-flex;
+  flex: none;
+}
+
+.portrait {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+
+  &__ground {
+    fill: var(--hs-sand);
+  }
+
+  &__line {
+    stroke: var(--hs-ink);
+    stroke-width: 1.500;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  &__inner-ear {
+    fill: var(--hs-warning);
+    opacity: 0.600;
+  }
+
+  &__mark {
+    fill: var(--hs-ink);
+    opacity: 0.450;
+
+    &--stroke {
+      fill: none;
+      stroke: var(--hs-ink);
+      stroke-width: 1.800;
+      stroke-linecap: round;
+    }
+
+    &--white {
+      fill: var(--hs-raised);
+      opacity: 0.950;
+    }
+  }
+
+  &__eye-white {
+    fill: var(--hs-raised);
+  }
+
+  &__pupil,
+  &__nose {
+    fill: var(--hs-ink);
+  }
+
+  &__mouth,
+  &__strap {
+    fill: none;
+  }
+
+  &__patch {
+    fill: var(--hs-ink);
+  }
+
+  &__bandana {
+    fill: var(--mat-sys-primary, #8C2F1B);
+  }
+
+  &__dot {
+    fill: var(--hs-raised);
+  }
+
+  &__earring {
+    fill: none;
+    stroke: var(--hs-brass);
+    stroke-width: 1.600;
+  }
+
+  &__ring {
+    fill: none;
+    stroke: var(--hs-brass);
+    stroke-width: 2;
+  }
+}
