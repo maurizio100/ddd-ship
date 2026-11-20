@@ -158,6 +158,18 @@ class ShipRepositoryAdapter(
         }
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun replaceCrew(shipId: ShipId, crew: List<CrewMember>) {
+        val ship = checkNotNull(shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id)) {
+            "Ship ${shipId.id} is not in the fleet, so its Crew cannot be replaced"
+        }
+        // A bulk delete runs at once; queued entity removals would be flushed after the inserts and trip the unique Crew Member id.
+        crewMemberRepository.deleteAllAboard(ship.id!!)
+        crewMemberRepository.saveAll(
+            crew.map { CrewMemberPersistenceEntity(crewMemberId = it.id.id, name = it.name, trait = it.trait, ship = ship) }
+        )
+    }
+
     override fun getAllShips(): List<Ship> {
         return shipPersistenceEntityRepository.findAllByInFleetTrue().map { toShip(it) }
     }

@@ -1,7 +1,9 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.model.CrewMember
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShippingState
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
@@ -108,11 +110,13 @@ class ArrivalManagementService(
             incoming = cargo.isNotEmpty(),
             earnings = shippingPublished.earnings,
             shipClass = shippingPublished.shipClass,
+            crew = shippingPublished.crew.map { CrewMember(CrewMemberId(it.id), it.name, it.trait) },
             imprisoned = shippingPublished.imprisoned && (shippingPublished.homeHarbor ?: originHarbor) == currentHarbor,
         )
         val homecoming = ship.bringEarningsHome(currentHarbor)
         if (homecoming != Money.dollars(0)) savingsRepositoryPort.receive(homecoming)
         shipRepositoryPort.saveNewShip(fromShip(ship))
+        shipRepositoryPort.replaceCrew(ship.id, ship.crew)
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)
         fleetEventsPort.announceShipArrived(ship, originHarbor)
     }

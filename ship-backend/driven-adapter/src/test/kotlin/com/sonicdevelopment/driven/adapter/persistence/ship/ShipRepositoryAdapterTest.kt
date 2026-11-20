@@ -84,6 +84,28 @@ class ShipRepositoryAdapterTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRED)
+    fun `replaceCrew replaces the stored Crew, the same Crew Members again included, only for a ship in the fleet`() {
+        val blackPearl = aShip("Black Pearl")
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Calm")
+        val saffron = CrewMember(CrewMemberId(UUID.randomUUID()), "Saffron", "Brave")
+        ships.addCrewMember(blackPearl.id, mittens)
+        ships.addCrewMember(blackPearl.id, patch)
+        flushAndClear()
+
+        ships.replaceCrew(blackPearl.id, listOf(mittens, patch, saffron))
+        flushAndClear()
+        ships.getShipDetails(blackPearl.id)!!.crew shouldBe listOf(mittens, patch, saffron)
+
+        ships.replaceCrew(blackPearl.id, emptyList())
+        flushAndClear()
+        ships.getShipDetails(blackPearl.id)!!.crew.shouldBeEmpty()
+
+        shouldThrow<IllegalStateException> { ships.replaceCrew(ShipId(UUID.randomUUID()), listOf(mittens)) }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRED)
     fun `removeCrewMember deletes the row and leaves the other Crew, and fails for a Crew Member not aboard`() {
         val blackPearl = aShip("Black Pearl")
         val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")

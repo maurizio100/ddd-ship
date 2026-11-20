@@ -249,6 +249,25 @@ class FakeDrivenPortsTest {
     }
 
     @Test
+    fun `replaceCrew mirrors the adapter - only a ship in the fleet, and replaces rather than merges`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val saltyWhisker = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(saltyWhisker))
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Brave")
+        fleet.addCrewMember(saltyWhisker.id, mittens)
+
+        fleet.replaceCrew(saltyWhisker.id, listOf(patch, mittens))
+
+        fleet.getShipDetails(saltyWhisker.id)!!.crew shouldBe listOf(patch, mittens)
+        shouldThrow<IllegalStateException> { fleet.replaceCrew(ShipId(UUID.randomUUID()), listOf(mittens)) }
+        fleet.delete(saltyWhisker.id)
+        shouldThrow<IllegalStateException> { fleet.replaceCrew(saltyWhisker.id, listOf(mittens)) }
+    }
+
+    @Test
     fun `removeCrewMember mirrors the adapter - only a Crew Member aboard a ship in the fleet`() {
         val fleet = InMemoryFleet(InMemoryCatains())
         val saltyWhisker = Ship(

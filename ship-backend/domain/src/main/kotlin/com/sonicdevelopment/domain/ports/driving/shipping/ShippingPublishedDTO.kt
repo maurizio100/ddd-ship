@@ -7,6 +7,7 @@ import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
+import com.sonicdevelopment.domain.ports.driving.ship.CrewMemberDTO
 
 /**
  * A Shipping Published as another Harbor (or this one) Released it: the ship, its Catain, its Loaded
@@ -28,4 +29,6 @@ data class ShippingPublishedDTO(
     val imprisoned: Boolean = false,
     /** The ship's Ship Class; `SLOOP` for events that do not send it. */
     val shipClass: ShipClass = ShipClass.SLOOP,
+    /** The ship's Crew; empty for events that do not send it. */
+    val crew: List<CrewMemberDTO> = emptyList(),
 )
