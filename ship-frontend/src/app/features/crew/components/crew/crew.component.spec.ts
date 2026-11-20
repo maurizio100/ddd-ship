@@ -45,7 +45,6 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
       hireRefusal: NO_REFUSAL,
       newInPoolRecruitIds: [],
       harborName: 'Port Royal',
-      loading: false,
       error: null,
       ...options.crew,
     };
@@ -80,6 +79,7 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
 
   const all = (testId: string): HTMLElement[] =>
     Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+  const byTestId = (testId: string): HTMLElement | null => all(testId)[0] ?? null;
   const text = (testId: string): string => all(testId)[0]?.textContent!.trim();
 
   it('shows the five Recruits of the Recruit Pool with name and trait', () => {
@@ -275,5 +275,20 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
     render({ crew: { harborName: null } });
 
     expect(all('crew-hire')).toEqual([]);
+  });
+
+  it('shows an alert instead of the Hire buttons when the Harbor name could not be loaded', () => {
+    render({ crew: { harborName: null, error: 'boom' } });
+
+    const alert = byTestId('crew-harbor-error');
+    expect(alert!.getAttribute('role')).toBe('alert');
+    expect(alert!.textContent!.trim()).toBe('The Harbor could not be loaded. Hiring is unavailable.');
+    expect(all('crew-hire')).toEqual([]);
+  });
+
+  it('shows no Harbor alert while the Harbor name loads fine', () => {
+    render();
+
+    expect(byTestId('crew-harbor-error')).toBeNull();
   });
 });

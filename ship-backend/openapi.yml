@@ -728,7 +728,7 @@ components:
 
     ShipOverviewResponse:
       type: object
-      required: [homeHarbor, earnings, shipClass, crewCapacity]
+      required: [homeHarbor, earnings, shipClass, crewCapacity, crew]
       properties:
         id:
           type: string

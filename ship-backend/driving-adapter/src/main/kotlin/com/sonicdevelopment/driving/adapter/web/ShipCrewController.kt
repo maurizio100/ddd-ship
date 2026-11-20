@@ -20,7 +20,7 @@ import java.util.UUID
 @RestController
 @CrossOrigin(origins = [])
 @RequestMapping("/web/ships/{shipId}/crew")
-class CrewController(private val crewManagementPort: CrewManagementPort) {
+class ShipCrewController(private val crewManagementPort: CrewManagementPort) {
 
     /** Pays the Hiring Fee and Hires the Recruit; answers with the Hire. The client reads the fleet, Savings and pool back from their GETs. */
     @PostMapping

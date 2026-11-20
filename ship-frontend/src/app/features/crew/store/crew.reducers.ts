@@ -7,7 +7,6 @@ export const initialState: CrewState = {
   hireRefusal: null,
   newInPoolRecruitIds: [],
   harborName: null,
-  loading: false,
   error: null,
 };
 

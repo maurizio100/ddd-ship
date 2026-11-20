@@ -47,6 +47,9 @@
         @if (hireRefusal(); as refusal) {
           <p class="alert" role="alert" data-testid="crew-hire-refusal">{{ refusal.message }}</p>
         }
+        @if (harborNameError() && !harborName()) {
+          <p class="alert" role="alert" data-testid="crew-harbor-error">The Harbor could not be loaded. Hiring is unavailable.</p>
+        }
         @if (atSea()) {
           <p class="empty away" data-testid="crew-away">
             <mat-icon fontIcon="home"></mat-icon>

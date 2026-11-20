@@ -11,6 +11,7 @@ import { SHIP_CLASS_LABELS, ShippingState, shipStatusLabel } from '../../../ship
 import { hireRecruit, loadHarborName } from '../../store/crew.actions';
 import {
   selectHarborName,
+  selectHarborNameError,
   selectHireRefusal,
   selectHiringRecruitIds,
   selectNewInPoolRecruitIds,
@@ -30,6 +31,7 @@ export class CrewComponent implements OnInit {
   savings = this.store.selectSignal(selectSavings);
   recruitPool = this.store.selectSignal(selectRecruitPool);
   harborName = this.store.selectSignal(selectHarborName);
+  harborNameError = this.store.selectSignal(selectHarborNameError);
   hiringRecruitIds = this.store.selectSignal(selectHiringRecruitIds);
   hireRefusal = this.store.selectSignal(selectHireRefusal);
   newInPoolRecruitIds = this.store.selectSignal(selectNewInPoolRecruitIds);

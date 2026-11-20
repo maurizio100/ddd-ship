@@ -11,7 +11,6 @@ export interface CrewState {
   hireRefusal: HireRefusal | null;
   newInPoolRecruitIds: string[];
   harborName: string | null;
-  loading: boolean;
   error: unknown;
 }
 
@@ -20,3 +19,4 @@ export const selectHiringRecruitIds = createSelector(selectCrewState, (state) =>
 export const selectHireRefusal = createSelector(selectCrewState, (state) => state.hireRefusal);
 export const selectNewInPoolRecruitIds = createSelector(selectCrewState, (state) => state.newInPoolRecruitIds);
 export const selectHarborName = createSelector(selectCrewState, (state) => state.harborName);
+export const selectHarborNameError = createSelector(selectCrewState, (state) => state.error);

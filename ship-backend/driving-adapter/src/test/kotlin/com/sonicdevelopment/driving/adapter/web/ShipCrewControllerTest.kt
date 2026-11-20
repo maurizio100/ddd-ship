@@ -19,8 +19,8 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
 import java.util.UUID
 
-@WebMvcTest(CrewController::class)
-class CrewControllerTest {
+@WebMvcTest(ShipCrewController::class)
+class ShipCrewControllerTest {
 
     @Autowired
     lateinit var mockMvc: MockMvc
