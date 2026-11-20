@@ -19,6 +19,37 @@
       />
     </mat-form-field>
 
+    <section class="ship-class-section">
+      <h2>Choose a Ship Class</h2>
+      <div class="ship-class-grid" role="radiogroup" aria-label="Choose a Ship Class">
+        @for (shipClass of shipClasses; track shipClass) {
+          <label
+            class="ship-class"
+            [class.ship-class--selected]="isShipClassSelected(shipClass)"
+            data-testid="ship-class-card"
+          >
+            <input
+              class="ship-class-radio"
+              type="radio"
+              name="shipClass"
+              required
+              data-testid="ship-class-radio"
+              [value]="shipClass"
+              [(ngModel)]="shipRequest.shipClass"
+            />
+            <mat-icon fontIcon="sailing" aria-hidden="true"></mat-icon>
+            <span class="ship-class-name">{{ label(shipClass) }}</span>
+            @if (isShipClassSelected(shipClass)) {
+              <span class="badge" data-testid="ship-class-selected-badge">
+                <mat-icon fontIcon="check" aria-hidden="true"></mat-icon>
+                Selected
+              </span>
+            }
+          </label>
+        }
+      </div>
+    </section>
+
     <section class="catain-section">
       <h2>Choose Your Catain</h2>
       <div class="catain-grid" role="radiogroup" aria-label="Choose Your Catain">
@@ -62,6 +93,9 @@
     </section>
 
     <div class="actions">
+      @if (!shipRequest.shipClass) {
+        <p class="ship-class-required" data-testid="ship-class-required" role="status">Choose a Ship Class</p>
+      }
       <button mat-stroked-button type="button" data-testid="cancel" (click)="cancel()">Cancel</button>
       <button
         mat-flat-button

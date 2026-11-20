@@ -133,6 +133,19 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
     );
   });
 
+  it('A Ship Class can be chosen with the keyboard', async () => {
+    await render();
+
+    expect(classRadios().every((radio) => radio.type === 'radio' && radio.name === 'shipClass')).toBeTrue();
+    expect(classRadios().every((radio) => radio.tabIndex !== -1)).toBeTrue();
+
+    await chooseClass(1);
+
+    expect(classRadios()[1].checked).toBeTrue();
+    expect(all('ship-class-card')[1].classList).toContain('ship-class--selected');
+    expect(all('ship-class-selected-badge').length).toBe(1);
+  });
+
   it('The Ship Class sets the Crew Capacity', async () => {
     await render();
 

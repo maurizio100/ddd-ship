@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
 import {Store} from "@ngrx/store";
-import {Ship, ShippingState} from "../../models/ship";
+import {Ship, SHIP_CLASS_LABELS, ShippingState} from "../../models/ship";
 import {
   selectAllShips,
   selectArrivalNotices,
@@ -125,6 +125,10 @@ export class ShipsComponent implements OnInit, OnDestroy {
   }
 
   /** Whether the ship carries Earnings; a zero amount is not shown. */
+  shipClassLabel(ship: Ship): string {
+    return SHIP_CLASS_LABELS[ship.shipClass];
+  }
+
   hasEarnings(ship: Ship): boolean {
     return Number(ship.earnings) > 0;
   }
