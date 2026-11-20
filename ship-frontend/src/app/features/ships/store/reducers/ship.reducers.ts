@@ -4,6 +4,8 @@ import * as ShipActions from "../actions/ship.actions";
 
 export const initialState: ShipState = {
   ships: [],
+  shipClasses: [],
+  shipClassesUnavailable: false,
   loading: false,
   error: null,
   arrivalNotices: [],
@@ -24,6 +26,17 @@ export const shipReducers = createReducer(
     loading: false,
     error: null,
     newShippingRefusal: null
+  })),
+
+  on(ShipActions.loadShipClassesSuccess, (state, {shipClasses}) => ({
+    ...state,
+    shipClasses,
+    shipClassesUnavailable: false
+  })),
+
+  on(ShipActions.loadShipClassesFailure, (state, {}) => ({
+    ...state,
+    shipClassesUnavailable: true
   })),
 
   on(ShipActions.addShip, (state, {}) => ({

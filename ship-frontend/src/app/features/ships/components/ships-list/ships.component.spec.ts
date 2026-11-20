@@ -562,7 +562,7 @@ describe('ShipsComponent (an Imprisoned Ship on the fleet page)', () => {
         provideRouter([]),
         provideMockStore({
           initialState: {
-            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null },
+            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null, shipClasses: [], shipClassesUnavailable: false },
             catains: { catains: [], loading: false, error: null },
           },
         }),
@@ -606,7 +606,7 @@ describe('ShipsComponent (Free an Imprisoned Ship by paying its Fine)', () => {
         provideRouter([]),
         provideMockStore({
           initialState: {
-            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null },
+            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null, shipClasses: [], shipClassesUnavailable: false },
             catains: { catains: [], loading: false, error: null },
             harbor: {
               stock: [], savings: aSavings(), incomingShips: [], loading: false, error: null,

@@ -28,6 +28,12 @@ export enum ShippingState {
   DONE = 'DONE',
 }
 
+/** A Ship Class the User may choose, with the Crew Capacity its ships get; the backend decides both. */
+export interface ShipClassOffer {
+  shipClass: ShipClass;
+  crewCapacity: number;
+}
+
 export enum ShipClass {
   SLOOP = 'SLOOP',
   BRIG = 'BRIG',

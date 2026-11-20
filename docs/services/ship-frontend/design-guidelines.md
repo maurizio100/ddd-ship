@@ -92,8 +92,9 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
   on this screen only, not on the Harbor page.
 - **Imprisoned Ships** — kicker "Held in the harbor brig", one card per Imprisoned Ship with its Fine and Pay Fine.
 - **Create ship** — Ship Name field, then the Ship Class picker (Sloop, Brig, Galleon as smaller radio
-  cards with a `sailing` icon, the selected one framed in `oxblood` and badged; a "Choose a Ship Class"
-  hint in the actions while none is chosen), then the Catain grid as radio cards with large portraits; the
+  cards with a `sailing` icon and a muted "Crew Capacity <n>" line taken from the backend, the selected one
+  framed in `oxblood` and badged; a "Choose a Ship Class" hint in the actions while none is chosen; an
+  `oxblood` alert when the Ship Classes cannot be loaded), then the Catain grid as radio cards with large portraits; the
   selected Catain is lifted, framed in `oxblood` and badged. Both stay real radio groups.
 - **Load Cargo** — Available Cargo as crate cards (picture, Stock badge, Weight) dragged onto the
   ship (CDK drag-drop); the drop zone shows the overlay while a crate is over it. Loaded Cargo as chips

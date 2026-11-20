@@ -99,6 +99,11 @@
   font-size: 21px;
 }
 
+.ship-class-capacity {
+  font-size: 13px;
+  color: var(--hs-muted);
+}
+
 .ship-class-required {
   margin: 0 auto 0 0;
   align-self: center;
@@ -215,4 +220,13 @@
   justify-content: flex-end;
   gap: 12px;
   margin-top: 24px;
+}
+
+.alert {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 12px;
+  color: var(--mat-sys-primary);
+  font-weight: 600;
 }

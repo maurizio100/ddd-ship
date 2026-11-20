@@ -370,6 +370,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Savings'
 
+  /web/ship-classes:
+    get:
+      summary: List the Ship Classes offered when a ship is created
+      description: >-
+        Each Ship Class with the Crew Capacity a ship of that class gets, in the order Sloop, Brig, Galleon. Read only.
+      operationId: getShipClasses
+      tags: [Ships]
+      responses:
+        '200':
+          description: The Ship Classes with their Crew Capacity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShipClassOffer'
+
   /web/recruits:
     get:
       summary: List the Recruit Pool of this Harbor
@@ -1230,6 +1247,16 @@ components:
       type: string
       enum: [SLOOP, BRIG, GALLEON]
       description: The size of a ship, chosen when it is created; sets its Crew Capacity. The Max Weight is 15.0 for every Ship Class
+
+    ShipClassOffer:
+      type: object
+      required: [shipClass, crewCapacity]
+      properties:
+        shipClass:
+          $ref: '#/components/schemas/ShipClass'
+        crewCapacity:
+          type: integer
+          description: The Crew Capacity a ship of this Ship Class gets
 
     ShippingState:
       type: string

@@ -1,7 +1,27 @@
 import { initialState, shipReducers } from './ship.reducers';
 import * as ShipActions from '../actions/ship.actions';
+import { ShipClass } from '../../models/ship';
 import { ShipState } from '../selectors/ship.selectors';
 import { anArrivalNotice, anAvailableShip, anImprisonmentNotice } from '../../../../../testing/fixtures';
+
+describe('shipReducers (Ship Classes are offered with their Crew Capacity)', () => {
+  it('stores the offered Ship Classes', () => {
+    const shipClasses = [{ shipClass: ShipClass.SLOOP, crewCapacity: 2 }];
+
+    const state = shipReducers(initialState, ShipActions.loadShipClassesSuccess({ shipClasses }));
+
+    expect(state.shipClasses).toEqual(shipClasses);
+  });
+
+  it('marks the Ship Classes unavailable when they fail to load, until they load', () => {
+    const failed = shipReducers(initialState, ShipActions.loadShipClassesFailure({ error: 'Http failure' }));
+    expect(failed.shipClassesUnavailable).toBeTrue();
+    expect(failed.error).toBeNull();
+
+    const loaded = shipReducers(failed, ShipActions.loadShipClassesSuccess({ shipClasses: [] }));
+    expect(loaded.shipClassesUnavailable).toBeFalse();
+  });
+});
 
 describe('shipReducers (A Harbor sees ships arrive and leave as they happen)', () => {
   const blackPearl = anAvailableShip();

@@ -6,7 +6,7 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { NEVER } from 'rxjs';
 
 import { NewShipComponent } from './new-ship.component';
-import { ShipClass } from '../../models/ship';
+import { ShipClass, ShipClassOffer } from '../../models/ship';
 import { Catain } from '../../../catains/model/catain';
 import * as CatainsActions from '../../../catains/store/catains.actions';
 import * as ShipActions from '../../store/actions/ship.actions';
@@ -20,6 +20,12 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
   const whiskers = aCatain();
   const mittens = aCatain({ id: 'c1a7a1n0-0000-4000-8000-000000000002', name: 'Mittens' });
 
+  const offers: ShipClassOffer[] = [
+    { shipClass: ShipClass.SLOOP, crewCapacity: 2 },
+    { shipClass: ShipClass.BRIG, crewCapacity: 4 },
+    { shipClass: ShipClass.GALLEON, crewCapacity: 6 },
+  ];
+
   async function render(catains: Catain[] = [whiskers, mittens]): Promise<void> {
     location = jasmine.createSpyObj<Location>('Location', ['back']);
     TestBed.configureTestingModule({
@@ -28,7 +34,7 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
         provideRouter([]),
         provideMockActions(() => NEVER),
         { provide: Location, useValue: location },
-        provideMockStore({ initialState: { catains: { catains, loading: false, error: null } } }),
+        provideMockStore({ initialState: { catains: { catains, loading: false, error: null }, ships: { shipClasses: offers } } }),
       ],
     });
     store = TestBed.inject(MockStore);
@@ -80,6 +86,34 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
 
     expect(radios().length).toBe(2);
     expect(all('catain-image').map((img) => img.getAttribute('alt'))).toEqual(['Whiskers', 'Mittens']);
+  });
+
+  it('Loading the screen requests the Ship Classes', async () => {
+    await render();
+
+    expect(store.dispatch).toHaveBeenCalledWith(ShipActions.loadShipClasses());
+  });
+
+  it('Each Ship Class is offered with its Crew Capacity', async () => {
+    await render();
+
+    const capacities = all('ship-class-crew-capacity').map((el) => el.textContent!.trim());
+    expect(capacities).toEqual(['Crew Capacity 2', 'Crew Capacity 4', 'Crew Capacity 6']);
+    expect(all('ship-class-card')[1].textContent).toContain('Brig');
+  });
+
+  it('The shown capacity is the offered one', async () => {
+    await render();
+    await fillName('Salty Whisker');
+    await choose(0);
+    await chooseClass(1);
+
+    expect(all('ship-class-card')[1].textContent).toContain('Crew Capacity 4');
+    createButton().click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      ShipActions.addShip({ name: 'Salty Whisker', catainId: whiskers.id, shipClass: ShipClass.BRIG }),
+    );
   });
 
   it('Loading the screen requests the Catains', async () => {
@@ -198,5 +232,17 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
 
     expect(all('catain-image').length).toBe(1);
     expect(all('catain-image-fallback').length).toBe(1);
+  });
+
+  it('Ship Classes that fail to load are announced in the picker', async () => {
+    await render();
+    expect(all('ship-classes-unavailable')).toEqual([]);
+
+    store.setState({ catains: { catains: [whiskers, mittens], loading: false, error: null }, ships: { shipClasses: [], shipClassesUnavailable: true } });
+    fixture.detectChanges();
+
+    const alert = all('ship-classes-unavailable');
+    expect(alert.length).toBe(1);
+    expect(alert[0].textContent).toContain('The Ship Classes could not be loaded');
   });
 });

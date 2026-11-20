@@ -22,10 +22,10 @@
     <section class="ship-class-section">
       <h2>Choose a Ship Class</h2>
       <div class="ship-class-grid" role="radiogroup" aria-label="Choose a Ship Class">
-        @for (shipClass of shipClasses; track shipClass) {
+        @for (offer of (shipClasses$ | async); track offer.shipClass) {
           <label
             class="ship-class"
-            [class.ship-class--selected]="isShipClassSelected(shipClass)"
+            [class.ship-class--selected]="isShipClassSelected(offer.shipClass)"
             data-testid="ship-class-card"
           >
             <input
@@ -34,12 +34,13 @@
               name="shipClass"
               required
               data-testid="ship-class-radio"
-              [value]="shipClass"
+              [value]="offer.shipClass"
               [(ngModel)]="shipRequest.shipClass"
             />
             <mat-icon fontIcon="sailing" aria-hidden="true"></mat-icon>
-            <span class="ship-class-name">{{ label(shipClass) }}</span>
-            @if (isShipClassSelected(shipClass)) {
+            <span class="ship-class-name">{{ label(offer.shipClass) }}</span>
+            <span class="ship-class-capacity" data-testid="ship-class-crew-capacity">Crew Capacity {{ offer.crewCapacity }}</span>
+            @if (isShipClassSelected(offer.shipClass)) {
               <span class="badge" data-testid="ship-class-selected-badge">
                 <mat-icon fontIcon="check" aria-hidden="true"></mat-icon>
                 Selected
@@ -48,6 +49,11 @@
           </label>
         }
       </div>
+      @if (shipClassesUnavailable$ | async) {
+        <p class="alert" role="alert" data-testid="ship-classes-unavailable">
+          The Ship Classes could not be loaded. Reload the page to try again.
+        </p>
+      }
     </section>
 
     <section class="catain-section">

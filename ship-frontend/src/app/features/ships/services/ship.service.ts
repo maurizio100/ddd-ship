@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Ship } from '../models/ship';
+import { Ship, ShipClassOffer } from '../models/ship';
 
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -31,6 +31,10 @@ export class ShipService {
 
   getShips(): Observable<Ship[]> {
     return this.http.get<Ship[]>(this.shipsUrl);
+  }
+
+  getShipClasses(): Observable<ShipClassOffer[]> {
+    return this.http.get<ShipClassOffer[]>(`${environment.baseUrl}/ship-classes`);
   }
 
   createShipping(ship: Ship): Observable<ShippingSummary> {
