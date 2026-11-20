@@ -5,7 +5,7 @@ import com.sonicdevelopment.domain.model.values.HarborName
 
 interface HarborManagementPort {
     /**
-     * Opens this Harbor: rolls a Price for every Cargo that has none yet, then announces the Harbor to all
+     * Opens this Harbor: rolls a Price for every Cargo that has none yet, fills the Recruit Pool up to five Recruits, then announces the Harbor to all
      * other Harbors by publishing Harbor Opened.
      */
     fun openHarbor()
