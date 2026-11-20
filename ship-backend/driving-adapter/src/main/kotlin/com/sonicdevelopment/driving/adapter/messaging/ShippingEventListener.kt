@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driving.adapter.messaging
 
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -54,7 +55,12 @@ class ShippingEventListener(
             homeHarbor = toHarborName(event.shipEventData.homeHarbor),
             earnings = event.shipEventData.earnings?.takeIf { it.isNotBlank() }?.let { Money.of(it) } ?: Money.dollars(0),
             imprisoned = event.shipEventData.imprisoned ?: false,
+            shipClass = toShipClass(event.shipEventData.shipClass),
         )
+
+    // Never throws: a failing record is retried and then skipped, which would lose the arriving ship.
+    private fun toShipClass(name: String?) =
+        ShipClass.entries.firstOrNull { it.name == name?.trim() } ?: ShipClass.SLOOP
 
     private fun toShipArrivedDTO(event: ShipArrivedInboundEvent) =
         ShipArrivedDTO(

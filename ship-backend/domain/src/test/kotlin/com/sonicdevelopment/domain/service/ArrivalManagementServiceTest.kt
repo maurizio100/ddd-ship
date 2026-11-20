@@ -4,6 +4,7 @@ import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.Catain
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.CatainImageId
@@ -163,6 +164,16 @@ class ArrivalManagementServiceTest {
         )
 
         saved.map { it.homeHarbor } shouldBe listOf(HarborName("Isla de Muerta"), tortuga)
+    }
+
+    @Test
+    fun `an arriving ship keeps the Ship Class carried in the event`() {
+        val saved = slot<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+
+        service.receiveShippingPublished(eventId, blackPearl.copy(shipClass = ShipClass.GALLEON))
+
+        saved.captured.shipClass shouldBe ShipClass.GALLEON
     }
 
     @Test

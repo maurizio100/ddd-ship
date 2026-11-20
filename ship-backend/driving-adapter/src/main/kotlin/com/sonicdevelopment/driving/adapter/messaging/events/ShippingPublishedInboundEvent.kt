@@ -12,7 +12,7 @@ data class ShippingPublishedInboundEvent(
     val shippingEventData: ShippingEventData,
 ) {
     /**
-     * [homeHarbor], [earnings] and [imprisoned] are missing in events from Harbors that do not send them yet;
+     * [homeHarbor], [earnings], [imprisoned] and [shipClass] (the enum name) are missing in events from Harbors that do not send them yet;
      * [earnings] is a decimal string with two decimals.
      */
     data class ShipEventData(
@@ -21,6 +21,7 @@ data class ShippingPublishedInboundEvent(
         val homeHarbor: String? = null,
         val earnings: String? = null,
         val imprisoned: Boolean? = null,
+        val shipClass: String? = null,
     )
 
     data class CatainEventData(val catainId: UUID)

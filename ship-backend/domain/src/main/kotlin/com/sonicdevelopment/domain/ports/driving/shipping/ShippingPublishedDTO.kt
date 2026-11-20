@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.ports.driving.shipping
 
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -25,4 +26,6 @@ data class ShippingPublishedDTO(
     val earnings: Money = Money.dollars(0),
     /** Whether the ship sails home imprisoned after a Confiscation; `false` for events that do not send it. */
     val imprisoned: Boolean = false,
+    /** The ship's Ship Class; `SLOOP` for events that do not send it. */
+    val shipClass: ShipClass = ShipClass.SLOOP,
 )
