@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 
 import { ShipsComponent } from './ships.component';
-import { Ship, ShippingState } from '../../models/ship';
+import { Ship, ShipClass, ShippingState } from '../../models/ship';
 import { ShipService } from '../../services/ship.service';
 import * as HarborActions from '../../../harbor/store/harbor.actions';
 import * as ShipActions from '../../store/actions/ship.actions';
@@ -152,6 +152,45 @@ describe('ShipsComponent (A ship keeps its Home Harbor)', () => {
 
     expect(homeHarbor().map((text) => text.replace(/^home\s*/, ''))).toEqual(['Home Harbor Port Royal']);
     expect(arrivedFrom()).toEqual(['Arrived from Tortuga']);
+  });
+});
+
+describe('ShipsComponent (A ship has a Ship Class)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] }, catains: { catains: [], loading: false, error: null } } }),
+        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const shipClassLines = (): string[] =>
+    Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('[data-testid="ship-class"]'))
+      .map((line) => line.textContent!.replace(/\s+/g, ' ').replace(/^\s*sailing\s*/, '').trim());
+
+  it("Available Ships show each ship's Ship Class", () => {
+    render([anAvailableShip({ name: 'Salty Whisker', shipClass: ShipClass.BRIG, crewCapacity: 4 })]);
+
+    expect(shipClassLines()).toEqual(['Brig · Crew Capacity 4']);
+  });
+
+  it('Ships registered before Ship Classes existed are Sloops', () => {
+    render([anAvailableShip({ name: 'Old Barnacle', shipClass: ShipClass.SLOOP, crewCapacity: 2 })]);
+
+    expect(shipClassLines()).toEqual(['Sloop · Crew Capacity 2']);
+  });
+
+  it('A ship keeps its Ship Class at another Harbor', () => {
+    render([anAvailableShip({ shipClass: ShipClass.BRIG, crewCapacity: 4, arrivedFrom: 'Port Royal' })]);
+
+    expect(shipClassLines()).toEqual(['Brig · Crew Capacity 4']);
   });
 });
 
