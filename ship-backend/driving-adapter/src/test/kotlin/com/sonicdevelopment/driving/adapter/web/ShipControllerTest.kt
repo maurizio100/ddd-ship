@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 import java.util.*
 
 @WebMvcTest(ShipController::class)
@@ -31,6 +33,22 @@ class ShipControllerTest {
 
     private val blackPearl = ShipId(UUID.randomUUID())
     private val interceptor = ShipId(UUID.randomUUID())
+
+    @Test
+    fun `POST web ships without a Ship Class or with an unknown one answers 400 Problem Details`() {
+        val catain = UUID.randomUUID()
+        listOf(
+            """{"name":"A","catainId":"$catain"}""",
+            """{"name":"A","catainId":"$catain","shipClass":"FRIGATE"}""",
+        ).forEach { body ->
+            mockMvc.post("/web/ships") { contentType = MediaType.APPLICATION_JSON; content = body }.andExpect {
+                status { isBadRequest() }
+                jsonPath("$.detail") { value(org.hamcrest.Matchers.containsString("Choose a Ship Class")) }
+            }
+        }
+        mockMvc.post("/web/ships") { contentType = MediaType.APPLICATION_JSON; content = """{"name":"A","shipClass":"SLOOP"}""" }
+            .andExpect { status { isBadRequest() } }
+    }
 
     @Test
     fun `the ship list and ship details carry arrivedFrom, null when none`() {

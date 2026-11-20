@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driving.adapter.web
 
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.CatainRepository
@@ -36,10 +37,12 @@ class ShipController (
 
     @PostMapping
     fun createShip(@RequestBody ship: ShipCreationRequest): ShipOverviewResponse {
-        if (ship.catainId == null) throw IllegalArgumentException("No catainid given")
+        if (ship.catainId == null) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a Catain")
         val catainId = CatainId(ship.catainId)
+        val shipClass = ShipClass.entries.firstOrNull { it.name == ship.shipClass }
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a Ship Class: Sloop, Brig or Galleon")
 
-        val shipCreationDTO = ShipCreationDataDTO(name = ship.name, catainId = catainId)
+        val shipCreationDTO = ShipCreationDataDTO(name = ship.name, catainId = catainId, shipClass = shipClass)
         val createdShip = shipManagementPort.createShip(shipCreationDTO)
         return toShipResponse(createdShip)
     }

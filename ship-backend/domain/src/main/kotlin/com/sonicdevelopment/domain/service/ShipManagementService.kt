@@ -24,7 +24,7 @@ class ShipManagementService(
         val catain = catainRepository.findCatainById(shipCreationData.catainId)
             ?: throw IllegalStateException("cannot find catain with id ${shipCreationData.catainId}")
 
-        val ship = Ship(name = shipCreationData.name, catainId = shipCreationData.catainId, catainName = catain.catainName, homeHarbor = currentHarbor)
+        val ship = Ship(name = shipCreationData.name, catainId = shipCreationData.catainId, catainName = catain.catainName, homeHarbor = currentHarbor, shipClass = shipCreationData.shipClass)
         shipRepositoryPort.saveNewShip(fromShip(ship))
 
         return ShipConverter.toShipDTO(ship)
