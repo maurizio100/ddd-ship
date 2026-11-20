@@ -49,7 +49,7 @@ export const shipReducers = createReducer(
     ...state,
     arrivalNotices: [
       ...state.arrivalNotices.filter(notice => notice.shipId !== shipId),
-      {shipId, shipName, originHarbor, imprisoned}
+      {shipId, shipName, originHarbor, imprisoned, crew: []}
     ]
   })),
 
