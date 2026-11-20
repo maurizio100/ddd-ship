@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.*
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
@@ -29,7 +30,7 @@ class ShipRepositoryAdapter(
 ): ShipRepositoryPort {
     /**
      * Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row.
-     * The Home Harbor, the Origin Harbor it arrived from, the Incoming and imprisoned flags, the Earnings and the Cargo aboard are written from the ship:
+     * The Home Harbor, the Origin Harbor it arrived from, the Incoming and imprisoned flags, the Earnings, the Ship Class and the Cargo aboard are written from the ship:
      * an Arrival overwrites them, and a rename keeps them because the loaded ship carries them. The ship's
      * Cargo aboard rows are replaced, in one transaction with the ship row (joining the caller's, if any).
      */
@@ -51,6 +52,7 @@ class ShipRepositoryAdapter(
             known.incoming = ship.incoming
             known.earnings = ship.earnings.amount
             known.imprisoned = ship.imprisoned
+            known.shipClass = ShipClassEnumEntity.valueOf(ship.shipClass.name)
             shipPersistenceEntityRepository.save(known)
         }
         cargoAboardRepository.deleteAllByShip_Id(saved.id!!)
@@ -67,6 +69,7 @@ class ShipRepositoryAdapter(
             incoming = ship.incoming,
             earnings = ship.earnings.amount,
             imprisoned = ship.imprisoned,
+            shipClass = ShipClassEnumEntity.valueOf(ship.shipClass.name),
         )
 
     /** Only a ship in the fleet is deleted; a ship that left keeps its row and its Shippings as history. */
@@ -167,6 +170,7 @@ class ShipRepositoryAdapter(
                 incoming = shipPersistenceEntity.incoming,
                 earnings = Money(shipPersistenceEntity.earnings),
                 imprisoned = shipPersistenceEntity.imprisoned,
+                shipClass = ShipClass.valueOf(shipPersistenceEntity.shipClass.name),
             )
         } ?: Ship(
             id = ShipId(shipPersistenceEntity.shipId),
@@ -179,6 +183,7 @@ class ShipRepositoryAdapter(
             incoming = shipPersistenceEntity.incoming,
             earnings = Money(shipPersistenceEntity.earnings),
             imprisoned = shipPersistenceEntity.imprisoned,
+            shipClass = ShipClass.valueOf(shipPersistenceEntity.shipClass.name),
         )
     }
 

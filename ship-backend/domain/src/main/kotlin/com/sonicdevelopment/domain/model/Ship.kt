@@ -30,6 +30,9 @@ class Ship(
     val shipClass: ShipClass = ShipClass.SLOOP,
 ) {
 
+    /** How many Crew Members the ship can carry, set by its Ship Class. */
+    val crewCapacity: Int get() = shipClass.crewCapacity
+
     /** Whether the ship is an Imprisoned Ship, or sails home from the holding Harbor as one. */
     var isImprisoned: Boolean = imprisoned
         private set

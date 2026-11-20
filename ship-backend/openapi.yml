@@ -649,7 +649,7 @@ components:
 
     ShipOverviewResponse:
       type: object
-      required: [homeHarbor, earnings]
+      required: [homeHarbor, earnings, shipClass, crewCapacity]
       properties:
         id:
           type: string
@@ -682,6 +682,12 @@ components:
           description: >-
             Whether the ship is an Imprisoned Ship, which cannot start a new Shipping; also true for a ship at sea
             home after its Cargo was confiscated here
+        shipClass:
+          $ref: '#/components/schemas/ShipClass'
+        crewCapacity:
+          type: integer
+          example: 2
+          description: How many Crew Members the ship can carry, set by its Ship Class (Sloop 2, Brig 4, Galleon 6)
 
     ShipDetailResponse:
       type: object
@@ -973,6 +979,11 @@ components:
           type: string
           nullable: true
           description: Harbor Name of the Destination Harbor (only set when shipping is released)
+
+    ShipClass:
+      type: string
+      enum: [SLOOP, BRIG, GALLEON]
+      description: The size of a ship, chosen when it is created; sets its Crew Capacity. The Max Weight is 15.0 for every Ship Class
 
     ShippingState:
       type: string

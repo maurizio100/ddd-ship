@@ -1,6 +1,7 @@
 package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
@@ -82,6 +83,22 @@ class ShipControllerTest {
             status { isOk() }
             jsonPath("$[0].imprisoned") { value(true) }
             jsonPath("$[1].imprisoned") { value(false) }
+        }
+    }
+
+    @Test
+    fun `the ships overview carries the Ship Class and its Crew Capacity`() {
+        every { shipInformationPort.getAllShips() } returns listOf(
+            ShipDTO(blackPearl, "Black Pearl", "Whiskers", ShippingState.IDLE, homeHarbor = "Port Royal", shipClass = ShipClass.GALLEON),
+            ShipDTO(interceptor, "Interceptor", "Whiskers", ShippingState.IDLE, homeHarbor = "Tortuga"),
+        )
+
+        mockMvc.get("/web/ships").andExpect {
+            status { isOk() }
+            jsonPath("$[0].shipClass") { value("GALLEON") }
+            jsonPath("$[0].crewCapacity") { value(6) }
+            jsonPath("$[1].shipClass") { value("SLOOP") }
+            jsonPath("$[1].crewCapacity") { value(2) }
         }
     }
 

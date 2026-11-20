@@ -8,6 +8,7 @@ import com.sonicdevelopment.domain.exception.ShipTooHeavyException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.fixtures.aShip
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -21,6 +22,21 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 class ShipTest {
+
+    @Test
+    fun `each Ship Class sets its Crew Capacity, and a ship without one is a Sloop`() {
+        fun shipOf(shipClass: ShipClass) = Ship(
+            name = "Black Pearl",
+            catainId = CatainId(UUID.randomUUID()), catainName = "Furry Jones", homeHarbor = HarborName("Port Royal"),
+            shipClass = shipClass,
+        )
+
+        shipOf(ShipClass.SLOOP).crewCapacity shouldBe 2
+        shipOf(ShipClass.BRIG).crewCapacity shouldBe 4
+        shipOf(ShipClass.GALLEON).crewCapacity shouldBe 6
+        ShipClass.entries.forEach { shipOf(it).maxWeight shouldBe 15.0F }
+        aShip().shipClass shouldBe ShipClass.SLOOP
+    }
 
     @Test
     fun `removing Cargo that is not loaded returns false and keeps the Current Weight`() {
