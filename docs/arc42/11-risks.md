@@ -51,4 +51,7 @@ decisions** — each needs a call from the project owner (fix, accept, or turn i
   `addCrewMember` → top-up must stay, in one transaction; a write moved above the debit hires a Recruit
   nobody paid for, and dropping the lock lets two concurrent Hires overfill a Crew. Deleting a Recruit
   instead of marking it hired reuses its ordinal and brings it back to the pool. A Dismiss takes the same
-  `lockShip`; no `-Pdb` test yet runs a Dismiss and a Hire on one ship concurrently.
+  `lockShip`, runs the `Ship.dismiss` guard, removes the Crew Member and only then receives the refund (half
+  the Hiring Fee), in one transaction; a credit moved above the guard refunds a refused or repeated Dismiss.
+  A `-Pdb` test (`DismissTransactionTest`) pins two concurrent Dismisses refunding once; no test runs a
+  Dismiss and a Hire on one ship concurrently.

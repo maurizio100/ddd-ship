@@ -84,9 +84,9 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
 - **Crew** — `/ships/:id/crew`, reached by a "Crew" button on every ship card: a back link "Available
   Ships", a header (kicker "The crew of", Ship Name, muted facts line, Savings on the right) and two panels
   side by side, stacked at phone width. The "Crew" panel has a capacity chip "n / m · Class", a card per Crew
-  Member (cat portrait in a brass ring, name, trait chip) and dashed "A free berth: Hire a Recruit" cards. The
+  Member (cat portrait in a brass ring, name, trait chip, and a stroked "Dismiss · refund `<refund>` $" button, aria-label "Dismiss `<name>` for a refund of `<refund>` $", the amount taken from the backend) and dashed "A free berth: Hire a Recruit" cards. The
   "Recruit Pool" panel has the line "Hiring Fee 50.00 $, paid from the Savings of `<Home Harbor>`", a filled
-  Hire button per Recruit (aria-label "Hire `<name>` for `<fee>` $") and a "new in the pool" chip. A refused
+  Hire button per Recruit reading "Hire · `<fee>` $" (aria-label "Hire `<name>` for `<fee>` $") and a "new in the pool" chip. A refused
   Hire is an `oxblood` alert. A full Crew replaces the pool with an empty-state line. Away from the Home
   Harbor or at sea the screen is read-only, with an italic line and a `home` icon. The Recruit Pool is shown
   on this screen only, not on the Harbor page.

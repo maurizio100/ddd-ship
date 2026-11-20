@@ -7,9 +7,9 @@
   `/web/ships/{shipId}/shippings`.
 - Path ids are the UUID business ids, never the database surrogate key.
 - Responses return the resource directly: no envelope, no pagination, no versioning.
-- A command on a ship returns the updated ship (`ShipDetailResponse`), except a command that pays money,
-  which answers with its own result (the payment, the Savings after it and what changed:
-  `FinePaymentResponse`, `HireResponse`); the client reads the fleet back from `GET /web/ships`.
+- A command on a ship returns the updated ship (`ShipDetailResponse`), except a command that moves money (pays or refunds),
+  which answers with its own result (the amount, the Savings after it and what changed:
+  `FinePaymentResponse`, `HireResponse`, `DismissalResponse`); the client reads the fleet back from `GET /web/ships`.
 - `ship-backend/openapi.yml` is the contract and is updated in the same change as the endpoint.
 - Money in REST JSON is a decimal string with two decimals (`"1000.00"`), never a JSON number, which
   would become a float in the frontend ([ADR-0008](../../../adr/0008-carry-earnings-home-with-the-ship.md)).
