@@ -6,7 +6,7 @@ import { CrewComponent } from './crew.component';
 import { Recruit } from '../../../harbor/models/recruit';
 import { Ship, ShipClass, ShippingState } from '../../../ships/models/ship';
 import { CrewState } from '../../store/crew.selectors';
-import { hireRecruit } from '../../store/crew.actions';
+import { hireRecruit, loadHarborName } from '../../store/crew.actions';
 import * as HarborActions from '../../../harbor/store/harbor.actions';
 import * as ShipActions from '../../../ships/store/actions/ship.actions';
 import { anAvailableShip, aRecruit, aSavings } from '../../../../../testing/fixtures';
@@ -134,6 +134,12 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
     expect(store.dispatch).toHaveBeenCalledWith(ShipActions.loadShips());
     expect(store.dispatch).toHaveBeenCalledWith(HarborActions.loadSavings());
     expect(store.dispatch).toHaveBeenCalledWith(HarborActions.loadRecruitPool());
+  });
+
+  it('loads the Harbor name on init', () => {
+    render();
+
+    expect(store.dispatch).toHaveBeenCalledWith(loadHarborName());
   });
 
   it('Hiring a Recruit adds them to the Crew and pays the Hiring Fee', () => {

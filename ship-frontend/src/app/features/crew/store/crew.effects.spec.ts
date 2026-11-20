@@ -111,4 +111,15 @@ describe('CrewEffects', () => {
 
     expect(emitted).toEqual([CrewActions.loadHarborNameSuccess({ harborName: 'Port Royal' })]);
   });
+
+  it('loadHarborName$ emits Failure with the error', () => {
+    const error = new HttpErrorResponse({ status: 500 });
+    harborNameService.getHarborName.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.loadHarborName$.subscribe((a) => emitted.push(a));
+
+    actions$.next(CrewActions.loadHarborName());
+
+    expect(emitted).toEqual([CrewActions.loadHarborNameFailure({ error })]);
+  });
 });
