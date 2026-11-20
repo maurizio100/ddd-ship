@@ -4,8 +4,8 @@
 
 The app is split into feature folders under `src/app/features/`: `ships` (the ship list and
 creating ships, which is Fleet), `catains` (the roster, Fleet), `harbor` (the harbor management page, starting with the
-Stock, CargoLoading), `crew` (the read-only Crew screen at `/ships/:id/crew`, Fleet; it reads the
-`harbor` and `ships` stores through selectors only), and `shipping` (cargo loading,
+Stock, CargoLoading), `crew` (the Crew screen at `/ships/:id/crew`, Fleet, where the User Hires Recruits; it has its own `crew` store and reads the
+`harbor` and `ships` stores through selectors), and `shipping` (cargo loading,
 Release and the Shipping Summary, which is CargoLoading + Shipping). Each feature has the same
 shape:
 
@@ -24,7 +24,9 @@ features/<feature>/
 ```
 
 Shell-level concerns that belong to no feature (such as the Harbor Name in the app bar) live in
-`src/app/core/`; features never import from it, and it imports only feature models.
+`src/app/core/`. A feature's components never import from it; a feature effect may call a `core/` service
+that reads shell data (the `crew` effects call `HarborNameService` for this Harbor's name). `core/` imports
+only feature models.
 
 Features import from each other only through models and the store (providers, selectors,
 actions), never through another feature's components or services.

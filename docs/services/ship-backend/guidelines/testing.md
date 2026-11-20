@@ -56,6 +56,11 @@ Tagged today: every `driven-adapter` repository adapter test, `ShipBackendStartu
 - Let a write succeed before the failing one, and assert that it did (a counter on the decorator), so the
   test proves the rollback of a write that really happened.
 - `FailedChangeLeavesNoTraceTest` is the reference.
+- A concurrency guarantee (row lock, conditional UPDATE) gets a `-Pdb` `@SpringBootTest` that runs the two
+  commands through the driving port on two threads. A `@Primary` `Port by real` decorator holds the first
+  transaction right after it took the lock or made the conditional write (latch, then a short sleep) while
+  the second starts. The test asserts exactly one success, the refusal type of the other, and the rows and
+  Savings afterwards (`HireTransactionTest` is the reference).
 
 ## Fakes
 
@@ -98,12 +103,13 @@ Tagged today: every `driven-adapter` repository adapter test, `ShipBackendStartu
   is synchronous, so nothing is awaited. A scenario set at another Harbor is a `@Nested` class with its own
   `harbor.name`, without `@DirtiesContext`.
 - **`-Pdb` application tests:** one Postgres Testcontainer per JVM (the singleton `PostgresTestcontainer`),
-  migrated by Flyway. Before each test, `truncateMutableTables()` (`ships_cargos_aboard`, `ships_cargos`, `shippings`, `ships`,
-  `shipping_outbox`, `inbox_events`, `known_harbors`, `arrivals`; the reference tables `cargos`, `catains` and
+  migrated by Flyway. Before each test, `truncateMutableTables()` (`crew_members`, `ships_cargos_aboard`, `ships_cargos`, `shippings`, `ships`,
+  `shipping_outbox`, `inbox_events`, `known_harbors`, `arrivals`; `crew_members` first, since it references `ships`; the reference tables `cargos`, `catains` and
   `quotes` stay) and `resetStockToStartingStock()` (`stocks` is reset to the Starting Stock, not truncated,
   since an empty Stock would make every Cargo unavailable). Kafka is unreachable
   (`spring.kafka.bootstrap-servers=localhost:1`), `spring.kafka.listener.auto-startup=false`, and a
-  `harbor.name` is set.
+  `harbor.name` is set. The singleton `PostgresTestcontainer` runs with `max_connections=300`, because every
+  cached Spring test context keeps its own connection pool open and the default of 100 runs out.
 - **Driven-adapter tests:** the same singleton container, with the migrations loaded from the `application`
   module (`spring.flyway.locations: filesystem:../application/src/main/resources/db/migration`) and
   `@AutoConfigureTestDatabase(replace = NONE)`, since H2 is on the compile classpath. Each test truncates the

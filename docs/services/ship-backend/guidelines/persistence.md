@@ -107,6 +107,14 @@
   (`Propagation.MANDATORY`); 0 rows fails. A confiscation, a Release and a Fine payment first read the ship under its row lock
   (`lockShip`, `SELECT … FOR UPDATE`), so they run one after the other: a concurrent unloading, refusal or Release finds the ship no longer Incoming,
   at sea or imprisoned and rolls back.
+- `crew_members` (`V22__crew_members.sql`) holds the Crew aboard a ship: `crew_member_id` is the Crew Member's
+  UUID (`uq_crew_members_crew_member_id`), and `ship_id` references `ships(id)`. It is written only by
+  `addCrewMember`, in the caller's transaction (`Propagation.MANDATORY`). `saveNewShip` does not touch it,
+  `delete` removes it before the ship row, and every test TRUNCATE of `ships` lists it. A Recruit row is never
+  deleted: Hiring sets `recruits.recruit_hired` with one conditional
+  `UPDATE recruits SET recruit_hired = true WHERE recruit_id = :id AND NOT recruit_hired` (0 rows: not
+  offered, the caller throws). The pool lists only unhired Recruits, and `nextOrdinal` counts every row, so
+  an ordinal is never reused.
 - A ship sent home from the holding Harbor keeps `ship_imprisoned = true` in that Harbor's row, so `/web/ships` reports `imprisoned` true for it while it
   is at sea; the fleet page shows such a ship "At sea", and Ship Arrived removes it from the fleet.
 
