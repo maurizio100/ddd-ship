@@ -20,18 +20,21 @@ Keep three concerns apart, so each can be tested without Kafka:
   it is a Conformist on the published event (see the [context map](../../../domain/context-map.md)).
 - **Tolerant reader:** unknown properties are ignored (`FAIL_ON_UNKNOWN_PROPERTIES = false`).
   A field the backend added later is nullable or has a default, so older events still parse.
-- Field names follow the backend payload exactly (`shipEventData`, `shippingEventData`, `catain`).
-  Debezium wraps the payload as a JSON string, so the deserializer unwraps it once before mapping.
+- Field names follow the published payload exactly (`shipEventData`, `shippingEventData`, `catain`).
+  The value arrives as a JSON string (Debezium for outbox events, the Coast Guard for
+  `ship-imprisoned`), so it is unwrapped once before mapping; a plain JSON object is accepted too.
 - An event that cannot be parsed is logged and skipped. It never stops the loop.
 
 ## Delivery
 
-Events arrive at least once. A duplicate is announced twice, which is acceptable for a departure
-board, so the terminal keeps no dedup store.
+Events arrive at least once. A duplicate is announced twice, which is acceptable for the board,
+so the terminal keeps no dedup store. `hexagonship-harbor` is compacted, so a terminal without
+committed offsets announces every Harbor Opened again on start.
 
-The terminal filters records by the `eventType` header (set by Debezium EventRouter). Only
-`shipping-published` events are announced; other event types (e.g. `ship-arrived`) are skipped with
-a debug log. Unknown event types never stop the poll loop.
+The terminal reads the `eventType` header first and parses the value only for the kind it names:
+`shipping-published`, `ship-arrived`, `harbor-opened` or `ship-imprisoned`. Any other kind is an
+Unknown Event, shown as one line with its kind and its content as received. Neither an Unknown Event
+nor an unreadable event stops the poll loop.
 
 ## Wording
 

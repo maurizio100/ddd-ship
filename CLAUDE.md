@@ -77,7 +77,7 @@ component(s) it touches and open only the documents its index points you at:
 - `docs/services/ship-backend/README.md` — REST API, domain logic, persistence and outbox for Fleet, CargoLoading and Shipping
 - `docs/services/ship-coast-guard/README.md` — Kafka Streams app that imprisons ships carrying Contraband too often (CoastGuard; built, ADR-0011)
 - `docs/services/ship-frontend/README.md` — Angular/NgRx UI for managing ships, loading Cargo and Releasing
-- `docs/services/ship-terminal/README.md` — Kafka consumer that announces departed ships (HarborTerminal)
+- `docs/services/ship-terminal/README.md` — Kafka consumer that announces every event between the Harbors (HarborTerminal)
 
 ## Conventions
 
