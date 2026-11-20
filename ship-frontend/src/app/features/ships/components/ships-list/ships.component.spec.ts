@@ -262,6 +262,42 @@ describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)',
       ShipActions.dismissArrivalNotice({ shipId: anArrivalNotice().shipId }),
     );
   });
+
+  const crewMember = (id: number, name: string, trait: string) => ({ id: `c0ffee00-0000-4000-8000-00000000000${id}`, name, trait });
+
+  it('The Crew arrives with the ship', () => {
+    const saltyWhisker = anAvailableShip({
+      id: '5f1d7c2e-0000-4000-8000-000000000002',
+      name: 'Salty Whisker',
+      arrivedFrom: 'Port Royal',
+      crewCapacity: 4,
+      crew: [crewMember(1, 'Mittens', 'Strong Paws'), crewMember(2, 'Patch', 'Sharp Eyes')],
+    });
+    render(
+      [saltyWhisker],
+      [anArrivalNotice({ shipId: saltyWhisker.id, shipName: 'Salty Whisker', originHarbor: 'Port Royal', crew: ['Mittens', 'Patch'] })],
+    );
+
+    const notices = Array.from(statusRegion().querySelectorAll('[data-testid="ships-arrival-notice"]'));
+    expect(notices.map((notice) => notice.textContent!.trim())).toEqual([
+      'Salty Whisker arrived from Port Royal with its Crew: Mittens and Patch',
+    ]);
+    expect(all('ship-crew-count').map((count) => count.textContent!.replace(/\s+/g, ' ').trim())).toEqual(['Crew 2 / 4']);
+    expect(all('ship-crew-names').map((names) => names.textContent!.trim())).toEqual(['Mittens, Patch']);
+  });
+
+  it('A ship returning to a Harbor shows its current Crew', () => {
+    render([
+      anAvailableShip({
+        name: 'Salty Whisker',
+        arrivedFrom: 'Tortuga',
+        crewCapacity: 4,
+        crew: [crewMember(1, 'Mittens', 'Strong Paws'), crewMember(2, 'Patch', 'Sharp Eyes'), crewMember(3, 'Saffron', 'Quick Claws')],
+      }),
+    ], []);
+
+    expect(all('ship-crew-names').map((names) => names.textContent!.trim())).toEqual(['Mittens, Patch, Saffron']);
+  });
 });
 
 describe('ShipsComponent (ship card)', () => {
