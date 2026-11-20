@@ -12,6 +12,7 @@ import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driving.harbor.RecruitDTO
 import com.sonicdevelopment.domain.ports.driving.ship.CrewManagementPort
 import com.sonicdevelopment.domain.ports.driving.ship.CrewMemberDTO
+import com.sonicdevelopment.domain.ports.driving.ship.DismissalDTO
 import com.sonicdevelopment.domain.ports.driving.ship.HireDTO
 import io.mockk.every
 import org.junit.jupiter.api.Test
@@ -101,15 +102,21 @@ class ShipCrewControllerTest {
     private fun dismiss() = mockMvc.delete("/web/ships/$shipId/crew/$crewMemberId")
 
     @Test
-    fun `DELETE crew answers 204 after the Dismissal`() {
-        every { crewManagementPort.dismiss(ShipId(shipId), CrewMemberId(crewMemberId)) } returns true
+    fun `DELETE crew answers 200 with the refund and the Savings as decimal strings`() {
+        every { crewManagementPort.dismiss(ShipId(shipId), CrewMemberId(crewMemberId)) } returns
+            DismissalDTO(ShipId(shipId), "Salty Whisker", CrewMemberId(crewMemberId), Money.of("25.00"), Money.of("975.00"))
 
-        dismiss().andExpect { status { isNoContent() } }
+        dismiss().andExpect {
+            status { isOk() }
+            jsonPath("$.refund") { value("25.00") }
+            jsonPath("$.savings") { value("975.00") }
+            jsonPath("$.crewMemberId") { value(crewMemberId.toString()) }
+        }
     }
 
     @Test
     fun `DELETE crew answers 404 for a ship not in the fleet`() {
-        every { crewManagementPort.dismiss(any(), any()) } returns false
+        every { crewManagementPort.dismiss(any(), any()) } returns null
 
         dismiss().andExpect {
             status { isNotFound() }

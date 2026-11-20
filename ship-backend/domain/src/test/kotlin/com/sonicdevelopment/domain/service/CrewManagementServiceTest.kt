@@ -145,27 +145,34 @@ class CrewManagementServiceTest {
     }
 
     @Test
-    fun `dismiss locks the ship and removes the Crew Member, writing no Savings, pool or other row`() {
+    fun `dismiss locks the ship, removes the Crew Member, then receives the refund`() {
         val member = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Strong Paws")
         every { ships.lockShip(any()) } returns aShip(crew = listOf(member))
+        every { savings.getSavings() } returns Money.of("975.00")
 
-        service.dismiss(ship.id, member.id) shouldBe true
+        val dismissal = service.dismiss(ship.id, member.id)!!
 
         verifyOrder {
             ships.lockShip(ship.id)
             ships.removeCrewMember(any(), member.id)
+            savings.receive(HiringFee.REFUND)
         }
+        dismissal.refund shouldBe HiringFee.REFUND
+        dismissal.savings shouldBe Money.of("975.00")
+        dismissal.crewMemberId shouldBe member.id
+        verify(exactly = 0) { savings.pay(any()) }
         verify(exactly = 0) { ships.addCrewMember(any(), any()) }
-        confirmVerified(savings, pool)
+        confirmVerified(pool)
     }
 
     @Test
-    fun `dismiss of an unknown ship returns false and a refusal removes nothing`() {
+    fun `a refused dismissal and an unknown ship receive nothing`() {
         every { ships.lockShip(ship.id) } returns null
-        service.dismiss(ship.id, CrewMemberId(UUID.randomUUID())) shouldBe false
+        service.dismiss(ship.id, CrewMemberId(UUID.randomUUID())) shouldBe null
 
         every { ships.lockShip(ship.id) } returns aShip(homeHarbor = HarborName("Tortuga"))
         shouldThrow<DismissRefusedException> { service.dismiss(ship.id, CrewMemberId(UUID.randomUUID())) }
         verify(exactly = 0) { ships.removeCrewMember(any(), any()) }
+        verify(exactly = 0) { savings.receive(any()) }
     }
 }
