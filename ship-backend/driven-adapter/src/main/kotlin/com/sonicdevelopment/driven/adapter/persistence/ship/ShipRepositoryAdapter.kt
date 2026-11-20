@@ -2,6 +2,7 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
 import com.sonicdevelopment.domain.model.enums.ShipClass
@@ -148,6 +149,11 @@ class ShipRepositoryAdapter(
                 crewMemberId = crewMember.id.id, name = crewMember.name, trait = crewMember.trait, ship = ship
             )
         )
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId) {
+        TODO("removeCrewMember")
     }
 
     override fun getAllShips(): List<Ship> {

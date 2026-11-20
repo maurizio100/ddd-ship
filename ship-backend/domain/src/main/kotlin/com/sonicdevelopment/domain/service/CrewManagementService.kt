@@ -3,6 +3,7 @@ package com.sonicdevelopment.domain.service
 import com.sonicdevelopment.domain.exception.HireRefusedException
 import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
 import com.sonicdevelopment.domain.model.Recruit
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.RecruitId
 import com.sonicdevelopment.domain.model.values.ShipId
@@ -57,6 +58,11 @@ class CrewManagementService(
             savings = savingsRepositoryPort.getSavings(),
             newRecruit = RecruitDTO(newRecruit.id.id, newRecruit.name, newRecruit.trait, HiringFee.AMOUNT),
         )
+    }
+
+    @Transactional
+    override fun dismiss(shipId: ShipId, crewMemberId: CrewMemberId): Boolean {
+        TODO("dismiss")
     }
 
     /** A conflict means a concurrent Hire or opening took that ordinal first, so the next one is tried. */

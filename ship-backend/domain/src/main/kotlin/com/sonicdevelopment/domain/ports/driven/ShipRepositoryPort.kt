@@ -2,6 +2,7 @@ package com.sonicdevelopment.domain.ports.driven
 
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.values.CatainId
@@ -88,4 +89,10 @@ interface ShipRepositoryPort {
 
     /** Adds [crewMember] to the Crew of a ship in the fleet; fails for a ship that is not in the fleet. Runs in the caller's transaction. */
     fun addCrewMember(shipId: ShipId, crewMember: CrewMember)
+
+    /**
+     * Removes the Crew Member from a ship in the fleet; fails for a ship that is not in the fleet or a Crew Member not
+     * aboard it. Runs in the caller's transaction.
+     */
+    fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId)
 }
