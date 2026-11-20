@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.model.values.HarborName
+import com.sonicdevelopment.domain.model.values.Portrait
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -49,5 +50,14 @@ class RecruitPoolGeneratorTest {
             "Lavender" to "Sleepy", "Gizmo" to "Greedy", "Soot" to "Curious", "Haddock" to "Sticky-pawed",
             "Cobweb" to "Stubborn"
         )
+    }
+
+    @Test
+    fun `every Recruit has a portrait that re-generation reproduces`() {
+        val pool = (0 until RECRUIT_POOL_SIZE).map { portRoyal.recruit(it) }
+
+        pool.forEach { it.portrait shouldBe Portrait.of(it.id.id) }
+        pool.map { it.portrait } shouldBe (0 until RECRUIT_POOL_SIZE)
+            .map { RecruitPoolGenerator(HarborName("Port Royal")).recruit(it).portrait }
     }
 }
