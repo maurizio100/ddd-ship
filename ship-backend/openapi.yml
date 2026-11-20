@@ -543,6 +543,58 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /web/ships/{shipId}/crew:
+    post:
+      summary: Hire a Recruit onto a ship
+      description: >-
+        In one transaction the Harbor pays the Hiring Fee from its Savings, the Recruit from this Harbor's Recruit
+        Pool becomes a Crew Member of the ship (same id, name and trait) and a new Recruit takes its place in the
+        pool. A refused Hire changes nothing. Nothing is published. Read the fleet, Savings and Recruit Pool from
+        `/web/ships`, `/web/savings` and `/web/recruits`.
+      operationId: hireRecruit
+      tags: [Ships]
+      parameters:
+        - name: shipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HireRequest'
+      responses:
+        '200':
+          description: The Recruit was Hired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hire'
+        '400':
+          description: The request has no `recruitId`
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Ship not found in this Harbor's fleet
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The Hire is refused and nothing changes: the Crew is full, the ship is away from its Home Harbor or at
+            sea, or the Recruit is not offered (title "Hire refused"), or the Savings do not cover the Hiring Fee
+            (title "Savings do not cover", `detail` "The Savings do not cover the Hiring Fee of 50.00 $").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /web/market/purchases:
     post:
       summary: Buy Cargo at the Market
@@ -879,6 +931,37 @@ components:
           pattern: '^\d+\.\d{2}$'
           example: '950.00'
           description: The Savings after the payment, in dollars, as a decimal string with two decimals
+
+    HireRequest:
+      type: object
+      required: [recruitId]
+      properties:
+        recruitId:
+          type: string
+          format: uuid
+
+    Hire:
+      type: object
+      required: [shipId, name, crewMember, hiringFee, savings, newRecruit]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        crewMember:
+          $ref: '#/components/schemas/CrewMember'
+        hiringFee:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '50.00'
+        savings:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '950.00'
+          description: The Savings after the Hire
+        newRecruit:
+          $ref: '#/components/schemas/Recruit'
 
     Savings:
       type: object

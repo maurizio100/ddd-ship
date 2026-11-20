@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.HireRefusedException
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.RefusedCargoException
 import com.sonicdevelopment.domain.exception.ShipNotImprisonedException
@@ -198,6 +199,23 @@ class Ship(
     fun free(currentHarbor: HarborName) {
         if (!isImprisonedHere(currentHarbor)) throw ShipNotImprisonedException("$shipName is not imprisoned")
         isImprisoned = false
+    }
+
+    /**
+     * Hires [recruit] as a Crew Member at [currentHarbor]. Refused, in this order: the ship is at sea, [currentHarbor]
+     * is not its Home Harbor, its Crew is at its Crew Capacity. A refusal changes nothing.
+     */
+    fun hire(recruit: Recruit, currentHarbor: HarborName): CrewMember {
+        if (shippingState() == ShippingState.SHIPPING) throw HireRefusedException("$shipName is at sea")
+        if (homeHarbor != currentHarbor) {
+            throw HireRefusedException("${currentHarbor.name} is not the Home Harbor of $shipName")
+        }
+        if (crewAboard.size >= crewCapacity) {
+            throw HireRefusedException(
+                "The Crew is full: a ${shipClass.name.lowercase().replaceFirstChar { it.uppercase() }} carries $crewCapacity Crew Members"
+            )
+        }
+        return CrewMember.hired(recruit).also { crewAboard.add(it) }
     }
 
     private fun moveCargoAboardIntoLoadedCargo() {
