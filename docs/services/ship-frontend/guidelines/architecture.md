@@ -4,7 +4,8 @@
 
 The app is split into feature folders under `src/app/features/`: `ships` (the ship list and
 creating ships, which is Fleet), `catains` (the roster, Fleet), `harbor` (the harbor management page, starting with the
-Stock, CargoLoading), and `shipping` (cargo loading,
+Stock, CargoLoading), `crew` (the read-only Crew screen at `/ships/:id/crew`, Fleet; it reads the
+`harbor` and `ships` stores through selectors only), and `shipping` (cargo loading,
 Release and the Shipping Summary, which is CargoLoading + Shipping). Each feature has the same
 shape:
 
