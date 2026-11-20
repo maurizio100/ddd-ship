@@ -7,6 +7,7 @@ import com.sonicdevelopment.domain.ports.driven.HarborOutboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.RecruitPoolRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
@@ -19,12 +20,15 @@ class HarborManagementService(
     private val inboxRepositoryPort: InboxRepositoryPort,
     private val cargoQueryPort: CargoQueryPort,
     private val priceRepositoryPort: PriceRepositoryPort,
-    private val priceRoll: PriceRoll
+    private val priceRoll: PriceRoll,
+    private val recruitPoolRepositoryPort: RecruitPoolRepositoryPort,
+    private val recruitPoolGenerator: RecruitPoolGenerator
 ) : HarborManagementPort {
 
     /**
-     * Rolls a Price for every catalog Cargo that has none yet, then publishes Harbor Opened, in one
-     * transaction. A Price once rolled is kept, so opening again changes no Price.
+     * Rolls a Price for every catalog Cargo that has none yet, tops the Recruit Pool up to [RECRUIT_POOL_SIZE],
+     * then publishes Harbor Opened, in one transaction. A Price or Recruit once stored is kept, so opening
+     * again changes neither.
      */
     @Transactional
     override fun openHarbor() {
@@ -32,6 +36,13 @@ class HarborManagementService(
         cargoQueryPort.findAllCargo()
             .filterNot { it.id in prices }
             .forEach { priceRepositoryPort.rememberPrice(it.id, priceRoll.roll()) }
+        val missing = RECRUIT_POOL_SIZE - recruitPoolRepositoryPort.getRecruits().size
+        if (missing > 0) {
+            val first = recruitPoolRepositoryPort.nextOrdinal()
+            (first until first + missing).forEach {
+                recruitPoolRepositoryPort.rememberRecruit(it, recruitPoolGenerator.recruit(it))
+            }
+        }
         harborOutboxRepositoryPort.publishHarborOpened(currentHarbor)
     }
 

@@ -3,6 +3,7 @@ package com.sonicdevelopment.application.config
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
 import com.sonicdevelopment.domain.service.PriceRoll
+import com.sonicdevelopment.domain.service.RecruitPoolGenerator
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,6 +19,10 @@ class HarborConfiguration {
     /** Rolls the Prices of this Harbor at its opening. Tests construct their own `PriceRoll` with a controlled `Random`. */
     @Bean
     fun priceRoll(): PriceRoll = PriceRoll(Random.Default)
+
+    /** Generates the Recruits of this Harbor from its Harbor Name (ADR-0009). */
+    @Bean
+    fun recruitPoolGenerator(currentHarbor: HarborName): RecruitPoolGenerator = RecruitPoolGenerator(currentHarbor)
 
     /**
      * Opens the Harbor once per startup (ADR-0005): it rolls the Prices the Harbor has not rolled yet and

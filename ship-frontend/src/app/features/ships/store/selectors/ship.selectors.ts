@@ -1,5 +1,5 @@
 import {createFeatureSelector, createSelector} from "@ngrx/store";
-import {Ship} from "../../models/ship";
+import {Ship, ShipClassOffer} from "../../models/ship";
 import {ArrivalNotice, ImprisonmentNotice} from "../../models/fleet-event";
 
 /** A new Shipping the backend refused for the ship [shipId], with what the User is told. */
@@ -10,6 +10,10 @@ export interface NewShippingRefusal {
 
 export interface ShipState {
   ships: Ship[];
+  /** The Ship Classes on offer with their Crew Capacity, as the backend lists them. */
+  shipClasses: ShipClassOffer[];
+  /** Whether the last load of the Ship Classes failed, so none can be chosen. */
+  shipClassesUnavailable: boolean;
   loading: boolean;
   error: string | null;
   /** Ships that have just arrived, until the notice is dismissed. */
@@ -25,6 +29,16 @@ export const selectShipsState = createFeatureSelector<ShipState>('ships');
 export const selectAllShips = createSelector(
   selectShipsState,
   state => state.ships
+);
+
+export const selectShipClasses = createSelector(
+  selectShipsState,
+  state => state.shipClasses
+);
+
+export const selectShipClassesUnavailable = createSelector(
+  selectShipsState,
+  state => state.shipClassesUnavailable
 );
 
 export const selectError = createSelector(

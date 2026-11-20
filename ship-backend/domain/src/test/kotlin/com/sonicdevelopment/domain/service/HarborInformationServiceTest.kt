@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.model.values.Portrait
 import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
@@ -9,9 +10,13 @@ import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShippingQuote
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.RecruitPoolRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.harbor.KnownHarborsDTO
+import com.sonicdevelopment.domain.ports.driving.harbor.RecruitDTO
+import com.sonicdevelopment.domain.model.Recruit
+import com.sonicdevelopment.domain.model.values.RecruitId
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -27,7 +32,8 @@ class HarborInformationServiceTest {
     private val savings = mockk<SavingsRepositoryPort>()
     private val ships = mockk<ShipRepositoryPort>()
     private val prices = mockk<PriceRepositoryPort>()
-    private val service = HarborInformationService(HarborName("Tortuga"), knownHarbors, savings, ships, prices)
+    private val recruits = mockk<RecruitPoolRepositoryPort>()
+    private val service = HarborInformationService(HarborName("Tortuga"), knownHarbors, savings, ships, prices, recruits)
 
     private val rum = aCargo(name = "Rum")
     private val sugar = aCargo(name = "Sugar", weight = 0.7F)
@@ -42,6 +48,14 @@ class HarborInformationServiceTest {
             harborName = HarborName("Tortuga"),
             knownHarbors = listOf(HarborName("Nassau"), HarborName("Port Royal"))
         )
+    }
+
+    @Test
+    fun `the Recruit Pool maps the stored Recruits in order`() {
+        val id = UUID.randomUUID()
+        every { recruits.getRecruits() } returns listOf(Recruit(RecruitId(id), "Mittens", "Fearless"))
+
+        service.getRecruitPool() shouldBe listOf(RecruitDTO(id, "Mittens", "Fearless", Money.of("50.00"), Portrait.of(id)))
     }
 
     @Test

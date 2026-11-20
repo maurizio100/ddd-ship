@@ -20,7 +20,14 @@ data class ShippingEvent @JsonCreator constructor(
 
     data class ShipEventData @JsonCreator constructor(
         @JsonProperty("shipId") val shipId: UUID,
-        @JsonProperty("shipName") val shipName: String
+        @JsonProperty("shipName") val shipName: String,
+        @JsonProperty("crew") val crew: List<CrewEventData>?
+    ) : Serializable
+
+    data class CrewEventData @JsonCreator constructor(
+        @JsonProperty("crewMemberId") val crewMemberId: UUID,
+        @JsonProperty("name") val name: String,
+        @JsonProperty("trait") val trait: String
     ) : Serializable
 
     data class CatainEventData @JsonCreator constructor(
@@ -152,6 +159,13 @@ fun formatDeparture(event: ShippingEvent): String {
         event.shippingEventData.cargo.forEachIndexed { index, cargo -> lines += "  ${index + 1}. ${cargo.cargoName}" }
     } else {
         lines += "📦 No cargo loaded."
+    }
+    val crew = event.shipEventData.crew
+    if (!crew.isNullOrEmpty()) {
+        lines += "🐾 Crew:"
+        crew.forEachIndexed { index, member -> lines += "  ${index + 1}. ${member.name} (${member.trait})" }
+    } else {
+        lines += "🐾 Sails without Crew."
     }
     lines += "==================================="
     return lines.joinToString("\n")

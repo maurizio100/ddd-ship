@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 
 import { ShipsComponent } from './ships.component';
-import { Ship, ShippingState } from '../../models/ship';
+import { Ship, ShipClass, ShippingState } from '../../models/ship';
 import { ShipService } from '../../services/ship.service';
 import * as HarborActions from '../../../harbor/store/harbor.actions';
 import * as ShipActions from '../../store/actions/ship.actions';
@@ -50,6 +50,18 @@ describe('ShipsComponent (The voyage ends at the Origin Harbor)', () => {
     expect(store.dispatch).toHaveBeenCalledWith(ShipActions.loadShips());
     expect(all('ship').length).toBe(1);
     expect(all('ship').some((ship) => ship.textContent!.includes('Black Pearl'))).toBeFalse();
+  });
+
+  it('Every ship card has a Crew button to its Crew screen', () => {
+    render([
+      anAvailableShip({ shippingState: ShippingState.SHIPPING }),
+      anAvailableShip({ id: 'a7c1e9b3-0000-4000-8000-000000000004', name: 'Flying Dutchman', shippingState: ShippingState.IDLE }),
+    ]);
+
+    expect(all('ship-crew').map((a) => a.getAttribute('href'))).toEqual([
+      '/ships/5f1d7c2e-0000-4000-8000-000000000001/crew',
+      '/ships/a7c1e9b3-0000-4000-8000-000000000004/crew',
+    ]);
   });
 
   it('An arrived ship can sail back', () => {
@@ -155,6 +167,45 @@ describe('ShipsComponent (A ship keeps its Home Harbor)', () => {
   });
 });
 
+describe('ShipsComponent (A ship has a Ship Class)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices: [] }, catains: { catains: [], loading: false, error: null } } }),
+        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+      ],
+    });
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const shipClassLines = (): string[] =>
+    Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('[data-testid="ship-class"]'))
+      .map((line) => line.textContent!.replace(/\s+/g, ' ').replace(/^\s*sailing\s*/, '').trim());
+
+  it("Available Ships show each ship's Ship Class", () => {
+    render([anAvailableShip({ name: 'Salty Whisker', shipClass: ShipClass.BRIG, crewCapacity: 4 })]);
+
+    expect(shipClassLines()).toEqual(['Brig · Crew Capacity 4']);
+  });
+
+  it('Ships registered before Ship Classes existed are Sloops', () => {
+    render([anAvailableShip({ name: 'Old Barnacle', shipClass: ShipClass.SLOOP, crewCapacity: 2 })]);
+
+    expect(shipClassLines()).toEqual(['Sloop · Crew Capacity 2']);
+  });
+
+  it('A ship keeps its Ship Class at another Harbor', () => {
+    render([anAvailableShip({ shipClass: ShipClass.BRIG, crewCapacity: 4, arrivedFrom: 'Port Royal' })]);
+
+    expect(shipClassLines()).toEqual(['Brig · Crew Capacity 4']);
+  });
+});
+
 describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)', () => {
   let fixture: ComponentFixture<ShipsComponent>;
   let store: MockStore;
@@ -210,6 +261,64 @@ describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)',
     expect(store.dispatch).toHaveBeenCalledWith(
       ShipActions.dismissArrivalNotice({ shipId: anArrivalNotice().shipId }),
     );
+  });
+
+  const crewMember = (id: number, name: string, trait: string) => ({
+    id: `c0ffee00-0000-4000-8000-00000000000${id}`,
+    name,
+    trait,
+    portrait: { fur: 'cream', coat: 'spotted', eyes: 'blue', accessory: 'earring' } as const,
+    refund: '25.00',
+  });
+
+  it('The Crew arrives with the ship', () => {
+    const saltyWhisker = anAvailableShip({
+      id: '5f1d7c2e-0000-4000-8000-000000000002',
+      name: 'Salty Whisker',
+      arrivedFrom: 'Port Royal',
+      crewCapacity: 4,
+      crew: [crewMember(1, 'Mittens', 'Strong Paws'), crewMember(2, 'Patch', 'Sharp Eyes')],
+    });
+    render(
+      [saltyWhisker],
+      [anArrivalNotice({ shipId: saltyWhisker.id, shipName: 'Salty Whisker', originHarbor: 'Port Royal', crew: ['Mittens', 'Patch'] })],
+    );
+
+    const notices = Array.from(statusRegion().querySelectorAll('[data-testid="ships-arrival-notice"]'));
+    expect(notices.map((notice) => notice.textContent!.trim())).toEqual([
+      'Salty Whisker arrived from Port Royal with its Crew: Mittens and Patch',
+    ]);
+    expect(all('ship-crew-count').map((count) => count.textContent!.replace(/\s+/g, ' ').trim())).toEqual(['Crew 2 / 4']);
+    expect(all('ship-crew-names').map((names) => names.textContent!.trim())).toEqual(['Mittens, Patch']);
+  });
+
+  it('A Crew Member is shown at the Harbor with the portrait it came with', () => {
+    render([
+      anAvailableShip({
+        name: 'Salty Whisker',
+        arrivedFrom: 'Tortuga',
+        crewCapacity: 4,
+        crew: [crewMember(1, 'Mittens', 'Strong Paws'), crewMember(2, 'Patch', 'Sharp Eyes')],
+      }),
+    ], []);
+
+    const svgs = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="ship-crew-portraits"] svg')) as SVGElement[];
+    expect(svgs.map((svg) => svg.getAttribute('aria-hidden'))).toEqual(['true', 'true']);
+    expect(svgs.map((svg) => svg.getAttribute('data-fur'))).toEqual(['cream', 'cream']);
+    expect(fixture.nativeElement.querySelector('[data-testid="ship-crew-count"] mat-icon')!.getAttribute('fonticon')).toBe('groups');
+  });
+
+  it('A ship returning to a Harbor shows its current Crew', () => {
+    render([
+      anAvailableShip({
+        name: 'Salty Whisker',
+        arrivedFrom: 'Tortuga',
+        crewCapacity: 4,
+        crew: [crewMember(1, 'Mittens', 'Strong Paws'), crewMember(2, 'Patch', 'Sharp Eyes'), crewMember(3, 'Saffron', 'Quick Claws')],
+      }),
+    ], []);
+
+    expect(all('ship-crew-names').map((names) => names.textContent!.trim())).toEqual(['Mittens, Patch, Saffron']);
   });
 });
 
@@ -453,7 +562,7 @@ describe('ShipsComponent (an Imprisoned Ship on the fleet page)', () => {
         provideRouter([]),
         provideMockStore({
           initialState: {
-            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null },
+            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null, shipClasses: [], shipClassesUnavailable: false },
             catains: { catains: [], loading: false, error: null },
           },
         }),
@@ -497,7 +606,7 @@ describe('ShipsComponent (Free an Imprisoned Ship by paying its Fine)', () => {
         provideRouter([]),
         provideMockStore({
           initialState: {
-            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null },
+            ships: { ships, loading: false, error: null, arrivalNotices: [], imprisonmentNotices: [], newShippingRefusal: null, shipClasses: [], shipClassesUnavailable: false },
             catains: { catains: [], loading: false, error: null },
             harbor: {
               stock: [], savings: aSavings(), incomingShips: [], loading: false, error: null,
@@ -550,5 +659,51 @@ describe('ShipsComponent (Free an Imprisoned Ship by paying its Fine)', () => {
     );
     expect(all('ship-fine')).toEqual([]);
     expect(all('new-shipping').length).toBe(1);
+  });
+});
+
+describe('ShipsComponent (arrival text and Crew row)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[], arrivalNotices: ArrivalNotice[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices }, catains: { catains: [], loading: false, error: null } } }),
+        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+      ],
+    });
+    spyOn(TestBed.inject(MockStore), 'dispatch');
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  it('A ship without Crew shows no Crew row and keeps the old notice wording', () => {
+    render([anAvailableShip({ crew: [] })], [anArrivalNotice({ crew: [] })]);
+
+    expect(all('ship-crew-row')).toEqual([]);
+    expect(all('ship-crew-count')).toEqual([]);
+    expect(all('ship-crew-names')).toEqual([]);
+    expect(all('ships-arrival-notice').map((n) => n.textContent!.trim())).toEqual(['Black Pearl arrived from Tortuga']);
+  });
+
+  it('An imprisoned Arrival with a Crew', () => {
+    render([], [anArrivalNotice({ imprisoned: true, crew: ['Mittens'] })]);
+
+    expect(all('ships-arrival-notice').map((n) => n.textContent!.trim())).toEqual([
+      'Black Pearl arrived from Tortuga, imprisoned, with its Crew: Mittens',
+    ]);
+  });
+
+  it('Three Crew Members are listed with commas and a final "and"', () => {
+    render([], [anArrivalNotice({ crew: ['Mittens', 'Patch', 'Saffron'] })]);
+
+    expect(all('ships-arrival-notice')[0].textContent!.trim()).toBe(
+      'Black Pearl arrived from Tortuga with its Crew: Mittens, Patch and Saffron',
+    );
   });
 });

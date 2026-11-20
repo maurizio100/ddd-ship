@@ -1,8 +1,11 @@
 package com.sonicdevelopment.driven.adapter.persistence.ship
 
 import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.*
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
@@ -26,10 +29,11 @@ class ShipRepositoryAdapter(
     private val catainRepository: CatainPersistenceEntityRepository,
     private val cargoRepository: CargoRepository,
     private val cargoAboardRepository: ShipCargoAboardPersistenceEntityRepository,
+    private val crewMemberRepository: CrewMemberPersistenceEntityRepository,
 ): ShipRepositoryPort {
     /**
      * Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row.
-     * The Home Harbor, the Origin Harbor it arrived from, the Incoming and imprisoned flags, the Earnings and the Cargo aboard are written from the ship:
+     * The Home Harbor, the Origin Harbor it arrived from, the Incoming and imprisoned flags, the Earnings, the Ship Class and the Cargo aboard are written from the ship:
      * an Arrival overwrites them, and a rename keeps them because the loaded ship carries them. The ship's
      * Cargo aboard rows are replaced, in one transaction with the ship row (joining the caller's, if any).
      */
@@ -51,6 +55,7 @@ class ShipRepositoryAdapter(
             known.incoming = ship.incoming
             known.earnings = ship.earnings.amount
             known.imprisoned = ship.imprisoned
+            known.shipClass = ShipClassEnumEntity.valueOf(ship.shipClass.name)
             shipPersistenceEntityRepository.save(known)
         }
         cargoAboardRepository.deleteAllByShip_Id(saved.id!!)
@@ -67,6 +72,7 @@ class ShipRepositoryAdapter(
             incoming = ship.incoming,
             earnings = ship.earnings.amount,
             imprisoned = ship.imprisoned,
+            shipClass = ShipClassEnumEntity.valueOf(ship.shipClass.name),
         )
 
     /** Only a ship in the fleet is deleted; a ship that left keeps its row and its Shippings as history. */
@@ -75,6 +81,7 @@ class ShipRepositoryAdapter(
         shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id) ?: return false
         shippingRepository.deleteByShip_shipId(shipId.id)
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
+        crewMemberRepository.deleteAllByShip_ShipId(shipId.id)
         shipPersistenceEntityRepository.deleteByShipId(shipId.id)
         return true
     }
@@ -132,6 +139,37 @@ class ShipRepositoryAdapter(
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun addCrewMember(shipId: ShipId, crewMember: CrewMember) {
+        val ship = checkNotNull(shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id)) {
+            "Ship ${shipId.id} is not in the fleet, so it cannot take a Crew Member"
+        }
+        crewMemberRepository.save(
+            CrewMemberPersistenceEntity(
+                crewMemberId = crewMember.id.id, name = crewMember.name, trait = crewMember.trait, ship = ship
+            )
+        )
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId) {
+        check(crewMemberRepository.deleteByCrewMemberIdAndShip_ShipId(crewMemberId.id, shipId.id) > 0) {
+            "Crew Member ${crewMemberId.id} is not aboard ship ${shipId.id}"
+        }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun replaceCrew(shipId: ShipId, crew: List<CrewMember>) {
+        val ship = checkNotNull(shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id)) {
+            "Ship ${shipId.id} is not in the fleet, so its Crew cannot be replaced"
+        }
+        // A bulk delete runs at once; queued entity removals would be flushed after the inserts and trip the unique Crew Member id.
+        crewMemberRepository.deleteAllAboard(ship.id!!)
+        crewMemberRepository.saveAll(
+            crew.map { CrewMemberPersistenceEntity(crewMemberId = it.id.id, name = it.name, trait = it.trait, ship = ship) }
+        )
+    }
+
     override fun getAllShips(): List<Ship> {
         return shipPersistenceEntityRepository.findAllByInFleetTrue().map { toShip(it) }
     }
@@ -152,6 +190,8 @@ class ShipRepositoryAdapter(
         val arrivedFrom = shipPersistenceEntity.arrivedFrom?.let { HarborName(it) }
         val homeHarbor = HarborName(shipPersistenceEntity.homeHarbor)
         val cargoAboard = cargoAboardRepository.findAllByShip_IdOrderById(shipPersistenceEntity.id!!).map { toCargo(it.cargo) }
+        val crew = crewMemberRepository.findAllByShip_IdOrderById(shipPersistenceEntity.id!!)
+            .map { CrewMember(CrewMemberId(it.crewMemberId), it.name, it.trait) }
 
         return shippingPersistenceEntity?.let {
             Ship(
@@ -167,6 +207,8 @@ class ShipRepositoryAdapter(
                 incoming = shipPersistenceEntity.incoming,
                 earnings = Money(shipPersistenceEntity.earnings),
                 imprisoned = shipPersistenceEntity.imprisoned,
+                shipClass = ShipClass.valueOf(shipPersistenceEntity.shipClass.name),
+                crew = crew,
             )
         } ?: Ship(
             id = ShipId(shipPersistenceEntity.shipId),
@@ -179,6 +221,8 @@ class ShipRepositoryAdapter(
             incoming = shipPersistenceEntity.incoming,
             earnings = Money(shipPersistenceEntity.earnings),
             imprisoned = shipPersistenceEntity.imprisoned,
+            shipClass = ShipClass.valueOf(shipPersistenceEntity.shipClass.name),
+            crew = crew,
         )
     }
 

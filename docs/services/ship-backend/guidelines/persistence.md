@@ -84,6 +84,9 @@
   effect. It is never derived from `arrivals`, which may hold an Arrival that was skipped.
 - `ships.ship_home_harbor` (NOT NULL) holds the ship's Home Harbor. It is written only by `saveNewShip`,
   from the ship's `homeHarbor`, and never derived or changed in SQL; V17 backfilled existing rows.
+- `ships.ship_class` (VARCHAR NOT NULL, default 'SLOOP', `ck_ships_ship_class`, `V20__ships_ship_class.sql`)
+  holds the Ship Class as the enum name. It is written only by `saveNewShip`, from the ship, so an Arrival
+  restores it and a rename keeps it.
 - `ships.ship_earnings NUMERIC(12,2)` (NOT NULL, default 0, `ck_ships_ship_earnings_not_negative`) holds
   the ship's Earnings. `saveNewShip` writes it from the ship, so an Arrival restores the Earnings carried in
   and a rename keeps them. An unloading increases it only through `addEarnings`, one atomic
@@ -104,6 +107,14 @@
   (`Propagation.MANDATORY`); 0 rows fails. A confiscation, a Release and a Fine payment first read the ship under its row lock
   (`lockShip`, `SELECT … FOR UPDATE`), so they run one after the other: a concurrent unloading, refusal or Release finds the ship no longer Incoming,
   at sea or imprisoned and rolls back.
+- `crew_members` (`V22__crew_members.sql`) holds the Crew aboard a ship: `crew_member_id` is the Crew Member's
+  UUID (`uq_crew_members_crew_member_id`), and `ship_id` references `ships(id)`. It is written by
+  `addCrewMember` (Hire) and `replaceCrew` (Arrival), both in the caller's transaction (`Propagation.MANDATORY`). `replaceCrew` removes the ship's rows with a bulk delete before inserting, because `crew_member_id` is unique and Hibernate flushes entity removals after inserts. `saveNewShip` does not touch it,
+  `delete` removes it before the ship row, and every test TRUNCATE of `ships` lists it. A Recruit row is never
+  deleted: Hiring sets `recruits.recruit_hired` with one conditional
+  `UPDATE recruits SET recruit_hired = true WHERE recruit_id = :id AND NOT recruit_hired` (0 rows: not
+  offered, the caller throws). The pool lists only unhired Recruits, and `nextOrdinal` counts every row, so
+  an ordinal is never reused.
 - A ship sent home from the holding Harbor keeps `ship_imprisoned = true` in that Harbor's row, so `/web/ships` reports `imprisoned` true for it while it
   is at sea; the fleet page shows such a ship "At sea", and Ship Arrived removes it from the fleet.
 
@@ -162,6 +173,9 @@
   `price_amount NUMERIC(8,2)` and `ck_prices_price_amount_not_negative`.
 - Prices are rolled in code by `openHarbor`, not seeded by a migration: the roll is a domain rule
   (`PriceRoll`), and each Harbor rolls its own.
+- Per-Harbor runtime data (Prices, the Recruit Pool) is filled by `openHarbor()` in the opening transaction
+  with `INSERT … ON CONFLICT DO NOTHING`, never by a Flyway seed. Recruits (`recruits`) are numbered by a
+  per-Harbor `ordinal` that is never reused.
 - It is written only through `PriceRepositoryPort.rememberPrice`, in the caller's transaction
   (`Propagation.MANDATORY`) with `INSERT … ON CONFLICT (cargo_id) DO NOTHING`. A Price is never re-rolled
   or overwritten.

@@ -14,7 +14,7 @@ fun FakeDrivenPorts.givenStockOf(cargoName: String, quantity: Int) {
 
 /** A ship commanded by a seeded Catain with a new Shipping, i.e. being prepared. Returns its id. */
 fun TestRestTemplate.aShipBeingPrepared(name: String = "Black Pearl"): UUID {
-    val ship = postForEntity("/web/ships", mapOf("name" to name, "catainId" to SeedData.aCatainId), Map::class.java)
+    val ship = postForEntity("/web/ships", mapOf("name" to name, "catainId" to SeedData.aCatainId, "shipClass" to "SLOOP"), Map::class.java)
     check(ship.statusCode == HttpStatus.OK) { "Creating the ship answered ${ship.statusCode}" }
     val shipId = UUID.fromString(ship.body!!["id"] as String)
 

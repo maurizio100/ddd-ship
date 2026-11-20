@@ -4,13 +4,15 @@ import java.util.UUID
 
 /**
  * Data of the `ship-arrived` fleet event: a ship arrived at this Harbor from [originHarbor]; [imprisoned] when it
- * arrived at its Home Harbor as an Imprisoned Ship.
+ * arrived at its Home Harbor as an Imprisoned Ship;
+ * [crew] are the names of the Crew Members that arrived aboard.
  */
 data class ShipArrivedFleetEvent(
     val shipId: UUID,
     val shipName: String,
     val originHarbor: String,
     val imprisoned: Boolean,
+    val crew: List<String> = emptyList(),
 )
 
 /**

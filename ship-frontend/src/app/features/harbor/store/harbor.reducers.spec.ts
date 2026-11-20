@@ -19,18 +19,18 @@ describe('harborReducers', () => {
 
     const state = harborReducers({ ...initialState, loading: true }, HarborActions.loadStockSuccess({ stock }));
 
-    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] });
+    expect(state).toEqual({ stock, savings: null, incomingShips: [], recruitPool: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] });
   });
 
   it('loadStockFailure stores the error, keeps the stock and stops loading', () => {
     const stock = [aStockedCargo()];
 
     const state = harborReducers(
-      { stock, savings: null, incomingShips: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] },
+      { stock, savings: null, incomingShips: [], recruitPool: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] },
       HarborActions.loadStockFailure({ error: 'boom' }),
     );
 
-    expect(state).toEqual({ stock, savings: null, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] });
+    expect(state).toEqual({ stock, savings: null, incomingShips: [], recruitPool: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] });
   });
 
   it('loadSavings sets loading and clears a previous error', () => {
@@ -45,18 +45,18 @@ describe('harborReducers', () => {
 
     const state = harborReducers({ ...initialState, loading: true }, HarborActions.loadSavingsSuccess({ savings }));
 
-    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] });
+    expect(state).toEqual({ stock: [], savings, incomingShips: [], recruitPool: [], loading: false, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] });
   });
 
   it('loadSavingsFailure stores the error, keeps the Savings and stops loading', () => {
     const savings = aSavings();
 
     const state = harborReducers(
-      { stock: [], savings, incomingShips: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] },
+      { stock: [], savings, incomingShips: [], recruitPool: [], loading: true, error: null, purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] },
       HarborActions.loadSavingsFailure({ error: 'boom' }),
     );
 
-    expect(state).toEqual({ stock: [], savings, incomingShips: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] });
+    expect(state).toEqual({ stock: [], savings, incomingShips: [], recruitPool: [], loading: false, error: 'boom', purchaseRefusal: null, unloadRefusal: null, unloadingShipIds: [], refuseFailure: null, refusingShipIds: [], imprisonedShips: [], fineNotice: null, fineRefusal: null, payingFineShipIds: [] });
   });
 
   it('starts without a purchase refusal', () => {
@@ -270,5 +270,24 @@ describe('harborReducers', () => {
 
       expect(state.fineNotice).toBeNull();
     });
+  });
+
+  it('starts with an empty Recruit Pool', () => expect(initialState.recruitPool).toEqual([]));
+
+  it('loadRecruitPoolSuccess stores the Recruit Pool', () => {
+    const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const, hiringFee: '50.00' }];
+
+    const state = harborReducers(initialState, HarborActions.loadRecruitPoolSuccess({ recruitPool }));
+
+    expect(state.recruitPool).toEqual(recruitPool);
+  });
+
+  it('loadRecruitPoolFailure stores the error and keeps the Recruit Pool', () => {
+    const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const, hiringFee: '50.00' }];
+
+    const state = harborReducers({ ...initialState, recruitPool }, HarborActions.loadRecruitPoolFailure({ error: 'boom' }));
+
+    expect(state.recruitPool).toEqual(recruitPool);
+    expect(state.error).toBe('boom');
   });
 });

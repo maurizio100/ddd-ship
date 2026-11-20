@@ -68,6 +68,9 @@ driven.adapter
   inbox or a driven port.
 - Inbound copies (`messaging/events/`) are the backend's own classes, never the outbox payloads from
   `driven.adapter.persistence.outbox.events`, and they ignore unknown fields.
+- A listener maps a field that older or newer Harbors may leave out or send with an unknown value onto a
+  documented default (an absent `imprisoned` is `false`, an absent, blank or unknown `shipClass` is
+  `SLOOP`, an absent `crew` is an empty Crew, and a Crew entry without an id, name or trait is dropped) and never throws for it: a failing record is retried and then skipped, which loses the event.
 - The domain service that handles an event takes its `EventId` and, inside its transactional method,
   calls `InboxRepositoryPort.recordConsumedEvent` first. If that returns `false` the event was already
   consumed, and the service returns without any effect. The inbox row and the state change commit

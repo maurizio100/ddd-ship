@@ -6,8 +6,10 @@ import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.model.values.ShippingId
+import com.sonicdevelopment.domain.ports.driving.ship.CrewMemberDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipArrivedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
@@ -196,9 +198,57 @@ class ShippingEventListenerTest {
         }
     }
 
-    /** [homeHarbor], [earnings] and [imprisoned] are JSON values written into `shipEventData`, or left out when `null`. */
-    private fun aShippingPublishedPayload(homeHarbor: String? = null, earnings: String? = null, imprisoned: String? = null) = """
-        {"shipEventData":{"shipId":"$shipId","shipName":"Black Pearl"${homeHarbor?.let { ",\"homeHarbor\":$it" } ?: ""}${earnings?.let { ",\"earnings\":$it" } ?: ""}${imprisoned?.let { ",\"imprisoned\":$it" } ?: ""}},
+    @Test
+    fun `maps the Ship Class of the ship, and a missing, blank or unknown one to SLOOP`() {
+        val ids = List(5) { UUID.randomUUID() }
+        val payloads = listOf("\"BRIG\"", "\"GALLEON\"", null, "\"\"", "\"FRIGATE\"")
+
+        ids.zip(payloads).forEach { (id, shipClass) ->
+            listener.onShippingEvent(aRecord(id = id, payload = aShippingPublishedPayload(shipClass = shipClass)))
+        }
+
+        verify(exactly = 1) {
+            arrivalManagementPort.receiveShippingPublished(EventId(ids[0]), match { it.shipClass == ShipClass.BRIG })
+            arrivalManagementPort.receiveShippingPublished(EventId(ids[1]), match { it.shipClass == ShipClass.GALLEON })
+            arrivalManagementPort.receiveShippingPublished(EventId(ids[2]), match { it.shipClass == ShipClass.SLOOP })
+            arrivalManagementPort.receiveShippingPublished(EventId(ids[3]), match { it.shipClass == ShipClass.SLOOP })
+            arrivalManagementPort.receiveShippingPublished(EventId(ids[4]), match { it.shipClass == ShipClass.SLOOP })
+        }
+    }
+
+    @Test
+    fun `maps the Crew of the ship, and a missing or malformed one to an empty or partial Crew`() {
+        val mittens = UUID.randomUUID()
+        val patch = UUID.randomUUID()
+        val withCrew = UUID.randomUUID()
+        val without = UUID.randomUUID()
+        val malformed = UUID.randomUUID()
+        val crew = """[{"crewMemberId":"$mittens","name":" Mittens ","trait":"Strong Paws"},
+            {"crewMemberId":"$mittens","name":"Mittens again","trait":"Other"},
+            {"crewMemberId":"$patch","name":"Patch","trait":"Sharp Eyes"}]"""
+        val broken = """[{"name":"No id","trait":"x"},{"crewMemberId":"${UUID.randomUUID()}","trait":"No name"},
+            {"crewMemberId":"${UUID.randomUUID()}","name":"No trait"},{"crewMemberId":"${UUID.randomUUID()}","name":" ","trait":"Blank"}]"""
+
+        listener.onShippingEvent(aRecord(id = withCrew, payload = aShippingPublishedPayload(crew = crew)))
+        listener.onShippingEvent(aRecord(id = without, payload = aShippingPublishedPayload()))
+        listener.onShippingEvent(aRecord(id = malformed, payload = aShippingPublishedPayload(crew = broken)))
+
+        verify(exactly = 1) {
+            arrivalManagementPort.receiveShippingPublished(
+                EventId(withCrew),
+                match { it.crew == listOf(CrewMemberDTO(mittens, "Mittens", "Strong Paws"), CrewMemberDTO(patch, "Patch", "Sharp Eyes")) },
+            )
+            arrivalManagementPort.receiveShippingPublished(EventId(without), match { it.crew.isEmpty() })
+            arrivalManagementPort.receiveShippingPublished(EventId(malformed), match { it.crew.isEmpty() })
+        }
+    }
+
+    /** [homeHarbor], [earnings], [imprisoned] and [shipClass] are JSON values written into `shipEventData`, or left out when `null`. */
+    private fun aShippingPublishedPayload(
+        homeHarbor: String? = null, earnings: String? = null, imprisoned: String? = null, shipClass: String? = null,
+        crew: String? = null,
+    ) = """
+        {"shipEventData":{"shipId":"$shipId","shipName":"Black Pearl"${homeHarbor?.let { ",\"homeHarbor\":$it" } ?: ""}${earnings?.let { ",\"earnings\":$it" } ?: ""}${imprisoned?.let { ",\"imprisoned\":$it" } ?: ""}${shipClass?.let { ",\"shipClass\":$it" } ?: ""}${crew?.let { ",\"crew\":$it" } ?: ""}},
          "shippingEventData":{"shippingId":"$shippingId","weight":7.5,"shippingQuote":"Fair winds",
            "cargo":[{"cargoId":"$rumId","cargoName":"Rum"},{"cargoId":"$silkId","cargoName":"Silk"}],
            "originHarbor":"Tortuga","destinationHarbor":"Port Royal"},

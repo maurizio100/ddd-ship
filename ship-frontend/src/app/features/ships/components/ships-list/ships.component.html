@@ -11,7 +11,7 @@
     @for (notice of arrivalNotices(); track notice.shipId) {
       <div class="notice">
         <mat-icon class="notice-icon" fontIcon="anchor" aria-hidden="true"></mat-icon>
-        <p class="notice-text" data-testid="ships-arrival-notice">{{ notice.shipName }} arrived from {{ notice.originHarbor }}{{ notice.imprisoned ? ', imprisoned' : '' }}</p>
+        <p class="notice-text" data-testid="ships-arrival-notice">{{ arrivalText(notice) }}</p>
         <button
           mat-icon-button
           type="button"
@@ -88,6 +88,7 @@
             <mat-icon fontIcon="home" aria-hidden="true"></mat-icon>
             Home Harbor {{ ship.homeHarbor }}
           </p>
+          <p class="ship-class" data-testid="ship-class"><mat-icon fontIcon="sailing" aria-hidden="true"></mat-icon>{{ shipClassLabel(ship) }} · Crew Capacity {{ ship.crewCapacity }}</p>
           @if (hasEarnings(ship)) {
             <p class="earnings" data-testid="ship-earnings">
               <mat-icon fontIcon="payments" aria-hidden="true"></mat-icon>
@@ -99,6 +100,17 @@
               <mat-icon fontIcon="anchor" aria-hidden="true"></mat-icon>
               Arrived from {{ ship.arrivedFrom }}
             </p>
+          }
+          @if (ship.crew.length > 0) {
+            <div class="crew-row" data-testid="ship-crew-row">
+              <span class="chip crew-count" data-testid="ship-crew-count"><mat-icon fontIcon="groups" aria-hidden="true"></mat-icon>Crew {{ ship.crew.length }} / {{ ship.crewCapacity }}</span>
+              <span class="crew-portraits" data-testid="ship-crew-portraits">
+                @for (member of ship.crew; track member.id) {
+                  <app-cat-portrait class="crew-portrait" [portrait]="member.portrait" [name]="member.name" [ring]="true" [decorative]="true" />
+                }
+              </span>
+              <span class="crew-names" data-testid="ship-crew-names">{{ crewNames(ship) }}</span>
+            </div>
           }
           @if (imprisonedShipFor(ship); as imprisoned) {
             <div class="fine" data-testid="ship-fine">
@@ -130,6 +142,7 @@
             @if (ship.incoming) {
               <p class="incoming" data-testid="ship-incoming">{{ ship.name }} must be unloaded or refused first</p>
             }
+            <a mat-stroked-button [routerLink]="['/ships', ship.id, 'crew']" data-testid="ship-crew"><mat-icon fontIcon="groups"></mat-icon>Crew</a>
             @if (canCreateNewShipping(ship)) {
               <button mat-flat-button type="button" data-testid="new-shipping" (click)="createShipping(ship)">New shipping</button>
             }

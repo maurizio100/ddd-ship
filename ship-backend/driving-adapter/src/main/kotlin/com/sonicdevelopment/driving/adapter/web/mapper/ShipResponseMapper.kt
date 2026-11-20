@@ -3,8 +3,10 @@ package com.sonicdevelopment.driving.adapter.web.mapper
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDTO
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
 import com.sonicdevelopment.driving.adapter.web.responsemodel.CargoResponse
+import com.sonicdevelopment.driving.adapter.web.responsemodel.CrewMemberResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.ShipDetailResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.ShipOverviewResponse
+import com.sonicdevelopment.driving.adapter.web.responsemodel.toResponse
 
 fun toShipResponse(ship: ShipDTO) =
     ShipOverviewResponse(
@@ -17,6 +19,9 @@ fun toShipResponse(ship: ShipDTO) =
         homeHarbor = ship.homeHarbor,
         earnings = ship.earnings.toDecimalString(),
         imprisoned = ship.imprisoned,
+        shipClass = ship.shipClass,
+        crewCapacity = ship.shipClass.crewCapacity,
+        crew = ship.crew.map { CrewMemberResponse(it.id, it.name, it.trait, it.refund.toDecimalString(), it.portrait.toResponse()) },
     )
 fun toShipDetailResponse(ship: ShipDetailDTO) =
     ShipDetailResponse(

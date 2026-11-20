@@ -1,11 +1,14 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.DismissRefusedException
+import com.sonicdevelopment.domain.exception.HireRefusedException
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.RefusedCargoException
 import com.sonicdevelopment.domain.exception.ShipNotImprisonedException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.*
 import java.text.DecimalFormat
@@ -26,7 +29,16 @@ class Ship(
     incoming: Boolean = false,
     earnings: Money = Money.dollars(0),
     imprisoned: Boolean = false,
+    val shipClass: ShipClass = ShipClass.SLOOP,
+    crew: List<CrewMember> = emptyList(),
 ) {
+    private val crewAboard: MutableList<CrewMember> = crew.toMutableList()
+
+    /** The Crew aboard, read-only. */
+    val crew: List<CrewMember> get() = crewAboard.toList()
+
+    /** How many Crew Members the ship can carry, set by its Ship Class. */
+    val crewCapacity: Int get() = shipClass.crewCapacity
 
     /** Whether the ship is an Imprisoned Ship, or sails home from the holding Harbor as one. */
     var isImprisoned: Boolean = imprisoned
@@ -188,6 +200,38 @@ class Ship(
     fun free(currentHarbor: HarborName) {
         if (!isImprisonedHere(currentHarbor)) throw ShipNotImprisonedException("$shipName is not imprisoned")
         isImprisoned = false
+    }
+
+    /**
+     * Hires [recruit] as a Crew Member at [currentHarbor]. Refused, in this order: the ship is at sea, [currentHarbor]
+     * is not its Home Harbor, its Crew is at its Crew Capacity. A refusal changes nothing.
+     */
+    fun hire(recruit: Recruit, currentHarbor: HarborName): CrewMember {
+        if (shippingState() == ShippingState.SHIPPING) throw HireRefusedException("$shipName is at sea")
+        if (homeHarbor != currentHarbor) {
+            throw HireRefusedException("${currentHarbor.name} is not the Home Harbor of $shipName")
+        }
+        if (crewAboard.size >= crewCapacity) {
+            throw HireRefusedException(
+                "The Crew is full: a ${shipClass.name.lowercase().replaceFirstChar { it.uppercase() }} carries $crewCapacity Crew Members"
+            )
+        }
+        return CrewMember.hired(recruit).also { crewAboard.add(it) }
+    }
+
+    /**
+     * Dismisses the Crew Member [crewMemberId] at [currentHarbor]. Refused, in this order: the ship is at sea,
+     * [currentHarbor] is not its Home Harbor, the Crew Member is not aboard. A refusal changes nothing.
+     */
+    fun dismiss(crewMemberId: CrewMemberId, currentHarbor: HarborName): CrewMember {
+        if (shippingState() == ShippingState.SHIPPING) throw DismissRefusedException("$shipName is at sea")
+        if (homeHarbor != currentHarbor) {
+            throw DismissRefusedException("${currentHarbor.name} is not the Home Harbor of $shipName")
+        }
+        val member = crewAboard.firstOrNull { it.id == crewMemberId }
+            ?: throw DismissRefusedException("The Crew Member is not aboard")
+        crewAboard.remove(member)
+        return member
     }
 
     private fun moveCargoAboardIntoLoadedCargo() {

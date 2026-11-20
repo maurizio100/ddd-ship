@@ -6,6 +6,7 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { NEVER } from 'rxjs';
 
 import { NewShipComponent } from './new-ship.component';
+import { ShipClass, ShipClassOffer } from '../../models/ship';
 import { Catain } from '../../../catains/model/catain';
 import * as CatainsActions from '../../../catains/store/catains.actions';
 import * as ShipActions from '../../store/actions/ship.actions';
@@ -19,6 +20,12 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
   const whiskers = aCatain();
   const mittens = aCatain({ id: 'c1a7a1n0-0000-4000-8000-000000000002', name: 'Mittens' });
 
+  const offers: ShipClassOffer[] = [
+    { shipClass: ShipClass.SLOOP, crewCapacity: 2 },
+    { shipClass: ShipClass.BRIG, crewCapacity: 4 },
+    { shipClass: ShipClass.GALLEON, crewCapacity: 6 },
+  ];
+
   async function render(catains: Catain[] = [whiskers, mittens]): Promise<void> {
     location = jasmine.createSpyObj<Location>('Location', ['back']);
     TestBed.configureTestingModule({
@@ -27,7 +34,7 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
         provideRouter([]),
         provideMockActions(() => NEVER),
         { provide: Location, useValue: location },
-        provideMockStore({ initialState: { catains: { catains, loading: false, error: null } } }),
+        provideMockStore({ initialState: { catains: { catains, loading: false, error: null }, ships: { shipClasses: offers } } }),
       ],
     });
     store = TestBed.inject(MockStore);
@@ -52,6 +59,17 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
     fixture.detectChanges();
   }
 
+  const classRadios = (): HTMLInputElement[] => all('ship-class-radio') as HTMLInputElement[];
+
+  async function chooseClass(index: number): Promise<void> {
+    const radio = classRadios()[index];
+    radio.checked = true;
+    radio.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
   async function fillName(name: string): Promise<void> {
     const input = all('ship-name-input')[0] as HTMLInputElement;
     input.value = name;
@@ -68,6 +86,34 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
 
     expect(radios().length).toBe(2);
     expect(all('catain-image').map((img) => img.getAttribute('alt'))).toEqual(['Whiskers', 'Mittens']);
+  });
+
+  it('Loading the screen requests the Ship Classes', async () => {
+    await render();
+
+    expect(store.dispatch).toHaveBeenCalledWith(ShipActions.loadShipClasses());
+  });
+
+  it('Each Ship Class is offered with its Crew Capacity', async () => {
+    await render();
+
+    const capacities = all('ship-class-crew-capacity').map((el) => el.textContent!.trim());
+    expect(capacities).toEqual(['Crew Capacity 2', 'Crew Capacity 4', 'Crew Capacity 6']);
+    expect(all('ship-class-card')[1].textContent).toContain('Brig');
+  });
+
+  it('The shown capacity is the offered one', async () => {
+    await render();
+    await fillName('Salty Whisker');
+    await choose(0);
+    await chooseClass(1);
+
+    expect(all('ship-class-card')[1].textContent).toContain('Crew Capacity 4');
+    createButton().click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      ShipActions.addShip({ name: 'Salty Whisker', catainId: whiskers.id, shipClass: ShipClass.BRIG }),
+    );
   });
 
   it('Loading the screen requests the Catains', async () => {
@@ -109,13 +155,64 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
     expect(createButton().disabled).toBeTrue();
 
     await choose(0);
+    expect(createButton().disabled).toBeTrue();
+
+    await chooseClass(0);
     expect(createButton().disabled).toBeFalse();
 
     createButton().click();
 
     expect(store.dispatch).toHaveBeenCalledWith(
-      ShipActions.addShip({ name: 'Black Pearl', catainId: whiskers.id }),
+      ShipActions.addShip({ name: 'Black Pearl', catainId: whiskers.id, shipClass: ShipClass.SLOOP }),
     );
+  });
+
+  it('A Ship Class can be chosen with the keyboard', async () => {
+    await render();
+
+    expect(classRadios().every((radio) => radio.type === 'radio' && radio.name === 'shipClass')).toBeTrue();
+    expect(classRadios().every((radio) => radio.tabIndex !== -1)).toBeTrue();
+
+    await chooseClass(1);
+
+    expect(classRadios()[1].checked).toBeTrue();
+    expect(all('ship-class-card')[1].classList).toContain('ship-class--selected');
+    expect(all('ship-class-selected-badge').length).toBe(1);
+  });
+
+  it('The Ship Class sets the Crew Capacity', async () => {
+    await render();
+
+    expect(all('ship-class-card').map((card) => card.textContent!.replace(/\s+/g, ' ').trim())).toEqual([
+      jasmine.stringMatching(/Sloop/) as unknown as string,
+      jasmine.stringMatching(/Brig/) as unknown as string,
+      jasmine.stringMatching(/Galleon/) as unknown as string,
+    ]);
+
+    await fillName('Salty Whisker');
+    await choose(0);
+    await chooseClass(2);
+    createButton().click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      ShipActions.addShip({ name: 'Salty Whisker', catainId: whiskers.id, shipClass: ShipClass.GALLEON }),
+    );
+  });
+
+  it('A ship cannot be created without a Ship Class', async () => {
+    await render();
+    await fillName('Salty Whisker');
+    await choose(0);
+
+    expect(createButton().disabled).toBeTrue();
+    expect(all('ship-class-required')[0].textContent).toContain('Choose a Ship Class');
+    createButton().click();
+    expect(store.dispatch).not.toHaveBeenCalledWith(jasmine.objectContaining({ name: 'Salty Whisker' }));
+
+    await chooseClass(1);
+
+    expect(all('ship-class-required')).toEqual([]);
+    expect(createButton().disabled).toBeFalse();
   });
 
   it('Cancel navigates back', async () => {
@@ -135,5 +232,17 @@ describe('NewShipComponent (Create Ship with Catain cards)', () => {
 
     expect(all('catain-image').length).toBe(1);
     expect(all('catain-image-fallback').length).toBe(1);
+  });
+
+  it('Ship Classes that fail to load are announced in the picker', async () => {
+    await render();
+    expect(all('ship-classes-unavailable')).toEqual([]);
+
+    store.setState({ catains: { catains: [whiskers, mittens], loading: false, error: null }, ships: { shipClasses: [], shipClassesUnavailable: true } });
+    fixture.detectChanges();
+
+    const alert = all('ship-classes-unavailable');
+    expect(alert.length).toBe(1);
+    expect(alert[0].textContent).toContain('The Ship Classes could not be loaded');
   });
 });

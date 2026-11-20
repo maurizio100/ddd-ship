@@ -1,6 +1,10 @@
 package com.sonicdevelopment.application.acceptance.fixtures
 
+import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.Recruit
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.values.CrewMemberId
+import com.sonicdevelopment.domain.model.values.RecruitId
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.ports.driven.CargoPersistencePort
@@ -224,6 +228,76 @@ class FakeDrivenPortsTest {
         shouldThrow<IllegalStateException> { fleet.addEarnings(ShipId(UUID.randomUUID()), Money.of("1.00")) }
         fleet.removeFromFleet(saltyWhisker.id)
         shouldThrow<IllegalStateException> { fleet.addEarnings(saltyWhisker.id, Money.of("1.00")) }
+    }
+
+    @Test
+    fun `addCrewMember mirrors the adapter - only a ship in the fleet, and a save keeps the Crew`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val saltyWhisker = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(saltyWhisker))
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+
+        fleet.addCrewMember(saltyWhisker.id, mittens)
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(saltyWhisker))
+
+        fleet.getShipDetails(saltyWhisker.id)!!.crew shouldBe listOf(mittens)
+        shouldThrow<IllegalStateException> { fleet.addCrewMember(ShipId(UUID.randomUUID()), mittens) }
+        fleet.delete(saltyWhisker.id)
+        shouldThrow<IllegalStateException> { fleet.addCrewMember(saltyWhisker.id, mittens) }
+    }
+
+    @Test
+    fun `replaceCrew mirrors the adapter - only a ship in the fleet, and replaces rather than merges`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val saltyWhisker = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(saltyWhisker))
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Brave")
+        fleet.addCrewMember(saltyWhisker.id, mittens)
+
+        fleet.replaceCrew(saltyWhisker.id, listOf(patch, mittens))
+
+        fleet.getShipDetails(saltyWhisker.id)!!.crew shouldBe listOf(patch, mittens)
+        shouldThrow<IllegalStateException> { fleet.replaceCrew(ShipId(UUID.randomUUID()), listOf(mittens)) }
+        fleet.delete(saltyWhisker.id)
+        shouldThrow<IllegalStateException> { fleet.replaceCrew(saltyWhisker.id, listOf(mittens)) }
+    }
+
+    @Test
+    fun `removeCrewMember mirrors the adapter - only a Crew Member aboard a ship in the fleet`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val saltyWhisker = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(saltyWhisker))
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Brave")
+        fleet.addCrewMember(saltyWhisker.id, mittens)
+        fleet.addCrewMember(saltyWhisker.id, patch)
+
+        fleet.removeCrewMember(saltyWhisker.id, mittens.id)
+
+        fleet.getShipDetails(saltyWhisker.id)!!.crew shouldBe listOf(patch)
+        shouldThrow<IllegalStateException> { fleet.removeCrewMember(saltyWhisker.id, mittens.id) }
+        shouldThrow<IllegalStateException> { fleet.removeCrewMember(ShipId(UUID.randomUUID()), patch.id) }
+    }
+
+    @Test
+    fun `takeRecruit is first-wins, hides the Recruit from the pool and keeps its ordinal counted`() {
+        val recruits = InMemoryRecruits()
+        val mittens = Recruit(RecruitId(UUID.randomUUID()), "Mittens", "Fearless")
+        recruits.rememberRecruit(0, mittens)
+
+        recruits.takeRecruit(mittens.id) shouldBe true
+        recruits.takeRecruit(mittens.id) shouldBe false
+        recruits.takeRecruit(RecruitId(UUID.randomUUID())) shouldBe false
+
+        recruits.getRecruits() shouldBe emptyList()
+        recruits.nextOrdinal() shouldBe 1
     }
 
     @Test

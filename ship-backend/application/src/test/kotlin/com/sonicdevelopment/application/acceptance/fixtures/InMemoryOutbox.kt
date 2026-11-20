@@ -3,6 +3,7 @@ package com.sonicdevelopment.application.acceptance.fixtures
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.ShippingId
+import com.sonicdevelopment.domain.ports.driving.ship.CrewMemberDTO
 import com.sonicdevelopment.domain.ports.driven.HarborOutboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShippingOutboxRepository
 import java.util.UUID
@@ -19,6 +20,8 @@ sealed interface OutboxMessage {
         val homeHarbor: String? = null,
         val earnings: String? = null,
         val imprisoned: Boolean = false,
+        val shipClass: String? = null,
+        val crew: List<CrewMemberDTO> = emptyList(),
     ) : OutboxMessage
 
     data class ShipArrived(
@@ -49,6 +52,8 @@ class InMemoryOutbox : ShippingOutboxRepository, HarborOutboxRepositoryPort {
             homeHarbor = ship.homeHarbor.name,
             earnings = ship.earnings.toDecimalString(),
             imprisoned = ship.isImprisoned,
+            shipClass = ship.shipClass.name,
+            crew = ship.crew.map { CrewMemberDTO(it.id.id, it.name, it.trait) },
         )
     }
 

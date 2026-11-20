@@ -43,6 +43,8 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - A ship's Earnings never drop below 0 and grow only by a Delivery Price paid away from its Home Harbor. At the Home Harbor the Delivery Price goes back into the Savings in the same unloading.
 - An Arrival at the ship's Home Harbor hands all the ship's Earnings to the Savings and resets them to 0.00 $, in the Arrival's inbox transaction and behind its inbox and `arrivals` guards, so each Arrival credits at most once.
 - The User pays the Fine of an Imprisoned Ship at its Home Harbor (`POST /web/imprisoned-ships/{id}/fine-payment`). The Harbor takes 50.00 $ from its Savings and frees the ship, in one transaction. A payment the Savings cannot cover is refused whole and the ship stays imprisoned ("The Savings do not cover the Fine of 50.00 $").
+- The User pays the Hiring Fee (50.00 $) from the Savings when Hiring a Recruit (`POST /web/ships/{id}/crew`), in the same transaction that adds the Crew Member; a Hire the Savings cannot cover is refused whole.
+- A Dismiss refunds half the Hiring Fee (25.00 $) into the Savings, in the same transaction that removes the Crew Member; a refused Dismiss refunds nothing.
 
 ## Assumptions and open questions
 - Trade is still a candidate context (harbor-economy ideation, 2026-10-04); its boundary has not been confirmed.

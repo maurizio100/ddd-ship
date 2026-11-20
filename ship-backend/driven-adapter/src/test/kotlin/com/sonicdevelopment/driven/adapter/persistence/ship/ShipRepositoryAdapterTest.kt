@@ -2,7 +2,10 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 
 import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CargoId
 import com.sonicdevelopment.domain.model.values.CatainId
@@ -50,7 +53,73 @@ class ShipRepositoryAdapterTest {
 
     @BeforeEach
     fun truncateMutableTables() {
-        jdbcTemplate.execute("TRUNCATE TABLE ships_cargos_aboard, ships_cargos, shippings, ships")
+        jdbcTemplate.execute("TRUNCATE TABLE crew_members, ships_cargos_aboard, ships_cargos, shippings, ships")
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRED)
+    fun `addCrewMember stores a Crew Member aboard and every read returns it, delete removes it, saveNewShip keeps it`() {
+        val blackPearl = aShip("Black Pearl")
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Calm")
+
+        ships.addCrewMember(blackPearl.id, mittens)
+        ships.addCrewMember(blackPearl.id, patch)
+        flushAndClear()
+
+        ships.getShipDetails(blackPearl.id)!!.crew shouldBe listOf(mittens, patch)
+        ships.getAllShips().single().crew shouldBe listOf(mittens, patch)
+        ships.lockShip(blackPearl.id)!!.crew shouldBe listOf(mittens, patch)
+
+        ships.saveNewShip(InitialShipInformation.fromShip(blackPearl))
+        flushAndClear()
+        ships.getShipDetails(blackPearl.id)!!.crew shouldBe listOf(mittens, patch)
+
+        shouldThrow<IllegalStateException> { ships.addCrewMember(ShipId(UUID.randomUUID()), mittens) }
+
+        ships.delete(blackPearl.id) shouldBe true
+        flushAndClear()
+        jdbcTemplate.queryForObject("SELECT count(*) FROM crew_members", Int::class.java) shouldBe 0
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRED)
+    fun `replaceCrew replaces the stored Crew, the same Crew Members again included, only for a ship in the fleet`() {
+        val blackPearl = aShip("Black Pearl")
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Calm")
+        val saffron = CrewMember(CrewMemberId(UUID.randomUUID()), "Saffron", "Brave")
+        ships.addCrewMember(blackPearl.id, mittens)
+        ships.addCrewMember(blackPearl.id, patch)
+        flushAndClear()
+
+        ships.replaceCrew(blackPearl.id, listOf(mittens, patch, saffron))
+        flushAndClear()
+        ships.getShipDetails(blackPearl.id)!!.crew shouldBe listOf(mittens, patch, saffron)
+
+        ships.replaceCrew(blackPearl.id, emptyList())
+        flushAndClear()
+        ships.getShipDetails(blackPearl.id)!!.crew.shouldBeEmpty()
+
+        shouldThrow<IllegalStateException> { ships.replaceCrew(ShipId(UUID.randomUUID()), listOf(mittens)) }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRED)
+    fun `removeCrewMember deletes the row and leaves the other Crew, and fails for a Crew Member not aboard`() {
+        val blackPearl = aShip("Black Pearl")
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Calm")
+        ships.addCrewMember(blackPearl.id, mittens)
+        ships.addCrewMember(blackPearl.id, patch)
+        flushAndClear()
+
+        ships.removeCrewMember(blackPearl.id, mittens.id)
+        flushAndClear()
+
+        ships.getShipDetails(blackPearl.id)!!.crew shouldBe listOf(patch)
+        shouldThrow<IllegalStateException> { ships.removeCrewMember(blackPearl.id, mittens.id) }
+        shouldThrow<IllegalStateException> { ships.removeCrewMember(ShipId(UUID.randomUUID()), patch.id) }
     }
 
     @Test
@@ -415,6 +484,43 @@ class ShipRepositoryAdapterTest {
     }
 
     @Test
+    fun `saveNewShip round-trips the Ship Class, for a new row and for a known Ship Id`() {
+        val ship = Ship(
+            name = "Salty Whisker", catainId = CatainId(seededCatainId()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), shipClass = ShipClass.GALLEON,
+        )
+        ships.saveNewShip(InitialShipInformation.fromShip(ship))
+        flushAndClear()
+
+        ships.getShipDetails(ship.id)!!.shipClass shouldBe ShipClass.GALLEON
+
+        // a rename keeps the Ship Class; an Arrival overwrites it with the one the ship carries
+        ships.saveNewShip(InitialShipInformation.fromShip(renamed(ship, "Salty Whisker II")))
+        flushAndClear()
+        ships.getShipDetails(ship.id)!!.shipClass shouldBe ShipClass.GALLEON
+
+        val brig = Ship(
+            id = ship.id, name = "Salty Whisker", catainId = ship.catainId, catainName = ship.catainName,
+            homeHarbor = ship.homeHarbor, shipClass = ShipClass.BRIG,
+        )
+        ships.saveNewShip(InitialShipInformation.fromShip(brig))
+        flushAndClear()
+        ships.getShipDetails(ship.id)!!.shipClass shouldBe ShipClass.BRIG
+    }
+
+    @Test
+    fun `a ship row written without a Ship Class is a Sloop`() {
+        val catainRowId = jdbcTemplate.queryForObject("SELECT id FROM catains ORDER BY id LIMIT 1", Long::class.java)
+        val shipId = UUID.randomUUID()
+        jdbcTemplate.update(
+            "INSERT INTO ships (id, ship_id, ship_name, catain_id, ship_home_harbor) VALUES (nextval('ships_seq'), ?, 'Old Timer', ?, 'Port Royal')",
+            shipId, catainRowId,
+        )
+
+        ships.getShipDetails(ShipId(shipId))!!.shipClass shouldBe ShipClass.SLOOP
+    }
+
+    @Test
     fun `confiscate clears the Incoming flag and the Cargo aboard and sets the imprisoned flag`() {
         val saltyWhisker = anIncomingShip("Salty Whisker", listOf(rum(), rum()))
         val blackPearl = anIncomingShip("Black Pearl", listOf(sugar()))
@@ -625,7 +731,7 @@ class ShipRepositoryAdapterTest {
     }
 
     private fun renamed(ship: Ship, name: String) =
-        Ship(id = ship.id, name = name, catainId = ship.catainId, catainName = ship.catainName, homeHarbor = ship.homeHarbor)
+        Ship(id = ship.id, name = name, catainId = ship.catainId, catainName = ship.catainName, homeHarbor = ship.homeHarbor, shipClass = ship.shipClass)
 
     private fun seededCatainId(): UUID =
         jdbcTemplate.queryForObject("SELECT catain_id FROM catains ORDER BY id LIMIT 1", UUID::class.java)!!

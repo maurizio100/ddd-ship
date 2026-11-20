@@ -2,6 +2,7 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { StockedCargo } from '../models/stocked-cargo';
 import { Savings } from '../models/savings';
 import { IncomingShip } from '../models/incoming-ship';
+import { Recruit } from '../models/recruit';
 import { ImprisonedShip } from '../models/imprisoned-ship';
 import { FinePayment } from '../models/fine-payment';
 
@@ -9,6 +10,7 @@ export interface HarborState {
   stock: StockedCargo[];
   savings: Savings | null;
   incomingShips: IncomingShip[];
+  recruitPool: Recruit[];
   loading: boolean;
   error: unknown;
   /** Why the last purchase at the Market was refused, in the backend's words; null when it was not. */
@@ -40,6 +42,8 @@ export const selectStockLoading = createSelector(selectHarborState, (state) => s
 export const selectStockError = createSelector(selectHarborState, (state) => state.error);
 
 export const selectSavings = createSelector(selectHarborState, (state) => state.savings);
+
+export const selectRecruitPool = createSelector(selectHarborState, (state): Recruit[] => state.recruitPool);
 
 export const selectIncomingShips = createSelector(selectHarborState, (state): IncomingShip[] => state.incomingShips);
 

@@ -9,6 +9,7 @@ import com.sonicdevelopment.domain.ports.driven.HarborOutboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.InboxRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.RecruitPoolRepositoryPort
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -25,9 +26,11 @@ class HarborManagementServiceTest {
     private val cargoQueryPort = mockk<CargoQueryPort>()
     private val prices = mockk<PriceRepositoryPort>()
     private val priceRoll = mockk<PriceRoll>()
+    private val recruits = mockk<RecruitPoolRepositoryPort>(relaxed = true)
+    private val generator = RecruitPoolGenerator(currentHarbor)
 
     private val service = HarborManagementService(
-        currentHarbor, knownHarbors, harborOutbox, inbox, cargoQueryPort, prices, priceRoll
+        currentHarbor, knownHarbors, harborOutbox, inbox, cargoQueryPort, prices, priceRoll, recruits, generator
     )
 
     @Test
@@ -68,6 +71,8 @@ class HarborManagementServiceTest {
     fun `opening publishes Harbor Opened with the current Harbor Name`() {
         every { cargoQueryPort.findAllCargo() } returns emptyList()
         every { prices.getPrices() } returns emptyMap()
+        every { recruits.getRecruits() } returns emptyList()
+        every { recruits.nextOrdinal() } returns 0
 
         service.openHarbor()
 
@@ -80,6 +85,8 @@ class HarborManagementServiceTest {
         val ale = aCargo(name = "Ale")
         every { cargoQueryPort.findAllCargo() } returns listOf(rum, ale)
         every { prices.getPrices() } returns emptyMap()
+        every { recruits.getRecruits() } returns emptyList()
+        every { recruits.nextOrdinal() } returns 0
         every { priceRoll.roll() } returnsMany listOf(Money.dollars(42), Money.dollars(57))
         every { prices.rememberPrice(any(), any()) } returns true
 
@@ -99,6 +106,8 @@ class HarborManagementServiceTest {
         val ale = aCargo(name = "Ale")
         every { cargoQueryPort.findAllCargo() } returns listOf(rum, ale)
         every { prices.getPrices() } returns mapOf(rum.id to Money.dollars(42))
+        every { recruits.getRecruits() } returns emptyList()
+        every { recruits.nextOrdinal() } returns 0
         every { priceRoll.roll() } returns Money.dollars(33)
         every { prices.rememberPrice(any(), any()) } returns true
 
@@ -107,5 +116,47 @@ class HarborManagementServiceTest {
         verify(exactly = 0) { prices.rememberPrice(rum.id, any()) }
         verify(exactly = 1) { prices.rememberPrice(ale.id, Money.dollars(33)) }
         verify(exactly = 1) { priceRoll.roll() }
+    }
+
+    private fun openWithPoolOf(size: Int, nextOrdinal: Int) {
+        every { cargoQueryPort.findAllCargo() } returns emptyList()
+        every { prices.getPrices() } returns emptyMap()
+        every { recruits.getRecruits() } returns (0 until size).map { generator.recruit(it) }
+        every { recruits.nextOrdinal() } returns nextOrdinal
+        service.openHarbor()
+    }
+
+    @Test
+    fun `opening an empty pool remembers five Recruits from ordinal 0`() {
+        openWithPoolOf(size = 0, nextOrdinal = 0)
+
+        verify(exactly = 5) { recruits.rememberRecruit(any(), any()) }
+        (0..4).forEach { verify { recruits.rememberRecruit(it, generator.recruit(it)) } }
+    }
+
+    @Test
+    fun `opening a full pool remembers no Recruit`() {
+        openWithPoolOf(size = 5, nextOrdinal = 5)
+
+        verify(exactly = 0) { recruits.rememberRecruit(any(), any()) }
+    }
+
+    @Test
+    fun `opening a pool of three tops it up from the next ordinal`() {
+        openWithPoolOf(size = 3, nextOrdinal = 7)
+
+        verify(exactly = 2) { recruits.rememberRecruit(any(), any()) }
+        verify { recruits.rememberRecruit(7, generator.recruit(7)) }
+        verify { recruits.rememberRecruit(8, generator.recruit(8)) }
+    }
+
+    @Test
+    fun `the pool is filled before Harbor Opened is published`() {
+        openWithPoolOf(size = 0, nextOrdinal = 0)
+
+        verifyOrder {
+            recruits.rememberRecruit(4, any())
+            harborOutbox.publishHarborOpened(currentHarbor)
+        }
     }
 }

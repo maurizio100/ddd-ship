@@ -35,6 +35,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ShipOverviewResponse'
+        '400':
+          description: No Ship Class or Catain chosen
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /web/ships/{shipId}:
     parameters:
@@ -364,6 +370,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/Savings'
 
+  /web/ship-classes:
+    get:
+      summary: List the Ship Classes offered when a ship is created
+      description: >-
+        Each Ship Class with the Crew Capacity a ship of that class gets, in the order Sloop, Brig, Galleon. Read only.
+      operationId: getShipClasses
+      tags: [Ships]
+      responses:
+        '200':
+          description: The Ship Classes with their Crew Capacity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShipClassOffer'
+
+  /web/recruits:
+    get:
+      summary: List the Recruit Pool of this Harbor
+      description: >-
+        The Recruits this Harbor offers: five, generated from the Harbor Name when the Harbor first opens and
+        kept on every later opening. Two Harbors never offer the same Recruit. Read only.
+      operationId: getRecruitPool
+      tags: [Harbors]
+      responses:
+        '200':
+          description: The Recruit Pool of this Harbor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recruit'
+
   /web/incoming-ships:
     get:
       summary: List the Incoming Ships of this Harbor
@@ -519,6 +560,102 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /web/ships/{shipId}/crew:
+    post:
+      summary: Hire a Recruit onto a ship
+      description: >-
+        In one transaction the Harbor pays the Hiring Fee from its Savings, the Recruit from this Harbor's Recruit
+        Pool becomes a Crew Member of the ship (same id, name and trait) and a new Recruit takes its place in the
+        pool. A refused Hire changes nothing. Nothing is published. Read the fleet, Savings and Recruit Pool from
+        `/web/ships`, `/web/savings` and `/web/recruits`. A Dismissed Crew Member does not return to the pool.
+      operationId: hireRecruit
+      tags: [Ships]
+      parameters:
+        - name: shipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HireRequest'
+      responses:
+        '200':
+          description: The Recruit was Hired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hire'
+        '400':
+          description: The request has no `recruitId`
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Ship not found in this Harbor's fleet
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The Hire is refused and nothing changes: the Crew is full, the ship is away from its Home Harbor or at
+            sea, or the Recruit is not offered (title "Hire refused"), or the Savings do not cover the Hiring Fee
+            (title "Savings do not cover", `detail` "The Savings do not cover the Hiring Fee of 50.00 $").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /web/ships/{shipId}/crew/{crewMemberId}:
+    delete:
+      summary: Dismiss a Crew Member from a ship
+      description: >-
+        Removes the Crew Member from the ship's Crew, only while the ship is in port at its Home Harbor. Half the
+        Hiring Fee is refunded into the Savings, in the same transaction; a refused Dismissal refunds nothing. The
+        Recruit stays hired, so it is never offered in the Recruit Pool again. Nothing is published.
+      operationId: dismissCrewMember
+      tags: [Ships]
+      parameters:
+        - name: shipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: crewMemberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The Crew Member was Dismissed and half the Hiring Fee refunded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dismissal'
+        '404':
+          description: Ship not found in this Harbor's fleet
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The Dismissal is refused and nothing changes: the ship is away from its Home Harbor or at sea, or the
+            Crew Member is not aboard (title "Dismissal refused").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /web/market/purchases:
     post:
       summary: Buy Cargo at the Market
@@ -605,6 +742,7 @@ components:
   schemas:
     ShipCreationRequest:
       type: object
+      required: [catainId, shipClass]
       properties:
         name:
           type: string
@@ -612,6 +750,8 @@ components:
           type: string
           format: uuid
           description: ID of the captain to assign
+        shipClass:
+          $ref: '#/components/schemas/ShipClass'
 
     ShipUpdateRequest:
       type: object
@@ -649,7 +789,7 @@ components:
 
     ShipOverviewResponse:
       type: object
-      required: [homeHarbor, earnings]
+      required: [homeHarbor, earnings, shipClass, crewCapacity, crew]
       properties:
         id:
           type: string
@@ -682,6 +822,17 @@ components:
           description: >-
             Whether the ship is an Imprisoned Ship, which cannot start a new Shipping; also true for a ship at sea
             home after its Cargo was confiscated here
+        shipClass:
+          $ref: '#/components/schemas/ShipClass'
+        crewCapacity:
+          type: integer
+          example: 2
+          description: How many Crew Members the ship can carry, set by its Ship Class (Sloop 2, Brig 4, Galleon 6)
+        crew:
+          type: array
+          description: The Crew aboard the ship
+          items:
+            $ref: '#/components/schemas/CrewMember'
 
     ShipDetailResponse:
       type: object
@@ -842,6 +993,60 @@ components:
           example: '950.00'
           description: The Savings after the payment, in dollars, as a decimal string with two decimals
 
+    Dismissal:
+      type: object
+      required: [shipId, name, crewMemberId, refund, savings]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        crewMemberId:
+          type: string
+          format: uuid
+        refund:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '25.00'
+          description: Half the Hiring Fee refunded into the Savings, in dollars, as a decimal string with two decimals
+        savings:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '975.00'
+          description: The Savings after the refund, in dollars, as a decimal string with two decimals
+
+    HireRequest:
+      type: object
+      required: [recruitId]
+      properties:
+        recruitId:
+          type: string
+          format: uuid
+
+    Hire:
+      type: object
+      required: [shipId, name, crewMember, hiringFee, savings, newRecruit]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        crewMember:
+          $ref: '#/components/schemas/CrewMember'
+        hiringFee:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '50.00'
+        savings:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '950.00'
+          description: The Savings after the Hire
+        newRecruit:
+          $ref: '#/components/schemas/Recruit'
+
     Savings:
       type: object
       required: [amount]
@@ -851,6 +1056,65 @@ components:
           pattern: '^\d+\.\d{2}$'
           example: '1000.00'
           description: The Savings in dollars, as a decimal string with two decimals, never a JSON number
+
+    CrewMember:
+      type: object
+      required: [id, name, trait, refund, portrait]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The UUID of the Recruit it was Hired as
+        name:
+          type: string
+        trait:
+          type: string
+        refund:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '25.00'
+          description: 'What a Dismiss refunds into the Savings: half the Hiring Fee'
+        portrait:
+          $ref: '#/components/schemas/Portrait'
+
+    Recruit:
+      type: object
+      required: [id, name, trait, portrait, hiringFee]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Mittens
+        trait:
+          type: string
+          example: Fearless
+        portrait:
+          $ref: '#/components/schemas/Portrait'
+        hiringFee:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "50.00"
+          description: The Hiring Fee in dollars, a decimal string with two decimals
+
+    Portrait:
+      type: object
+      description: The look of a Recruit, kept when it becomes a Crew Member. Values are lower-kebab names.
+      required: [fur, coat, eyes, accessory]
+      properties:
+        fur:
+          type: string
+          enum: [ginger, grey, black, cream, brown, white]
+        coat:
+          type: string
+          enum: [plain, tabby, tuxedo, spotted]
+        eyes:
+          type: string
+          enum: [green, amber, blue]
+        accessory:
+          type: string
+          enum: [none, eye-patch, bandana, earring]
 
     ProblemDetail:
       type: object
@@ -892,7 +1156,7 @@ components:
     ShipArrivedFleetEvent:
       type: object
       description: Data of the `ship-arrived` fleet event
-      required: [shipId, shipName, originHarbor, imprisoned]
+      required: [shipId, shipName, originHarbor, imprisoned, crew]
       properties:
         shipId:
           type: string
@@ -905,6 +1169,11 @@ components:
         imprisoned:
           type: boolean
           description: Whether the ship arrived at its Home Harbor as an Imprisoned Ship, sent home after a Confiscation
+        crew:
+          type: array
+          description: Names of the Crew Members that arrived aboard; empty for a ship without Crew
+          items:
+            type: string
 
     ShipImprisonedFleetEvent:
       type: object
@@ -973,6 +1242,21 @@ components:
           type: string
           nullable: true
           description: Harbor Name of the Destination Harbor (only set when shipping is released)
+
+    ShipClass:
+      type: string
+      enum: [SLOOP, BRIG, GALLEON]
+      description: The size of a ship, chosen when it is created; sets its Crew Capacity. The Max Weight is 15.0 for every Ship Class
+
+    ShipClassOffer:
+      type: object
+      required: [shipClass, crewCapacity]
+      properties:
+        shipClass:
+          $ref: '#/components/schemas/ShipClass'
+        crewCapacity:
+          type: integer
+          description: The Crew Capacity a ship of this Ship Class gets
 
     ShippingState:
       type: string

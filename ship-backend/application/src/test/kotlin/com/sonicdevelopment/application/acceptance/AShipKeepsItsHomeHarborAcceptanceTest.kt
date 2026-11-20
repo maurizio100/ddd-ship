@@ -37,7 +37,7 @@ class AShipKeepsItsHomeHarborAcceptanceTest {
             // Given the Harbor is named "Port Royal"
             // When the User creates the ship "Salty Whisker"
             val created = restTemplate.postForEntity(
-                "/web/ships", mapOf("name" to "Salty Whisker", "catainId" to SeedData.aCatainId), Map::class.java
+                "/web/ships", mapOf("name" to "Salty Whisker", "catainId" to SeedData.aCatainId, "shipClass" to "SLOOP"), Map::class.java
             )
             created.statusCode shouldBe HttpStatus.OK
             val id = UUID.fromString(created.body!!["id"] as String)
@@ -161,7 +161,7 @@ class AShipKeepsItsHomeHarborAcceptanceTest {
 
         fun registerSaltyWhisker(): UUID {
             val created = restTemplate.postForEntity(
-                "/web/ships", mapOf("name" to "Salty Whisker", "catainId" to SeedData.aCatainId), Map::class.java
+                "/web/ships", mapOf("name" to "Salty Whisker", "catainId" to SeedData.aCatainId, "shipClass" to "SLOOP"), Map::class.java
             )
             created.statusCode shouldBe HttpStatus.OK
             return UUID.fromString(created.body!!["id"] as String)

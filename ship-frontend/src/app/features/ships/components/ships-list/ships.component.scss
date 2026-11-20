@@ -160,6 +160,7 @@
 }
 
 .home-harbor,
+.ship-class,
 .earnings,
 .arrived-from {
   display: flex;
@@ -247,4 +248,45 @@
     width: 100%;
     margin-top: 12px;
   }
+}
+
+.crew-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+
+.crew-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--hs-sand);
+  font-weight: 600;
+
+  mat-icon {
+    color: var(--hs-brass);
+  }
+}
+
+.crew-portraits {
+  display: inline-flex;
+}
+
+.crew-portrait {
+  border-radius: 50%;
+  background: var(--hs-sand);
+
+  & + & {
+    margin-left: -8px;
+  }
+
+  --crew-portrait-size: 32px;
+}
+
+.crew-names {
+  color: var(--hs-muted);
 }

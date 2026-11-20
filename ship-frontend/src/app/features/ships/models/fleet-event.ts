@@ -7,6 +7,8 @@ export interface ShipArrived {
   shipName: string;
   originHarbor: string;
   imprisoned: boolean;
+  /** Names of the Crew Members arriving with the ship. */
+  crew: string[];
 }
 
 /** Data of the `ship-left` fleet event: a ship arrived at its Destination Harbor and left this Harbor's fleet. */
@@ -42,6 +44,8 @@ export interface ArrivalNotice {
   originHarbor: string;
   /** Whether the ship arrived at its Home Harbor as an Imprisoned Ship. */
   imprisoned: boolean;
+  /** Names of the Crew Members that arrived with the ship. */
+  crew: string[];
 }
 
 /** What the User is told about a ship the Coast Guard imprisoned here and that sails home. */

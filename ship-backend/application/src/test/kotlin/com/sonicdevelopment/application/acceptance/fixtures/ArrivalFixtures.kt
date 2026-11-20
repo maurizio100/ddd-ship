@@ -25,6 +25,8 @@ fun aShippingPublishedRecord(
     homeHarbor: String? = originHarbor,
     earnings: String? = null,
     imprisoned: Boolean? = null,
+    shipClass: String? = null,
+    crew: List<Triple<UUID, String, String>>? = null,
 ): ConsumerRecord<String, String> {
     val shipEventData = mutableMapOf<String, Any>("shipId" to shipId, "shipName" to shipName)
     // null builds the event of an older Harbor, which sends no Home Harbor
@@ -33,6 +35,12 @@ fun aShippingPublishedRecord(
     earnings?.let { shipEventData["earnings"] = it }
     // null builds the event of an older Harbor, which sends no imprisoned flag
     imprisoned?.let { shipEventData["imprisoned"] = it }
+    // null builds the event of an older Harbor, which sends no Ship Class
+    shipClass?.let { shipEventData["shipClass"] = it }
+    // null builds the event of an older Harbor, which sends no Crew
+    crew?.let {
+        shipEventData["crew"] = it.map { (id, name, trait) -> mapOf("crewMemberId" to id, "name" to name, "trait" to trait) }
+    }
     val payload = ObjectMapper().writeValueAsString(
         mapOf(
             "shipEventData" to shipEventData,

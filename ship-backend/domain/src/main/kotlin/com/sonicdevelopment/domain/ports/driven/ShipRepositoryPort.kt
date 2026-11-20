@@ -1,7 +1,10 @@
 package com.sonicdevelopment.domain.ports.driven
 
 import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
@@ -11,7 +14,7 @@ interface ShipRepositoryPort {
     /**
      * Saves the ship by its Ship Id, in the fleet. Its Incoming and imprisoned flags are written from
      * [InitialShipInformation.incoming] and [InitialShipInformation.imprisoned], and its Cargo aboard is replaced by
-     * [InitialShipInformation.cargoAboard].
+     * [InitialShipInformation.cargoAboard]; its Ship Class is written from [InitialShipInformation.shipClass].
      */
     fun saveNewShip(ship: InitialShipInformation)
 
@@ -27,11 +30,13 @@ interface ShipRepositoryPort {
         val earnings: Money,
         /** Whether the ship is an Imprisoned Ship, or sails home as one. */
         val imprisoned: Boolean,
+        /** The ship's Ship Class; never changes, so an Arrival restores the one the ship sailed with. */
+        val shipClass: ShipClass,
     ) {
         companion object {
             fun fromShip(ship: Ship) = InitialShipInformation(
                 ship.id, shipName = ship.shipName, ship.catainId, ship.arrivedFrom, ship.homeHarbor, ship.cargoAboard, ship.isIncoming,
-                ship.earnings, ship.isImprisoned,
+                ship.earnings, ship.isImprisoned, ship.shipClass,
             )
         }
     }
@@ -81,4 +86,16 @@ interface ShipRepositoryPort {
 
     /** Deletes the ship's Cargo aboard; runs in the caller's transaction. */
     fun clearCargoAboard(shipId: ShipId)
+
+    /** Adds [crewMember] to the Crew of a ship in the fleet; fails for a ship that is not in the fleet. Runs in the caller's transaction. */
+    fun addCrewMember(shipId: ShipId, crewMember: CrewMember)
+
+    /**
+     * Removes the Crew Member from a ship in the fleet; fails for a ship that is not in the fleet or a Crew Member not
+     * aboard it. Runs in the caller's transaction.
+     */
+    fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId)
+
+    /** Replaces the Crew of a ship in the fleet with [crew]; fails for a ship that is not in the fleet. Runs in the caller's transaction. */
+    fun replaceCrew(shipId: ShipId, crew: List<CrewMember>)
 }

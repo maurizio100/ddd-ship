@@ -1,6 +1,6 @@
 # Context: Fleet
 
-The registry of ships. A ship is brought into the fleet with a Ship Name and a Catain chosen from a
+The registry of ships. A ship is brought into the fleet with a Ship Name, a Ship Class and a Catain chosen from a
 fixed roster, can be renamed or removed, and is listed as one of the Available Ships. Each Harbor has
 its own fleet, which ships join on Arrival and leave when they have arrived elsewhere. Each Catain has
 a portrait (Catain Image) kept in object storage.
@@ -18,10 +18,10 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - Object storage (MinIO) — holds the Catain Images.
 
 ## Behaviour
-- Create a ship with a Ship Name and a Catain from the roster. Its Home Harbor is this Harbor; the fleet shows the Home Harbor on every ship card.
+- Create a ship with a Ship Name, a Ship Class and a Catain from the roster. Its Home Harbor is this Harbor; the fleet shows the Home Harbor and the Ship Class on every ship card.
 - Rename and remove a ship.
 - List all ships and the Catain roster; fetch a Catain's portrait.
-- On Arrival the ship, with its Ship Id, Ship Name and Catain, joins the Destination Harbor's fleet, with no Loaded Cargo and no Active Shipping (Shipping hands it over).
+- On Arrival the ship, with its Ship Id, Ship Name, Ship Class and Catain, joins the Destination Harbor's fleet, with no Loaded Cargo and no Active Shipping (Shipping hands it over).
 - When the Origin Harbor learns of the Arrival (Ship Arrived), it removes the ship from its fleet.
 - The fleet shows where an arrived ship came from ("arrived from"): the Origin Harbor of its latest Arrival at this Harbor.
 - The Catain table is also streamed to Kafka by a Debezium connector (`kafka-connect/connectors/catain-connector_*.json`); no consumer exists yet.
@@ -39,9 +39,14 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 | Kafka (Debezium) | Catain changed | Event |
 
 ## Business decisions
+- A Recruit's portrait depends only on its UUID, so a Crew Member shows the same portrait at every Harbor, and Recruits generated before portraits existed have one too.
+- A Crew Member can be dismissed only while the ship is in port at its Home Harbor. Half the Hiring Fee (25.00 $) goes back into the Savings, and the Recruit is never offered again.
+- A Harbor offers a Recruit Pool of five Recruits, generated from its Harbor Name when it first opens and kept on every later opening, with no coordination between Harbors. No Recruit is offered at two Harbors: Recruit ids never collide, though a name may repeat between Harbors.
+- A Hired Recruit leaves the Recruit Pool for good, and the next Recruit never generated at the Harbor takes its place, so the pool offers five Recruits again.
 - A new ship's Catain must be on the roster.
 - A Ship Name must be non-blank and shorter than 255 characters; an invalid rename keeps the old name.
 - A ship has exactly one Home Harbor: this Harbor when it is registered here, the Home Harbor carried in Shipping Published when it arrives (the Origin Harbor for an event without one). It never changes, not by a rename, a Release, an unloading or a later Arrival.
+- A ship is created with a Ship Class (Sloop, Brig or Galleon); without one it is not created. Its Ship Class never changes; on Arrival it keeps the Ship Class carried in Shipping Published, and a ship from an event without one is a Sloop.
 - Every ship has a Ship Id that is not its database id and stays the same at every Harbor.
 - The Catain roster is the same at every Harbor, and every Harbor names each Catain by the same Catain id, so a ship's Catain exists wherever it arrives.
 - A ship that left the fleet keeps its record and its Shipping history, but is no longer among the Available Ships, and every User command on it answers "not found". A later Arrival of the same Ship Id takes it back in, under the same record.

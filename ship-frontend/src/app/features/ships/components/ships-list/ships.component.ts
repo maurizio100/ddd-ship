@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
 import {Store} from "@ngrx/store";
-import {Ship, ShippingState} from "../../models/ship";
+import {Ship, SHIP_CLASS_LABELS, shipStatusLabel, ShippingState} from "../../models/ship";
 import {
   selectAllShips,
   selectArrivalNotices,
@@ -22,6 +22,7 @@ import {
   selectImprisonedShips,
   selectPayingFineShipIds
 } from "../../../harbor/store/harbor.selectors";
+import {CatPortraitComponent} from "../../../crew/components/cat-portrait/cat-portrait.component";
 import {fineCoverage, ImprisonedShip} from "../../../harbor/models/imprisoned-ship";
 
 @Component({
@@ -31,7 +32,8 @@ import {fineCoverage, ImprisonedShip} from "../../../harbor/models/imprisoned-sh
   imports: [
     RouterLink,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    CatPortraitComponent
   ]
 })
 export class ShipsComponent implements OnInit, OnDestroy {
@@ -107,6 +109,22 @@ export class ShipsComponent implements OnInit, OnDestroy {
     return refusal?.shipId === ship.id ? refusal.message : null;
   }
 
+  /** The notice text: where the ship arrived from, whether imprisoned, and the Crew it brought. */
+  arrivalText(notice: ArrivalNotice): string {
+    let text = `${notice.shipName} arrived from ${notice.originHarbor}`;
+    if (notice.imprisoned) text += ', imprisoned';
+    const names = notice.crew ?? [];
+    if (names.length > 0) {
+      const joined = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+      text += `${notice.imprisoned ? "," : ""} with its Crew: ${joined}`;
+    }
+    return text;
+  }
+
+  crewNames(ship: Ship): string {
+    return ship.crew.map((member) => member.name).join(', ');
+  }
+
   editShipping(ship: Ship) {
     this.router.navigate([`ships/${ship.id}/cargo`]);
   }
@@ -125,6 +143,10 @@ export class ShipsComponent implements OnInit, OnDestroy {
   }
 
   /** Whether the ship carries Earnings; a zero amount is not shown. */
+  shipClassLabel(ship: Ship): string {
+    return SHIP_CLASS_LABELS[ship.shipClass];
+  }
+
   hasEarnings(ship: Ship): boolean {
     return Number(ship.earnings) > 0;
   }
@@ -143,15 +165,7 @@ export class ShipsComponent implements OnInit, OnDestroy {
   }
 
   statusLabel(ship: Ship): string {
-    if (this.isImprisoned(ship)) return 'Imprisoned';
-    switch (ship.shippingState) {
-      case ShippingState.PREPARING:
-        return 'Preparing';
-      case ShippingState.SHIPPING:
-        return 'At sea';
-      default:
-        return 'In port';
-    }
+    return shipStatusLabel(ship);
   }
 
   catainImageUrl(ship: Ship): string | null {

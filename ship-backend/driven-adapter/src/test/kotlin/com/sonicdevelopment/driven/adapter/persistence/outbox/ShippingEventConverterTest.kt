@@ -3,12 +3,14 @@ package com.sonicdevelopment.driven.adapter.persistence.outbox
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
+import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEvent
 import com.sonicdevelopment.driven.adapter.persistence.outbox.events.ShippingEventConverter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -92,7 +94,48 @@ class ShippingEventConverterTest {
         free.shipEventData.imprisoned shouldBe false
     }
 
-    private fun aShipWith(shipping: Shipping, earnings: Money = Money.dollars(0), imprisoned: Boolean = false) = Ship(
+    @Test
+    fun `shipping-published carries the ship's Ship Class`() {
+        val shipping = Shipping(
+            ShippingId(UUID.randomUUID()), ShippingQuote("Fair winds"), ShippingState.SHIPPING, HarborName("Isla de Muerta")
+        )
+
+        val event = ShippingEventConverter.toShippingEvent(aShipWith(shipping, shipClass = ShipClass.BRIG), HarborName("Tortuga"))
+
+        event.shipEventData.shipClass shouldBe "BRIG"
+        ObjectMapper().readTree(ObjectMapper().writeValueAsString(event))
+            .path("shipEventData").path("shipClass").asText() shouldBe "BRIG"
+    }
+
+    @Test
+    fun `shipping-published carries the ship's Crew`() {
+        val shipping = Shipping(
+            ShippingId(UUID.randomUUID()), ShippingQuote("Fair winds"), ShippingState.SHIPPING, HarborName("Isla de Muerta")
+        )
+        val mittens = com.sonicdevelopment.domain.model.CrewMember(
+            com.sonicdevelopment.domain.model.values.CrewMemberId(UUID.randomUUID()), "Mittens", "Strong Paws"
+        )
+        val patch = com.sonicdevelopment.domain.model.CrewMember(
+            com.sonicdevelopment.domain.model.values.CrewMemberId(UUID.randomUUID()), "Patch", "Sharp Eyes"
+        )
+
+        val event = ShippingEventConverter.toShippingEvent(aShipWith(shipping, crew = listOf(mittens, patch)), HarborName("Tortuga"))
+        val without = ShippingEventConverter.toShippingEvent(aShipWith(shipping), HarborName("Tortuga"))
+
+        event.shipEventData.crew shouldBe listOf(
+            ShippingEvent.CrewMemberEventData(mittens.id.id, "Mittens", "Strong Paws"),
+            ShippingEvent.CrewMemberEventData(patch.id.id, "Patch", "Sharp Eyes"),
+        )
+        val json = ObjectMapper().readTree(ObjectMapper().writeValueAsString(event)).path("shipEventData").path("crew")
+        json[1].path("crewMemberId").asText() shouldBe patch.id.id.toString()
+        json[1].path("trait").asText() shouldBe "Sharp Eyes"
+        without.shipEventData.crew shouldBe emptyList()
+    }
+
+    private fun aShipWith(
+        shipping: Shipping, earnings: Money = Money.dollars(0), imprisoned: Boolean = false, shipClass: ShipClass = ShipClass.SLOOP,
+        crew: List<com.sonicdevelopment.domain.model.CrewMember> = emptyList(),
+    ) = Ship(
         id = com.sonicdevelopment.domain.model.values.ShipId(UUID.randomUUID()),
         name = "Black Pearl",
         catainId = CatainId(UUID.randomUUID()),
@@ -102,5 +145,7 @@ class ShippingEventConverterTest {
         cargoLoad = mutableListOf(),
         earnings = earnings,
         imprisoned = imprisoned,
+        shipClass = shipClass,
+        crew = crew,
     )
 }

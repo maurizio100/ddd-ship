@@ -2,6 +2,7 @@ package com.sonicdevelopment.domain.service
 
 import com.sonicdevelopment.domain.model.Catain
 import com.sonicdevelopment.domain.model.Ship
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.CatainImageId
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -30,7 +31,7 @@ class ShipManagementServiceTest {
         every { ships.saveNewShip(capture(saved)) } returns Unit
         every { catains.findCatainById(whiskers.catainId) } returns whiskers
 
-        service.createShip(ShipCreationDataDTO(name = "Interceptor", catainId = whiskers.catainId))
+        service.createShip(ShipCreationDataDTO(name = "Interceptor", catainId = whiskers.catainId, shipClass = ShipClass.SLOOP))
 
         saved.single().arrivedFrom shouldBe null
 
@@ -51,12 +52,24 @@ class ShipManagementServiceTest {
     }
 
     @Test
+    fun `a ship created by the User has the chosen Ship Class`() {
+        val saved = mutableListOf<InitialShipInformation>()
+        every { ships.saveNewShip(capture(saved)) } returns Unit
+        every { catains.findCatainById(whiskers.catainId) } returns whiskers
+
+        val created = service.createShip(ShipCreationDataDTO(name = "Interceptor", catainId = whiskers.catainId, shipClass = ShipClass.GALLEON))
+
+        saved.single().shipClass shouldBe ShipClass.GALLEON
+        created.shipClass shouldBe ShipClass.GALLEON
+    }
+
+    @Test
     fun `a ship registered here has this Harbor as its Home Harbor, and a rename keeps the loaded one`() {
         val saved = mutableListOf<InitialShipInformation>()
         every { ships.saveNewShip(capture(saved)) } returns Unit
         every { catains.findCatainById(whiskers.catainId) } returns whiskers
 
-        val created = service.createShip(ShipCreationDataDTO(name = "Interceptor", catainId = whiskers.catainId))
+        val created = service.createShip(ShipCreationDataDTO(name = "Interceptor", catainId = whiskers.catainId, shipClass = ShipClass.SLOOP))
 
         saved.single().homeHarbor shouldBe HarborName("Port Royal")
         created.homeHarbor shouldBe "Port Royal"

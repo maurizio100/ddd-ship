@@ -1,8 +1,11 @@
 package com.sonicdevelopment.application.acceptance.fixtures
 
 import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -34,6 +37,8 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         val incoming: Boolean,
         val earnings: Money,
         val imprisoned: Boolean,
+        val shipClass: ShipClass,
+        val crew: List<CrewMember> = emptyList(),
     )
 
     private data class ShippingRecord(
@@ -61,7 +66,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[ship.shipId] = ShipRecord(
             ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom, ship.homeHarbor,
             ship.cargoAboard.map { Cargo(it.id, it.name, it.weight) }, ship.incoming, ship.earnings,
-            ship.imprisoned,
+            ship.imprisoned, ship.shipClass, ships[ship.shipId]?.crew ?: emptyList(),
         )
     }
 
@@ -128,6 +133,27 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
     @Synchronized
     override fun clearCargoAboard(shipId: ShipId) {
         ships[shipId]?.let { ships[shipId] = it.copy(cargoAboard = emptyList()) }
+    }
+
+    /** Like the adapter: only a ship in the fleet takes a Crew Member, anything else fails. */
+    @Synchronized
+    override fun addCrewMember(shipId: ShipId, crewMember: CrewMember) {
+        val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
+        ships[shipId] = record.copy(crew = record.crew + crewMember)
+    }
+
+    /** Like the adapter: only a ship in the fleet, and the stored Crew is replaced, not merged. */
+    @Synchronized
+    override fun replaceCrew(shipId: ShipId, crew: List<CrewMember>) {
+        val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
+        ships[shipId] = record.copy(crew = crew)
+    }
+
+    @Synchronized
+    override fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId) {
+        val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
+        check(record.crew.any { it.id == crewMemberId }) { "Crew Member $crewMemberId is not aboard $shipId" }
+        ships[shipId] = record.copy(crew = record.crew.filterNot { it.id == crewMemberId })
     }
 
     @Synchronized
@@ -198,6 +224,8 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
             incoming = record.incoming,
             earnings = record.earnings,
             imprisoned = record.imprisoned,
+            shipClass = record.shipClass,
+            crew = record.crew,
         )
     }
 }

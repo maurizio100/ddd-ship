@@ -4,6 +4,8 @@ import * as ShipActions from "../actions/ship.actions";
 
 export const initialState: ShipState = {
   ships: [],
+  shipClasses: [],
+  shipClassesUnavailable: false,
   loading: false,
   error: null,
   arrivalNotices: [],
@@ -26,6 +28,17 @@ export const shipReducers = createReducer(
     newShippingRefusal: null
   })),
 
+  on(ShipActions.loadShipClassesSuccess, (state, {shipClasses}) => ({
+    ...state,
+    shipClasses,
+    shipClassesUnavailable: false
+  })),
+
+  on(ShipActions.loadShipClassesFailure, (state, {}) => ({
+    ...state,
+    shipClassesUnavailable: true
+  })),
+
   on(ShipActions.addShip, (state, {}) => ({
       ...state,
       loading: true,
@@ -45,11 +58,11 @@ export const shipReducers = createReducer(
     error: error
   })),
 
-  on(ShipActions.shipArrived, (state, {shipId, shipName, originHarbor, imprisoned}) => ({
+  on(ShipActions.shipArrived, (state, {shipId, shipName, originHarbor, imprisoned, crew}) => ({
     ...state,
     arrivalNotices: [
       ...state.arrivalNotices.filter(notice => notice.shipId !== shipId),
-      {shipId, shipName, originHarbor, imprisoned}
+      {shipId, shipName, originHarbor, imprisoned, crew: crew ?? []}
     ]
   })),
 

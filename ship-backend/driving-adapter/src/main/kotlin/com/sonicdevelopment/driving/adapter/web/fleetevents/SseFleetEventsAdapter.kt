@@ -21,7 +21,7 @@ class SseFleetEventsAdapter(
 ) : FleetEventsPort {
 
     override fun announceShipArrived(ship: Ship, originHarbor: HarborName) {
-        afterCommit(SHIP_ARRIVED, ShipArrivedFleetEvent(ship.id.id, ship.shipName, originHarbor.name, ship.isImprisoned))
+        afterCommit(SHIP_ARRIVED, ShipArrivedFleetEvent(ship.id.id, ship.shipName, originHarbor.name, ship.isImprisoned, ship.crew.map { it.name }))
     }
 
     override fun announceShipImprisoned(ship: Ship, sailsHome: Boolean) {

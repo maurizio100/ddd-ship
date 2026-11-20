@@ -12,7 +12,7 @@ data class ShippingPublishedInboundEvent(
     val shippingEventData: ShippingEventData,
 ) {
     /**
-     * [homeHarbor], [earnings] and [imprisoned] are missing in events from Harbors that do not send them yet;
+     * [homeHarbor], [earnings], [imprisoned] and [shipClass] (the enum name) and [crew] are missing in events from Harbors that do not send them yet;
      * [earnings] is a decimal string with two decimals.
      */
     data class ShipEventData(
@@ -21,7 +21,12 @@ data class ShippingPublishedInboundEvent(
         val homeHarbor: String? = null,
         val earnings: String? = null,
         val imprisoned: Boolean? = null,
+        val shipClass: String? = null,
+        val crew: List<CrewMemberEventData>? = null,
     )
+
+    /** Every field is nullable so that a malformed Crew Member is dropped by the listener rather than failing the Arrival. */
+    data class CrewMemberEventData(val crewMemberId: UUID? = null, val name: String? = null, val trait: String? = null)
 
     data class CatainEventData(val catainId: UUID)
 

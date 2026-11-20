@@ -1,7 +1,27 @@
 import { initialState, shipReducers } from './ship.reducers';
 import * as ShipActions from '../actions/ship.actions';
+import { ShipClass } from '../../models/ship';
 import { ShipState } from '../selectors/ship.selectors';
 import { anArrivalNotice, anAvailableShip, anImprisonmentNotice } from '../../../../../testing/fixtures';
+
+describe('shipReducers (Ship Classes are offered with their Crew Capacity)', () => {
+  it('stores the offered Ship Classes', () => {
+    const shipClasses = [{ shipClass: ShipClass.SLOOP, crewCapacity: 2 }];
+
+    const state = shipReducers(initialState, ShipActions.loadShipClassesSuccess({ shipClasses }));
+
+    expect(state.shipClasses).toEqual(shipClasses);
+  });
+
+  it('marks the Ship Classes unavailable when they fail to load, until they load', () => {
+    const failed = shipReducers(initialState, ShipActions.loadShipClassesFailure({ error: 'Http failure' }));
+    expect(failed.shipClassesUnavailable).toBeTrue();
+    expect(failed.error).toBeNull();
+
+    const loaded = shipReducers(failed, ShipActions.loadShipClassesSuccess({ shipClasses: [] }));
+    expect(loaded.shipClassesUnavailable).toBeFalse();
+  });
+});
 
 describe('shipReducers (A Harbor sees ships arrive and leave as they happen)', () => {
   const blackPearl = anAvailableShip();
@@ -85,5 +105,16 @@ describe('shipReducers (A Harbor carries out an imprisonment)', () => {
     expect(refused.newShippingRefusal).toEqual({ shipId: ship.id, message: 'Black Pearl is imprisoned' });
     expect(shipReducers(refused, ShipActions.createShipping({ ship })).newShippingRefusal).toBeNull();
     expect(shipReducers(refused, ShipActions.loadShipsSuccess({ ships: [ship] })).newShippingRefusal).toBeNull();
+  });
+
+  it('ship-arrived keeps the arriving Crew on the notice, and none when the event has none', () => {
+    const withCrew = shipReducers(initialState, ShipActions.shipArrived(anArrivalNotice({ crew: ['Mittens', 'Patch'] })));
+    const without = shipReducers(
+      initialState,
+      ShipActions.shipArrived({ ...anArrivalNotice(), crew: undefined } as unknown as ReturnType<typeof anArrivalNotice>),
+    );
+
+    expect(withCrew.arrivalNotices[0].crew).toEqual(['Mittens', 'Patch']);
+    expect(without.arrivalNotices[0].crew).toEqual([]);
   });
 });

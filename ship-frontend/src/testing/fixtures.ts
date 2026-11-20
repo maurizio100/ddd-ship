@@ -9,9 +9,11 @@ import { IncomingShip } from '../app/features/harbor/models/incoming-ship';
 import { ImprisonedShip } from '../app/features/harbor/models/imprisoned-ship';
 import { FinePayment } from '../app/features/harbor/models/fine-payment';
 import { StockedCargo } from '../app/features/harbor/models/stocked-cargo';
+import { Recruit } from '../app/features/harbor/models/recruit';
 import { Catain } from '../app/features/catains/model/catain';
 import {
   Ship as AvailableShip,
+  ShipClass as AvailableShipClass,
   ShippingState as AvailableShipShippingState,
 } from '../app/features/ships/models/ship';
 
@@ -60,6 +62,9 @@ export function anAvailableShip(overrides: Partial<AvailableShip> = {}): Availab
     incoming: false,
     earnings: '0.00',
     imprisoned: false,
+    shipClass: AvailableShipClass.SLOOP,
+    crewCapacity: 2,
+    crew: [],
     ...overrides,
   };
 }
@@ -119,6 +124,7 @@ export function anArrivalNotice(overrides: Partial<ArrivalNotice> = {}): Arrival
     shipName: 'Black Pearl',
     originHarbor: 'Tortuga',
     imprisoned: false,
+    crew: [],
     ...overrides,
   };
 }
@@ -182,6 +188,18 @@ export function aFinePayment(overrides: Partial<FinePayment> = {}): FinePayment 
     name: 'Salty Whisker',
     fine: '50.00',
     savings: '950.00',
+    ...overrides,
+  };
+}
+
+/** A Recruit of the Recruit Pool, offered for the Hiring Fee of 50.00 $. */
+export function aRecruit(overrides: Partial<Recruit> = {}): Recruit {
+  return {
+    id: '00000000-0000-4000-8000-000000000010',
+    name: 'Mittens',
+    trait: 'Strong Paws',
+    portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const,
+    hiringFee: '50.00',
     ...overrides,
   };
 }
