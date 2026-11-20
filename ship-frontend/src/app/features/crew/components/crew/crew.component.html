@@ -37,11 +37,11 @@
                   mat-stroked-button
                   class="dismiss"
                   data-testid="crew-dismiss"
-                  [attr.aria-label]="'Dismiss ' + member.name + ', no refund of the Hiring Fee'"
+                  [attr.aria-label]="'Dismiss ' + member.name + ' for a refund of ' + member.refund + ' $'"
                   [disabled]="dismissingIds().includes(member.id)"
                   (click)="dismiss(ship.id, member.id)"
                 >
-                  Dismiss
+                  Dismiss · refund {{ member.refund }} $
                 </button>
               }
             </div>
@@ -55,7 +55,7 @@
         </div>
         @if (canDismiss() && ship.crew.length > 0) {
           <p class="note" data-testid="crew-dismiss-note">
-            A dismissed Crew Member leaves for good: no refund, and they do not return to the Recruit Pool.
+            A dismissed Crew Member leaves for good: the refund goes into the Savings of {{ ship.homeHarbor }}, and they do not return to the Recruit Pool.
           </p>
         }
         @if (dismissRefusal(); as refusal) {
@@ -119,7 +119,7 @@
                       [disabled]="hiringRecruitIds().length > 0"
                       (click)="hire(ship.id, recruit.id)"
                     >
-                      Hire
+                      Hire · {{ recruit.hiringFee }} $
                     </button>
                   }
                 </li>

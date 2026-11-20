@@ -8,7 +8,7 @@ import { Hire, HireRequest } from '../models/hire';
 export class CrewService {
   private readonly http = inject(HttpClient);
 
-  /** Dismisses the Crew Member from the ship; no refund. */
+  /** Dismisses the Crew Member from the ship; the backend refunds half the Hiring Fee into the Savings. The Dismissal body is ignored. */
   dismiss(shipId: string, crewMemberId: string): Observable<void> {
     return this.http.delete<void>(`${environment.baseUrl}/ships/${shipId}/crew/${crewMemberId}`);
   }
