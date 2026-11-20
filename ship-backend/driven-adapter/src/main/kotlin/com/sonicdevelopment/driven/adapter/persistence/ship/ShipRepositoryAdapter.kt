@@ -153,7 +153,9 @@ class ShipRepositoryAdapter(
 
     @Transactional(propagation = Propagation.MANDATORY)
     override fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId) {
-        TODO("removeCrewMember")
+        check(crewMemberRepository.deleteByCrewMemberIdAndShip_ShipId(crewMemberId.id, shipId.id) > 0) {
+            "Crew Member ${crewMemberId.id} is not aboard ship ${shipId.id}"
+        }
     }
 
     override fun getAllShips(): List<Ship> {

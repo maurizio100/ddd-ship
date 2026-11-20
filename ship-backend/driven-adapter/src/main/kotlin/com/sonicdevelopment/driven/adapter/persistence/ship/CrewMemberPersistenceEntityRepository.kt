@@ -7,5 +7,6 @@ import java.util.UUID
 @Repository
 interface CrewMemberPersistenceEntityRepository : JpaRepository<CrewMemberPersistenceEntity, Long> {
     fun findAllByShip_IdOrderById(id: Long): List<CrewMemberPersistenceEntity>
+    fun deleteByCrewMemberIdAndShip_ShipId(crewMemberId: UUID, shipId: UUID): Long
     fun deleteAllByShip_ShipId(shipId: UUID)
 }

@@ -224,7 +224,14 @@ class Ship(
      * [currentHarbor] is not its Home Harbor, the Crew Member is not aboard. A refusal changes nothing.
      */
     fun dismiss(crewMemberId: CrewMemberId, currentHarbor: HarborName): CrewMember {
-        TODO("dismiss")
+        if (shippingState() == ShippingState.SHIPPING) throw DismissRefusedException("$shipName is at sea")
+        if (homeHarbor != currentHarbor) {
+            throw DismissRefusedException("${currentHarbor.name} is not the Home Harbor of $shipName")
+        }
+        val member = crewAboard.firstOrNull { it.id == crewMemberId }
+            ?: throw DismissRefusedException("The Crew Member is not aboard")
+        crewAboard.remove(member)
+        return member
     }
 
     private fun moveCargoAboardIntoLoadedCargo() {

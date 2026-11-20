@@ -144,7 +144,9 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
 
     @Synchronized
     override fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId) {
-        TODO("removeCrewMember")
+        val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
+        check(record.crew.any { it.id == crewMemberId }) { "Crew Member $crewMemberId is not aboard $shipId" }
+        ships[shipId] = record.copy(crew = record.crew.filterNot { it.id == crewMemberId })
     }
 
     @Synchronized

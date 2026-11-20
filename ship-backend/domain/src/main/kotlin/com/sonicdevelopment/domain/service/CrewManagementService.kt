@@ -24,6 +24,10 @@ import org.springframework.stereotype.Service
  * the conditional debit of the Savings before anything else is written, so nothing is Hired unpaid; the Recruit is
  * taken by a conditional step, and a Recruit taken meanwhile throws so the debit rolls back; then the Crew Member is
  * added and a new Recruit is offered at the next never-used ordinal. Nothing is published.
+ *
+ * A Dismiss takes the same ship lock, so it and a Hire on one ship run one after the other; the guards of
+ * [com.sonicdevelopment.domain.model.Ship.dismiss] run before the Crew Member is removed. It moves no money and
+ * writes no Recruit Pool row: the Recruit stays taken and is never offered again. Nothing is published.
  */
 @Service
 class CrewManagementService(
@@ -62,7 +66,10 @@ class CrewManagementService(
 
     @Transactional
     override fun dismiss(shipId: ShipId, crewMemberId: CrewMemberId): Boolean {
-        TODO("dismiss")
+        val ship = shipRepositoryPort.lockShip(shipId) ?: return false
+        ship.dismiss(crewMemberId, currentHarbor)
+        shipRepositoryPort.removeCrewMember(ship.id, crewMemberId)
+        return true
     }
 
     /** A conflict means a concurrent Hire or opening took that ordinal first, so the next one is tried. */
