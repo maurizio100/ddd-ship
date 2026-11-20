@@ -19,12 +19,24 @@
     <div class="panels">
       <section class="panel" aria-labelledby="crew-heading">
         <h2 id="crew-heading">Crew</h2>
-        <span class="chip" data-testid="crew-capacity">0 / {{ ship.crewCapacity }} · {{ classLabel() }}</span>
+        <span class="chip" data-testid="crew-capacity">{{ ship.crew.length }} / {{ ship.crewCapacity }} · {{ classLabel() }}</span>
+        @if (ship.crew.length === 0) {
+          <p class="empty" data-testid="crew-empty">No Crew yet</p>
+        }
         <div class="berths">
+          @for (member of ship.crew; track member.id) {
+            <div class="member" data-testid="crew-member">
+              <span class="recruit__initial recruit__initial--ring" aria-hidden="true">{{ initial(member.name) }}</span>
+              <span class="recruit__text">
+                <span class="recruit__name" data-testid="crew-member-name">{{ member.name }}</span>
+                <span class="chip chip--trait" data-testid="crew-member-trait">{{ member.trait }}</span>
+              </span>
+            </div>
+          }
           @for (berth of freeBerths(); track $index) {
             <div class="berth" data-testid="crew-free-berth">
               <mat-icon fontIcon="person_add"></mat-icon>
-              <span>A free berth</span>
+              <span>A free berth: Hire a Recruit</span>
             </div>
           }
         </div>
@@ -32,20 +44,61 @@
 
       <section class="panel" aria-labelledby="recruit-pool-heading">
         <h2 id="recruit-pool-heading">Recruit Pool</h2>
-        @if (recruitPool().length === 0) {
-          <p class="empty" data-testid="crew-recruit-pool-empty">No Recruits offered</p>
+        @if (atSea()) {
+          <p class="empty" data-testid="crew-away">
+            {{ ship.name }} is at sea: the Crew is Hired once it is back in port at its Home Harbor {{ ship.homeHarbor }}.
+          </p>
+        } @else if (away()) {
+          <p class="empty" data-testid="crew-away">
+            The Crew is Hired and dismissed only at the Home Harbor {{ ship.homeHarbor }}. {{ harborName() }}'s Recruit Pool is not offered here.
+          </p>
+        } @else if (crewFull()) {
+          <p class="empty" data-testid="crew-full">
+            The Crew is full: a {{ classLabel() }} carries {{ ship.crewCapacity }} Crew Members. The Recruit Pool comes back once a Crew Member is dismissed.
+          </p>
         } @else {
-          <ul class="recruits" aria-label="Recruit Pool">
-            @for (recruit of recruitPool(); track recruit.id) {
-              <li class="recruit" data-testid="crew-recruit">
-                <span class="recruit__initial" aria-hidden="true">{{ initial(recruit.name) }}</span>
-                <span class="recruit__text">
-                  <span class="recruit__name" data-testid="crew-recruit-name">{{ recruit.name }}</span>
-                  <span class="recruit__trait" data-testid="crew-recruit-trait">{{ recruit.trait }}</span>
-                </span>
-              </li>
-            }
-          </ul>
+          @if (hireRefusal(); as refusal) {
+            <p class="alert" role="alert" data-testid="crew-hire-refusal">{{ refusal.message }}</p>
+          }
+          @if (hiringFee(); as fee) {
+            <p class="fee" data-testid="crew-hiring-fee">
+              @if (hireRefusal()?.savingsShort && savings(); as short) {
+                Hiring Fee {{ fee }} $ · Savings {{ short.amount }} $
+              } @else {
+                Hiring Fee {{ fee }} $, paid from the Savings of {{ ship.homeHarbor }}
+              }
+            </p>
+          }
+          @if (recruitPool().length === 0) {
+            <p class="empty" data-testid="crew-recruit-pool-empty">No Recruits offered</p>
+          } @else {
+            <ul class="recruits" aria-label="Recruit Pool">
+              @for (recruit of recruitPool(); track recruit.id) {
+                <li class="recruit" data-testid="crew-recruit">
+                  <span class="recruit__initial" aria-hidden="true">{{ initial(recruit.name) }}</span>
+                  <span class="recruit__text">
+                    <span class="recruit__name" data-testid="crew-recruit-name">{{ recruit.name }}</span>
+                    <span class="recruit__trait" data-testid="crew-recruit-trait">{{ recruit.trait }}</span>
+                  </span>
+                  @if (newInPoolRecruitIds().includes(recruit.id)) {
+                    <span class="chip chip--new" data-testid="crew-recruit-new">new in the pool</span>
+                  }
+                  @if (harborName()) {
+                    <button
+                      type="button"
+                      class="hire"
+                      data-testid="crew-hire"
+                      [attr.aria-label]="'Hire ' + recruit.name + ' for ' + recruit.hiringFee + ' $'"
+                      [disabled]="hiringRecruitIds().length > 0"
+                      (click)="hire(ship.id, recruit.id)"
+                    >
+                      Hire
+                    </button>
+                  }
+                </li>
+              }
+            </ul>
+          }
         }
       </section>
     </div>

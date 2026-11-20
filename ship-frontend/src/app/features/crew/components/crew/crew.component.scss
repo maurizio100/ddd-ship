@@ -152,3 +152,55 @@
     color: var(--hs-muted);
   }
 }
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.recruit__initial--ring {
+  border: 2px solid var(--hs-brass, #b08d3c);
+  background: transparent;
+}
+
+.chip--trait,
+.chip--new {
+  align-self: flex-start;
+  padding: 2px 10px;
+  font-size: 13px;
+}
+
+.recruit .chip--new {
+  margin-left: auto;
+}
+
+.alert {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--hs-oxblood, #6e1423);
+  border-radius: 12px;
+  color: var(--hs-oxblood, #6e1423);
+  font-weight: 600;
+}
+
+.fee {
+  margin: 4px 0 0;
+  color: var(--hs-muted);
+}
+
+.hire {
+  margin-left: auto;
+  padding: 6px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--hs-oxblood, #6e1423);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
