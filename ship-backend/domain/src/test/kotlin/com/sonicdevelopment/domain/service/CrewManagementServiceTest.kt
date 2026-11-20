@@ -1,9 +1,12 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.exception.DismissRefusedException
 import com.sonicdevelopment.domain.exception.HireRefusedException
 import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
 import com.sonicdevelopment.domain.fixtures.aShip
+import com.sonicdevelopment.domain.model.CrewMember
 import com.sonicdevelopment.domain.model.Recruit
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.RecruitId
@@ -12,6 +15,7 @@ import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -138,5 +142,30 @@ class CrewManagementServiceTest {
 
         (transactional != null) shouldBe true
         transactional.dontRollbackOn.toList() shouldBe emptyList()
+    }
+
+    @Test
+    fun `dismiss locks the ship and removes the Crew Member, writing no Savings, pool or other row`() {
+        val member = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Strong Paws")
+        every { ships.lockShip(any()) } returns aShip(crew = listOf(member))
+
+        service.dismiss(ship.id, member.id) shouldBe true
+
+        verifyOrder {
+            ships.lockShip(ship.id)
+            ships.removeCrewMember(any(), member.id)
+        }
+        verify(exactly = 0) { ships.addCrewMember(any(), any()) }
+        confirmVerified(savings, pool)
+    }
+
+    @Test
+    fun `dismiss of an unknown ship returns false and a refusal removes nothing`() {
+        every { ships.lockShip(ship.id) } returns null
+        service.dismiss(ship.id, CrewMemberId(UUID.randomUUID())) shouldBe false
+
+        every { ships.lockShip(ship.id) } returns aShip(homeHarbor = HarborName("Tortuga"))
+        shouldThrow<DismissRefusedException> { service.dismiss(ship.id, CrewMemberId(UUID.randomUUID())) }
+        verify(exactly = 0) { ships.removeCrewMember(any(), any()) }
     }
 }

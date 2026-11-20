@@ -83,6 +83,24 @@ class ShipRepositoryAdapterTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRED)
+    fun `removeCrewMember deletes the row and leaves the other Crew, and fails for a Crew Member not aboard`() {
+        val blackPearl = aShip("Black Pearl")
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Calm")
+        ships.addCrewMember(blackPearl.id, mittens)
+        ships.addCrewMember(blackPearl.id, patch)
+        flushAndClear()
+
+        ships.removeCrewMember(blackPearl.id, mittens.id)
+        flushAndClear()
+
+        ships.getShipDetails(blackPearl.id)!!.crew shouldBe listOf(patch)
+        shouldThrow<IllegalStateException> { ships.removeCrewMember(blackPearl.id, mittens.id) }
+        shouldThrow<IllegalStateException> { ships.removeCrewMember(ShipId(UUID.randomUUID()), patch.id) }
+    }
+
+    @Test
     fun `a ship removed from the fleet is neither listed nor found, but its Shippings stay readable`() {
         val blackPearl = aShipAtSea("Black Pearl")
         val voyage = blackPearl.activeShipping!!
