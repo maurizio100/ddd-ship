@@ -22,6 +22,9 @@ component ──dispatch──▶ action ──▶ effect ──▶ service (HTT
   `EVENT_SOURCE_FACTORY` injection token so specs pass a fake. Only an effect subscribes, started and
   stopped by actions the component dispatches on init and destroy, and it maps each pushed event to an
   action.
+- After a command that moves money or Crew (Hire, Dismiss), an effect reads the server state back
+  (`loadShips`, `loadSavings`, `loadRecruitPool`) on both success and refusal; the frontend never derives
+  the new Savings from the command's answer.
 
 Existing components read with `store.select(...)` as observables; switch one to `selectSignal`
 when a story touches it. The `shipping` feature still calls its services from components. Move it onto a store when a story

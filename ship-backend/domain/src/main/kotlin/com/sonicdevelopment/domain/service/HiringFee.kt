@@ -8,4 +8,7 @@ import com.sonicdevelopment.domain.model.values.Money
  */
 object HiringFee {
     val AMOUNT: Money = Money.of("50.00")
+
+    /** Half the Hiring Fee: what the Savings receive back when a Crew Member is dismissed. */
+    val REFUND: Money = Money.of("25.00")
 }

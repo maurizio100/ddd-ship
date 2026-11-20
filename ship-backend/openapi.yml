@@ -599,9 +599,9 @@ paths:
     delete:
       summary: Dismiss a Crew Member from a ship
       description: >-
-        Removes the Crew Member from the ship's Crew, only while the ship is in port at its Home Harbor. No money
-        moves (the Hiring Fee is not refunded), and the Recruit stays hired, so it is never offered in the Recruit
-        Pool again. Nothing is published.
+        Removes the Crew Member from the ship's Crew, only while the ship is in port at its Home Harbor. Half the
+        Hiring Fee is refunded into the Savings, in the same transaction; a refused Dismissal refunds nothing. The
+        Recruit stays hired, so it is never offered in the Recruit Pool again. Nothing is published.
       operationId: dismissCrewMember
       tags: [Ships]
       parameters:
@@ -618,8 +618,12 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
-          description: The Crew Member was Dismissed
+        '200':
+          description: The Crew Member was Dismissed and half the Hiring Fee refunded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dismissal'
         '404':
           description: Ship not found in this Harbor's fleet
           content:
@@ -972,6 +976,29 @@ components:
           example: '950.00'
           description: The Savings after the payment, in dollars, as a decimal string with two decimals
 
+    Dismissal:
+      type: object
+      required: [shipId, name, crewMemberId, refund, savings]
+      properties:
+        shipId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        crewMemberId:
+          type: string
+          format: uuid
+        refund:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '25.00'
+          description: Half the Hiring Fee refunded into the Savings, in dollars, as a decimal string with two decimals
+        savings:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '975.00'
+          description: The Savings after the refund, in dollars, as a decimal string with two decimals
+
     HireRequest:
       type: object
       required: [recruitId]
@@ -1015,7 +1042,7 @@ components:
 
     CrewMember:
       type: object
-      required: [id, name, trait, portrait]
+      required: [id, name, trait, refund, portrait]
       properties:
         id:
           type: string
@@ -1025,6 +1052,11 @@ components:
           type: string
         trait:
           type: string
+        refund:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '25.00'
+          description: 'What a Dismiss refunds into the Savings: half the Hiring Fee'
         portrait:
           $ref: '#/components/schemas/Portrait'
 

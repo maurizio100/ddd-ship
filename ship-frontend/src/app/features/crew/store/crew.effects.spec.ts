@@ -16,7 +16,7 @@ import { aRecruit } from '../../../../testing/fixtures';
 const hire: Hire = {
   shipId: 'ship-1',
   name: 'Black Pearl',
-  crewMember: { id: 'r1', name: 'Mittens', trait: 'Strong Paws', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const },
+  crewMember: { id: 'r1', name: 'Mittens', trait: 'Strong Paws', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const, refund: '25.00' },
   hiringFee: '50.00',
   savings: '950.00',
   newRecruit: aRecruit({ id: 'r2' }),
@@ -139,8 +139,8 @@ describe('CrewEffects', () => {
     ]);
   });
 
-  it('a dismissal, successful or refused, reloads the fleet and the Recruit Pool but not the Savings', () => {
-    const reload = [ShipActions.loadShips(), HarborActions.loadRecruitPool()];
+  it('a dismissal, successful or refused, reloads the fleet, the Savings and the Recruit Pool', () => {
+    const reload = [ShipActions.loadShips(), HarborActions.loadSavings(), HarborActions.loadRecruitPool()];
     const emitted: Action[] = [];
     effects.refreshAfterDismiss$.subscribe((a) => emitted.push(a));
 

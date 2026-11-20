@@ -119,6 +119,7 @@ class ShipControllerTest {
             jsonPath("$[0].crew[0].id") { value(member.toString()) }
             jsonPath("$[0].crew[0].name") { value("Mittens") }
             jsonPath("$[0].crew[0].trait") { value("Fearless") }
+            jsonPath("$[0].crew[0].refund") { value("25.00") }
             jsonPath("$[1].crew") { isEmpty() }
         }
     }

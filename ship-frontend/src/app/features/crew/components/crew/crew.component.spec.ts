@@ -20,7 +20,7 @@ const RECRUITS: Recruit[] = ['Mittens', 'Patch', 'Saffron', 'Biscuit', 'Pepper']
   hiringFee: '50.00',
 }));
 
-const MITTENS = { id: '00000000-0000-4000-8000-0000000000aa', name: 'Mittens', trait: 'Strong Paws', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const };
+const MITTENS = { id: '00000000-0000-4000-8000-0000000000aa', name: 'Mittens', trait: 'Strong Paws', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const, refund: '25.00' };
 const NO_REFUSAL = null;
 
 describe('CrewComponent (A Harbor offers five Recruits)', () => {
@@ -93,6 +93,12 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
     expect(rows.length).toBe(5);
     expect(all('crew-recruit-name').map((n) => n.textContent!.trim())).toEqual(RECRUITS.map((r) => r.name));
     expect(all('crew-recruit-trait').map((n) => n.textContent!.trim())).toEqual(RECRUITS.map((r) => r.trait));
+  });
+
+  it('Each Recruit in the Recruit Pool shows the Hiring Fee', () => {
+    render();
+
+    expect(all('crew-hire').map((b) => b.textContent!.trim())).toEqual(RECRUITS.map(() => 'Hire · 50.00 $'));
   });
 
   it('shows a portrait for every Recruit of the pool', () => {
@@ -329,11 +335,18 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
 
       const button = all('crew-dismiss')[0];
       expect(all('crew-dismiss').length).toBe(1);
-      expect(button.getAttribute('aria-label')).toBe('Dismiss Mittens, no refund of the Hiring Fee');
+      expect(button.getAttribute('aria-label')).toBe('Dismiss Mittens for a refund of 25.00 $');
       expect(button.hasAttribute('mat-stroked-button')).toBeTrue();
       expect(text('crew-dismiss-note')).toBe(
-        'A dismissed Crew Member leaves for good: no refund, and they do not return to the Recruit Pool.',
+        'A dismissed Crew Member leaves for good: the refund goes into the Savings of Port Royal, and they do not return to the Recruit Pool.',
       );
+    });
+
+    it('A Crew Member shows the refund it would bring', () => {
+      render({ ship: crewed });
+
+      expect(text('crew-dismiss')).toBe('Dismiss · refund 25.00 $');
+      expect(all('crew-dismiss')[0].getAttribute('aria-label')).toBe('Dismiss Mittens for a refund of 25.00 $');
     });
 
     it('dispatches dismissCrewMember on click', () => {

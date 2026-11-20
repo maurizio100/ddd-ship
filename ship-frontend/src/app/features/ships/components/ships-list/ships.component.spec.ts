@@ -268,6 +268,7 @@ describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)',
     name,
     trait,
     portrait: { fur: 'cream', coat: 'spotted', eyes: 'blue', accessory: 'earring' } as const,
+    refund: '25.00',
   });
 
   it('The Crew arrives with the ship', () => {

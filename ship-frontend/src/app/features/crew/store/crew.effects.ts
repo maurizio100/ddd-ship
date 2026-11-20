@@ -71,11 +71,11 @@ export class CrewEffects {
     ),
   );
 
-  /** The backend owns the Crew and the pool: after a Dismiss, successful or refused, both are read back. No money moves. */
+  /** The backend owns the Crew, the pool and the Savings: after a Dismiss, successful or refused, all three are read back (a Dismiss refunds half the Hiring Fee into the Savings). */
   refreshAfterDismiss$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CrewActions.dismissCrewMemberSuccess, CrewActions.dismissCrewMemberFailure),
-      switchMap(() => [ShipActions.loadShips(), HarborActions.loadRecruitPool()]),
+      switchMap(() => [ShipActions.loadShips(), HarborActions.loadSavings(), HarborActions.loadRecruitPool()]),
     ),
   );
 

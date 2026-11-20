@@ -6,4 +6,6 @@ export interface CrewMember {
   name: string;
   trait: string;
   portrait: Portrait;
+  /** What a Dismiss refunds into the Savings, a decimal string with two decimals. */
+  refund: string;
 }

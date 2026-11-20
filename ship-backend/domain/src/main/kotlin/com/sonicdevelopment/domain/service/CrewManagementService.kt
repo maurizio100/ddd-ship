@@ -12,6 +12,7 @@ import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.harbor.RecruitDTO
 import com.sonicdevelopment.domain.ports.driving.ship.CrewManagementPort
+import com.sonicdevelopment.domain.ports.driving.ship.DismissalDTO
 import com.sonicdevelopment.domain.ports.driving.ship.CrewMemberDTO
 import com.sonicdevelopment.domain.ports.driving.ship.HireDTO
 import jakarta.transaction.Transactional
@@ -26,8 +27,10 @@ import org.springframework.stereotype.Service
  * added and a new Recruit is offered at the next never-used ordinal. Nothing is published.
  *
  * A Dismiss takes the same ship lock, so it and a Hire on one ship run one after the other; the guards of
- * [com.sonicdevelopment.domain.model.Ship.dismiss] run before the Crew Member is removed. It moves no money and
- * writes no Recruit Pool row: the Recruit stays taken and is never offered again. Nothing is published.
+ * [com.sonicdevelopment.domain.model.Ship.dismiss] run before the Crew Member is removed. A Dismiss that passes its guards
+ * refunds half the Hiring Fee into the Savings after the removal, under the same lock; a refusal throws before any
+ * write, so it credits nothing. It writes no Recruit Pool row: the Recruit stays taken and is never offered again.
+ * Nothing is published.
  */
 @Service
 class CrewManagementService(
@@ -65,11 +68,12 @@ class CrewManagementService(
     }
 
     @Transactional
-    override fun dismiss(shipId: ShipId, crewMemberId: CrewMemberId): Boolean {
-        val ship = shipRepositoryPort.lockShip(shipId) ?: return false
+    override fun dismiss(shipId: ShipId, crewMemberId: CrewMemberId): DismissalDTO? {
+        val ship = shipRepositoryPort.lockShip(shipId) ?: return null
         ship.dismiss(crewMemberId, currentHarbor)
         shipRepositoryPort.removeCrewMember(ship.id, crewMemberId)
-        return true
+        savingsRepositoryPort.receive(HiringFee.REFUND)
+        return DismissalDTO(ship.id, ship.shipName, crewMemberId, HiringFee.REFUND, savingsRepositoryPort.getSavings())
     }
 
     /** A conflict means a concurrent Hire or opening took that ordinal first, so the next one is tried. */

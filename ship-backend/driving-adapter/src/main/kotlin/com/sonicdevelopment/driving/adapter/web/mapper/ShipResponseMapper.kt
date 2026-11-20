@@ -21,7 +21,7 @@ fun toShipResponse(ship: ShipDTO) =
         imprisoned = ship.imprisoned,
         shipClass = ship.shipClass,
         crewCapacity = ship.shipClass.crewCapacity,
-        crew = ship.crew.map { CrewMemberResponse(it.id, it.name, it.trait, it.portrait.toResponse()) },
+        crew = ship.crew.map { CrewMemberResponse(it.id, it.name, it.trait, it.refund.toDecimalString(), it.portrait.toResponse()) },
     )
 fun toShipDetailResponse(ship: ShipDetailDTO) =
     ShipDetailResponse(

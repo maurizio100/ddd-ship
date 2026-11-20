@@ -70,14 +70,14 @@ class DismissACrewMemberAcceptanceTest {
     fun `Dismissing a Crew Member removes them from the Crew`() {
         val response = dismiss(saltyWhiskerId, MITTENS_ID)
 
-        response.statusCode shouldBe HttpStatus.NO_CONTENT
+        response.statusCode shouldBe HttpStatus.OK
         crewOf(saltyWhiskerId).shouldBeEmpty()
-        savings() shouldBe "950.00"
+        savings() shouldBe "975.00"
     }
 
     @Test
     fun `A dismissed Crew Member does not return to the Recruit Pool`() {
-        dismiss(saltyWhiskerId, MITTENS_ID).statusCode shouldBe HttpStatus.NO_CONTENT
+        dismiss(saltyWhiskerId, MITTENS_ID).statusCode shouldBe HttpStatus.OK
 
         recruitIds().contains(MITTENS_ID.toString()) shouldBe false
     }

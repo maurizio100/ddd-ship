@@ -23,7 +23,7 @@ describe('CrewService', () => {
     const hire: Hire = {
       shipId: 'ship-1',
       name: 'Black Pearl',
-      crewMember: { id: 'r1', name: 'Mittens', trait: 'Strong Paws', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const },
+      crewMember: { id: 'r1', name: 'Mittens', trait: 'Strong Paws', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const, refund: '25.00' },
       hiringFee: '50.00',
       savings: '950.00',
       newRecruit: aRecruit({ id: 'r2', name: 'Patch' }),
