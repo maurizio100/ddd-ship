@@ -4,6 +4,8 @@ import * as CrewActions from './crew.actions';
 
 export const initialState: CrewState = {
   hiringRecruitIds: [],
+  dismissingCrewMemberIds: [],
+  dismissRefusal: null,
   hireRefusal: null,
   newInPoolRecruitIds: [],
   harborName: null,

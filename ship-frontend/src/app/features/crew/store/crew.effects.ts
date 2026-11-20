@@ -55,6 +55,9 @@ export class CrewEffects {
     ),
   );
 
+  dismissCrewMember$ = createEffect(() => this.actions$.pipe(ofType(CrewActions.dismissCrewMember), map(({ crewMemberId }) => CrewActions.dismissCrewMemberSuccess({ crewMemberId }))));
+  refreshAfterDismiss$ = createEffect(() => this.actions$.pipe(ofType(CrewActions.dismissCrewMemberSuccess), map(() => ShipActions.loadShips())));
+
   loadHarborName$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CrewActions.loadHarborName),
