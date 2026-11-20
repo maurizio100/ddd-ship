@@ -22,7 +22,7 @@ describe('harbor selectors', () => {
   const stock = [aStockedCargo({ name: 'Rum', quantity: 0 })];
   const savings = aSavings({ amount: '640.50' });
   const incomingShips = [anIncomingShipListing()];
-  const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed' }];
+  const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', hiringFee: '50.00' }];
   const root = {
     harbor: {
       stock,
