@@ -36,7 +36,7 @@
           @for (berth of freeBerths(); track $index) {
             <div class="berth" data-testid="crew-free-berth">
               <mat-icon fontIcon="person_add"></mat-icon>
-              <span>A free berth: Hire a Recruit</span>
+              <span>{{ poolOffered() ? 'A free berth: Hire a Recruit' : 'A free berth' }}</span>
             </div>
           }
         </div>
@@ -44,12 +44,17 @@
 
       <section class="panel" aria-labelledby="recruit-pool-heading">
         <h2 id="recruit-pool-heading">Recruit Pool</h2>
+        @if (hireRefusal(); as refusal) {
+          <p class="alert" role="alert" data-testid="crew-hire-refusal">{{ refusal.message }}</p>
+        }
         @if (atSea()) {
-          <p class="empty" data-testid="crew-away">
+          <p class="empty away" data-testid="crew-away">
+            <mat-icon fontIcon="home"></mat-icon>
             {{ ship.name }} is at sea: the Crew is Hired once it is back in port at its Home Harbor {{ ship.homeHarbor }}.
           </p>
         } @else if (away()) {
-          <p class="empty" data-testid="crew-away">
+          <p class="empty away" data-testid="crew-away">
+            <mat-icon fontIcon="home"></mat-icon>
             The Crew is Hired and dismissed only at the Home Harbor {{ ship.homeHarbor }}. {{ harborName() }}'s Recruit Pool is not offered here.
           </p>
         } @else if (crewFull()) {
@@ -57,9 +62,6 @@
             The Crew is full: a {{ classLabel() }} carries {{ ship.crewCapacity }} Crew Members. The Recruit Pool comes back once a Crew Member is dismissed.
           </p>
         } @else {
-          @if (hireRefusal(); as refusal) {
-            <p class="alert" role="alert" data-testid="crew-hire-refusal">{{ refusal.message }}</p>
-          }
           @if (hiringFee(); as fee) {
             <p class="fee" data-testid="crew-hiring-fee">
               @if (hireRefusal()?.savingsShort && savings(); as short) {
@@ -86,6 +88,7 @@
                   @if (harborName()) {
                     <button
                       type="button"
+                      mat-flat-button
                       class="hire"
                       data-testid="crew-hire"
                       [attr.aria-label]="'Hire ' + recruit.name + ' for ' + recruit.hiringFee + ' $'"

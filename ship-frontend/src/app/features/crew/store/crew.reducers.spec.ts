@@ -43,6 +43,12 @@ describe('crew reducers', () => {
     expect(next.hireRefusal).toEqual({ recruitId: 'r1', message: 'Crew full', savingsShort: true });
   });
 
+  it('loadHarborName clears a refusal left by another ship', () => {
+    const state = { ...initialState, hireRefusal: { recruitId: 'r0', message: 'no', savingsShort: false } };
+
+    expect(crewReducers(state, CrewActions.loadHarborName()).hireRefusal).toBeNull();
+  });
+
   it('loadHarborNameSuccess keeps the Harbor name', () => {
     expect(crewReducers(initialState, CrewActions.loadHarborNameSuccess({ harborName: 'Port Royal' })).harborName).toBe(
       'Port Royal',

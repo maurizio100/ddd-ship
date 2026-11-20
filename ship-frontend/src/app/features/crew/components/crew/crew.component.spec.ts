@@ -242,6 +242,35 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
     );
   });
 
+  it('shows the refusal of a full Crew even when the reloaded ship shows the full branch', () => {
+    render({
+      ship: { shipClass: ShipClass.SLOOP, crewCapacity: 1, crew: [MITTENS] },
+      crew: { hireRefusal: { recruitId: RECRUITS[0].id, message: 'The Crew of Black Pearl is full', savingsShort: false } },
+    });
+
+    expect(text('crew-full')).toContain('The Crew is full');
+    expect(text('crew-hire-refusal')).toBe('The Crew of Black Pearl is full');
+  });
+
+  it('read-only views name free berths without inviting a Hire and mark the Home Harbor with a home icon', () => {
+    render({ ship: { shippingState: ShippingState.SHIPPING } });
+
+    expect(all('crew-free-berth')[0].textContent!.trim()).toBe('A free berth');
+    expect(all('crew-away')[0].querySelector('mat-icon')!.getAttribute('fontIcon')).toBe('home');
+  });
+
+  it('offers the invitation on free berths when the Recruit Pool is offered', () => {
+    render();
+
+    expect(all('crew-free-berth')[0].textContent).toContain('A free berth: Hire a Recruit');
+  });
+
+  it('styles the Hire button as a flat Material button', () => {
+    render();
+
+    expect(all('crew-hire')[0].hasAttribute('mat-flat-button')).toBeTrue();
+  });
+
   it('offers no Hire button while the Harbor name is unknown', () => {
     render({ crew: { harborName: null } });
 

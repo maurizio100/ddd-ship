@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Store } from '@ngrx/store';
 import * as HarborActions from '../../../harbor/store/harbor.actions';
@@ -20,7 +21,7 @@ import {
   selector: 'app-crew',
   templateUrl: './crew.component.html',
   styleUrl: './crew.component.scss',
-  imports: [RouterLink, MatIconModule],
+  imports: [RouterLink, MatIconModule, MatButtonModule],
 })
 export class CrewComponent implements OnInit {
   private readonly store = inject(Store);

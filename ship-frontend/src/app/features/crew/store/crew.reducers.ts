@@ -28,6 +28,8 @@ export const crewReducers = createReducer(
     hiringRecruitIds: state.hiringRecruitIds.filter((id) => id !== recruitId),
     hireRefusal: { recruitId, message: refusal, savingsShort },
   })),
+  // A refusal belongs to the visit to one ship: entering the Crew screen starts clean.
+  on(CrewActions.loadHarborName, (state) => ({ ...state, hireRefusal: null })),
   on(CrewActions.loadHarborNameSuccess, (state, { harborName }) => ({ ...state, harborName })),
   on(CrewActions.loadHarborNameFailure, (state, { error }) => ({ ...state, error })),
 );

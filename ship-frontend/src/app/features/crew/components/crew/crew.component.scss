@@ -178,9 +178,9 @@
 .alert {
   margin: 12px 0 0;
   padding: 10px 14px;
-  border: 1px solid var(--hs-oxblood, #6e1423);
+  border: 1px solid var(--mat-sys-primary, #8C2F1B);
   border-radius: 12px;
-  color: var(--hs-oxblood, #6e1423);
+  color: var(--mat-sys-primary, #8C2F1B);
   font-weight: 600;
 }
 
@@ -191,16 +191,11 @@
 
 .hire {
   margin-left: auto;
-  padding: 6px 20px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--hs-oxblood, #6e1423);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
+  min-height: 44px;
+}
 
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
+.away {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
