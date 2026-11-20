@@ -49,8 +49,9 @@ class TheShipClassShowsItsCrewCapacityAcceptanceTest {
         created.statusCode shouldBe HttpStatus.OK
         val id = created.body!!["id"]
 
-        val details = restTemplate.getForEntity("/web/ships/$id", Map::class.java)
-        details.body!!["crewCapacity"] shouldBe offered
+        val fleet = restTemplate.getForEntity("/web/ships", String::class.java)
+        val ship = ObjectMapper().readValue(fleet.body!!, List::class.java).map { it as Map<*, *> }.single { it["id"] == id }
+        ship["crewCapacity"] shouldBe offered
     }
 
     private fun offers(): List<Map<*, *>> {
