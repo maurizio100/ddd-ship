@@ -75,11 +75,13 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
 - **Page header** — italic `muted` kicker line above an IM Fell English heading.
 - **Fleet** — a responsive grid of ship cards: ship picture, status chip (In port / Preparing / At
   sea / Imprisoned, the last an `ink` chip with a brass lock icon), the Catain portrait in a brass ring overlapping the picture, Ship Name, "under `<Catain>`",
-  "Home Harbor `<Harbor>`", "Arrived from `<Harbor>`" when set, and the card's actions. Arrival notices (", imprisoned" appended for an imprisoned Arrival) and imprisonment notices (lock icon) are `ink` bars with a
+  "Home Harbor `<Harbor>`", "`<Ship Class>` · Crew Capacity `<n>`" (sailing icon; the Crew Capacity taken from the backend), "Arrived from `<Harbor>`" when set, and the card's actions. Arrival notices (", imprisoned" appended for an imprisoned Arrival) and imprisonment notices (lock icon) are `ink` bars with a
   dismiss button above the grid; a refused new Shipping is an `oxblood` alert in the ship card's actions. An Imprisoned Ship's card carries a Fine panel (the Fine, whether the Savings cover it, a filled Pay Fine button); a paid Fine is an `ink` notice bar with a dismiss button that also dismisses itself after 8 s.
 - **Imprisoned Ships** — kicker "Held in the harbor brig", one card per Imprisoned Ship with its Fine and Pay Fine.
-- **Create ship** — Ship Name field, then the Catain grid as radio cards with large portraits; the
-  selected Catain is lifted, framed in `oxblood` and badged. It stays a real radio group.
+- **Create ship** — Ship Name field, then the Ship Class picker (Sloop, Brig, Galleon as smaller radio
+  cards with a `sailing` icon, the selected one framed in `oxblood` and badged; a "Choose a Ship Class"
+  hint in the actions while none is chosen), then the Catain grid as radio cards with large portraits; the
+  selected Catain is lifted, framed in `oxblood` and badged. Both stay real radio groups.
 - **Load Cargo** — Available Cargo as crate cards (picture, Stock badge, Weight) dragged onto the
   ship (CDK drag-drop); the drop zone shows the overlay while a crate is over it. Loaded Cargo as chips
   with a remove button (and a quantity once ships carry several of one Cargo). Current Weight as a
@@ -89,7 +91,7 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
 ## Accessibility
 
 - Every drag has a keyboard and click alternative: each crate card has a Load button.
-- Loaded Cargo and Catain selection are operable with the keyboard alone.
+- Loaded Cargo, Catain selection and Ship Class selection are operable with the keyboard alone.
 - Images: Catain portraits carry the Catain's name as alt text; decorative pictures have empty alt.
 
 ## Assets

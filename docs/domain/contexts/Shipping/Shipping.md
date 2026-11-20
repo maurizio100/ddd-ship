@@ -40,7 +40,7 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 | To | Message | Kind |
 |----|---------|------|
 | Shipping (other Harbors) | Harbor Opened | Event |
-| Shipping (other Harbors) | Shipping Published, carrying `shipEventData.imprisoned`, true on the voyage home after a Confiscation | Event |
+| Shipping (other Harbors) | Shipping Published, carrying `shipEventData.imprisoned`, true on the voyage home after a Confiscation, and `shipEventData.shipClass`, the ship's Ship Class | Event |
 | Shipping (the Origin Harbor) | Ship Arrived | Event |
 | HarborTerminal | Shipping Published | Event |
 | Fleet | Take the arrived ship into the fleet | Command |
