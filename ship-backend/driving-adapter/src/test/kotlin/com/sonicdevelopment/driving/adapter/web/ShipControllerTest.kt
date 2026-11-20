@@ -1,6 +1,7 @@
 package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
@@ -13,7 +14,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 import java.util.*
 
 @WebMvcTest(ShipController::class)
@@ -30,6 +33,22 @@ class ShipControllerTest {
 
     private val blackPearl = ShipId(UUID.randomUUID())
     private val interceptor = ShipId(UUID.randomUUID())
+
+    @Test
+    fun `POST web ships without a Ship Class or with an unknown one answers 400 Problem Details`() {
+        val catain = UUID.randomUUID()
+        listOf(
+            """{"name":"A","catainId":"$catain"}""",
+            """{"name":"A","catainId":"$catain","shipClass":"FRIGATE"}""",
+        ).forEach { body ->
+            mockMvc.post("/web/ships") { contentType = MediaType.APPLICATION_JSON; content = body }.andExpect {
+                status { isBadRequest() }
+                jsonPath("$.detail") { value(org.hamcrest.Matchers.containsString("Choose a Ship Class")) }
+            }
+        }
+        mockMvc.post("/web/ships") { contentType = MediaType.APPLICATION_JSON; content = """{"name":"A","shipClass":"SLOOP"}""" }
+            .andExpect { status { isBadRequest() } }
+    }
 
     @Test
     fun `the ship list and ship details carry arrivedFrom, null when none`() {
@@ -82,6 +101,22 @@ class ShipControllerTest {
             status { isOk() }
             jsonPath("$[0].imprisoned") { value(true) }
             jsonPath("$[1].imprisoned") { value(false) }
+        }
+    }
+
+    @Test
+    fun `the ships overview carries the Ship Class and its Crew Capacity`() {
+        every { shipInformationPort.getAllShips() } returns listOf(
+            ShipDTO(blackPearl, "Black Pearl", "Whiskers", ShippingState.IDLE, homeHarbor = "Port Royal", shipClass = ShipClass.GALLEON),
+            ShipDTO(interceptor, "Interceptor", "Whiskers", ShippingState.IDLE, homeHarbor = "Tortuga"),
+        )
+
+        mockMvc.get("/web/ships").andExpect {
+            status { isOk() }
+            jsonPath("$[0].shipClass") { value("GALLEON") }
+            jsonPath("$[0].crewCapacity") { value(6) }
+            jsonPath("$[1].shipClass") { value("SLOOP") }
+            jsonPath("$[1].crewCapacity") { value(2) }
         }
     }
 

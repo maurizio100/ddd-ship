@@ -3,6 +3,7 @@ package com.sonicdevelopment.application.acceptance.fixtures
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -34,6 +35,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         val incoming: Boolean,
         val earnings: Money,
         val imprisoned: Boolean,
+        val shipClass: ShipClass,
     )
 
     private data class ShippingRecord(
@@ -61,7 +63,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[ship.shipId] = ShipRecord(
             ship.shipId, ship.shipName, ship.catainId, true, ship.arrivedFrom, ship.homeHarbor,
             ship.cargoAboard.map { Cargo(it.id, it.name, it.weight) }, ship.incoming, ship.earnings,
-            ship.imprisoned,
+            ship.imprisoned, ship.shipClass,
         )
     }
 
@@ -198,6 +200,7 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
             incoming = record.incoming,
             earnings = record.earnings,
             imprisoned = record.imprisoned,
+            shipClass = record.shipClass,
         )
     }
 }

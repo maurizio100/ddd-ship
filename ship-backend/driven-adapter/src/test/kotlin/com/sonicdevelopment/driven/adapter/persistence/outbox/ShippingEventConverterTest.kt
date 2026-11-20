@@ -3,6 +3,7 @@ package com.sonicdevelopment.driven.adapter.persistence.outbox
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
 import com.sonicdevelopment.domain.model.values.HarborName
@@ -92,7 +93,22 @@ class ShippingEventConverterTest {
         free.shipEventData.imprisoned shouldBe false
     }
 
-    private fun aShipWith(shipping: Shipping, earnings: Money = Money.dollars(0), imprisoned: Boolean = false) = Ship(
+    @Test
+    fun `shipping-published carries the ship's Ship Class`() {
+        val shipping = Shipping(
+            ShippingId(UUID.randomUUID()), ShippingQuote("Fair winds"), ShippingState.SHIPPING, HarborName("Isla de Muerta")
+        )
+
+        val event = ShippingEventConverter.toShippingEvent(aShipWith(shipping, shipClass = ShipClass.BRIG), HarborName("Tortuga"))
+
+        event.shipEventData.shipClass shouldBe "BRIG"
+        ObjectMapper().readTree(ObjectMapper().writeValueAsString(event))
+            .path("shipEventData").path("shipClass").asText() shouldBe "BRIG"
+    }
+
+    private fun aShipWith(
+        shipping: Shipping, earnings: Money = Money.dollars(0), imprisoned: Boolean = false, shipClass: ShipClass = ShipClass.SLOOP,
+    ) = Ship(
         id = com.sonicdevelopment.domain.model.values.ShipId(UUID.randomUUID()),
         name = "Black Pearl",
         catainId = CatainId(UUID.randomUUID()),
@@ -102,5 +118,6 @@ class ShippingEventConverterTest {
         cargoLoad = mutableListOf(),
         earnings = earnings,
         imprisoned = imprisoned,
+        shipClass = shipClass,
     )
 }

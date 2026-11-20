@@ -84,6 +84,9 @@
   effect. It is never derived from `arrivals`, which may hold an Arrival that was skipped.
 - `ships.ship_home_harbor` (NOT NULL) holds the ship's Home Harbor. It is written only by `saveNewShip`,
   from the ship's `homeHarbor`, and never derived or changed in SQL; V17 backfilled existing rows.
+- `ships.ship_class` (VARCHAR NOT NULL, default 'SLOOP', `ck_ships_ship_class`, `V20__ships_ship_class.sql`)
+  holds the Ship Class as the enum name. It is written only by `saveNewShip`, from the ship, so an Arrival
+  restores it and a rename keeps it.
 - `ships.ship_earnings NUMERIC(12,2)` (NOT NULL, default 0, `ck_ships_ship_earnings_not_negative`) holds
   the ship's Earnings. `saveNewShip` writes it from the ship, so an Arrival restores the Earnings carried in
   and a rename keeps them. An unloading increases it only through `addEarnings`, one atomic

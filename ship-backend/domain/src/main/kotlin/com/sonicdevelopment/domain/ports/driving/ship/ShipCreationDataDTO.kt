@@ -1,8 +1,10 @@
 package com.sonicdevelopment.domain.ports.driving.ship
 
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.values.CatainId
 
 data class ShipCreationDataDTO(
     val name: String? = null,
-    val catainId: CatainId
+    val catainId: CatainId,
+    val shipClass: ShipClass
 )

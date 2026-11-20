@@ -57,7 +57,7 @@ class TheFleetShowsWhereAnArrivedShipCameFromAcceptanceTest {
     fun `A ship registered at the Harbor shows no Origin Harbor`() {
         // Given "Interceptor" was registered at "Port Royal"
         val registered = restTemplate.postForEntity(
-            "/web/ships", mapOf("name" to "Interceptor", "catainId" to SeedData.aCatainId), Map::class.java
+            "/web/ships", mapOf("name" to "Interceptor", "catainId" to SeedData.aCatainId, "shipClass" to "SLOOP"), Map::class.java
         )
         registered.statusCode shouldBe HttpStatus.OK
         val interceptorId = UUID.fromString(registered.body!!["id"] as String)

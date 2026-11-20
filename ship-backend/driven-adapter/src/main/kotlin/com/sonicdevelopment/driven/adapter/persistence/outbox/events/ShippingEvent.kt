@@ -20,7 +20,9 @@ data class ShippingEvent @JsonCreator constructor(
         /** The ship's Earnings as a decimal string with two decimals; they travel with the ship. */
         @JsonProperty("earnings") val earnings: String,
         /** Whether the ship sails home imprisoned after a Confiscation; an additive field older consumers ignore. */
-        @JsonProperty("imprisoned") val imprisoned: Boolean
+        @JsonProperty("imprisoned") val imprisoned: Boolean,
+        /** The ship's Ship Class as the enum name (`SLOOP`, `BRIG`, `GALLEON`); an additive field older consumers ignore. */
+        @JsonProperty("shipClass") val shipClass: String
     ) : Serializable
 
     data class CatainEventData @JsonCreator constructor(

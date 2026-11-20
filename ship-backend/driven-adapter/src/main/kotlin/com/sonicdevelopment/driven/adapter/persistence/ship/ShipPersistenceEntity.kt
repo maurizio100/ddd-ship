@@ -45,5 +45,10 @@ class ShipPersistenceEntity(
     /** Whether the ship is an Imprisoned Ship, or sails home as one from the Harbor that confiscated its Cargo. */
     @Column(name = "ship_imprisoned")
     var imprisoned: Boolean = false,
+
+    /** The ship's Ship Class as the enum name; never changes. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ship_class")
+    var shipClass: ShipClassEnumEntity = ShipClassEnumEntity.SLOOP,
 ) {
 }

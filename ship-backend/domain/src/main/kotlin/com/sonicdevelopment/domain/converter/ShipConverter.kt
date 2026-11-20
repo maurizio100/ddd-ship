@@ -18,6 +18,7 @@ object ShipConverter {
             incoming = ship.isIncoming,
             earnings = ship.earnings,
             imprisoned = ship.isImprisoned,
+            shipClass = ship.shipClass,
         )
 
     fun toShipDetailDTO(ship: Ship) =

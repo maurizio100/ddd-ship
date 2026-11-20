@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driving.adapter.web.responsemodel
 
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import java.util.*
 
@@ -17,4 +18,8 @@ data class ShipOverviewResponse(
     val earnings: String,
     /** Whether the ship is an Imprisoned Ship, which cannot start a new Shipping; also true while it sails home as one. */
     val imprisoned: Boolean = false,
+    /** The ship's Ship Class: `SLOOP`, `BRIG` or `GALLEON`. */
+    val shipClass: ShipClass,
+    /** How many Crew Members the ship can carry, set by its Ship Class. */
+    val crewCapacity: Int,
 )

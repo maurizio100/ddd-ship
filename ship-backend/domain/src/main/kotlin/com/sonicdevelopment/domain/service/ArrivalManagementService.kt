@@ -50,6 +50,7 @@ import org.springframework.stereotype.Service
  * rolls back with the rest of the Arrival. At any other Harbor the ship keeps the Earnings it carries.
  * A ship flagged imprisoned (sent home after a Confiscation) joins as an Imprisoned Ship at its Home Harbor only;
  * elsewhere the flag is dropped. The flag is written with the ship, behind the same guards: no write of its own.
+ * The ship keeps the Ship Class carried in the Shipping Published (a Sloop when the event carries none), written the same way.
  *
  * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
  * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
@@ -106,6 +107,7 @@ class ArrivalManagementService(
             cargoAboard = cargo,
             incoming = cargo.isNotEmpty(),
             earnings = shippingPublished.earnings,
+            shipClass = shippingPublished.shipClass,
             imprisoned = shippingPublished.imprisoned && (shippingPublished.homeHarbor ?: originHarbor) == currentHarbor,
         )
         val homecoming = ship.bringEarningsHome(currentHarbor)

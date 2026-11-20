@@ -19,6 +19,7 @@ sealed interface OutboxMessage {
         val homeHarbor: String? = null,
         val earnings: String? = null,
         val imprisoned: Boolean = false,
+        val shipClass: String? = null,
     ) : OutboxMessage
 
     data class ShipArrived(
@@ -49,6 +50,7 @@ class InMemoryOutbox : ShippingOutboxRepository, HarborOutboxRepositoryPort {
             homeHarbor = ship.homeHarbor.name,
             earnings = ship.earnings.toDecimalString(),
             imprisoned = ship.isImprisoned,
+            shipClass = ship.shipClass.name,
         )
     }
 

@@ -88,6 +88,7 @@
             <mat-icon fontIcon="home" aria-hidden="true"></mat-icon>
             Home Harbor {{ ship.homeHarbor }}
           </p>
+          <p class="ship-class" data-testid="ship-class"><mat-icon fontIcon="sailing" aria-hidden="true"></mat-icon>{{ shipClassLabel(ship) }} · Crew Capacity {{ ship.crewCapacity }}</p>
           @if (hasEarnings(ship)) {
             <p class="earnings" data-testid="ship-earnings">
               <mat-icon fontIcon="payments" aria-hidden="true"></mat-icon>
