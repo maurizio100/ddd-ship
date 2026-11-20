@@ -15,8 +15,10 @@ import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.mockk.Runs
 import io.mockk.confirmVerified
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
@@ -149,6 +151,7 @@ class CrewManagementServiceTest {
         val member = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Strong Paws")
         every { ships.lockShip(any()) } returns aShip(crew = listOf(member))
         every { savings.getSavings() } returns Money.of("975.00")
+        every { savings.receive(any()) } just Runs
 
         val dismissal = service.dismiss(ship.id, member.id)!!
 

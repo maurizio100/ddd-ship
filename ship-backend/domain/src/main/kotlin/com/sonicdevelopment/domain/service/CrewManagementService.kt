@@ -72,6 +72,7 @@ class CrewManagementService(
         val ship = shipRepositoryPort.lockShip(shipId) ?: return null
         ship.dismiss(crewMemberId, currentHarbor)
         shipRepositoryPort.removeCrewMember(ship.id, crewMemberId)
+        savingsRepositoryPort.receive(HiringFee.REFUND)
         return DismissalDTO(ship.id, ship.shipName, crewMemberId, HiringFee.REFUND, savingsRepositoryPort.getSavings())
     }
 
