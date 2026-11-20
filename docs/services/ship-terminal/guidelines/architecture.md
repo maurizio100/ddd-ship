@@ -41,3 +41,7 @@ nor an unreadable event stops the poll loop.
 The output uses the domain terms, with the ship's Catain shown under the "Captain Name" label (an
 alias recorded in the HarborTerminal glossary). New output text uses the canonical terms from
 [`docs/domain/`](../../../domain/README.md).
+
+A departure announcement ends with the Crew block, before the `===` separator: `🐾 Crew:` and one
+numbered line per Crew Member, `<name> (<trait>)`, or `🐾 Sails without Crew.` when
+`shipEventData.crew` is absent or empty.
