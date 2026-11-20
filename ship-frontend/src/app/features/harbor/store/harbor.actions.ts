@@ -1,3 +1,4 @@
+import { Recruit } from '../models/recruit';
 import { ImprisonedShip } from '../models/imprisoned-ship';
 import { FinePayment } from '../models/fine-payment';
 import {createAction, props} from '@ngrx/store';
@@ -50,6 +51,18 @@ export const loadIncomingShipsSuccess = createAction(
 
 export const loadIncomingShipsFailure = createAction(
   '[Harbor] Load Incoming Ships Failure',
+  props<{error: unknown}>()
+);
+
+export const loadRecruitPool = createAction('[Harbor] Load Recruit Pool');
+
+export const loadRecruitPoolSuccess = createAction(
+  '[Harbor] Load Recruit Pool Success',
+  props<{recruitPool: Recruit[]}>()
+);
+
+export const loadRecruitPoolFailure = createAction(
+  '[Harbor] Load Recruit Pool Failure',
   props<{error: unknown}>()
 );
 

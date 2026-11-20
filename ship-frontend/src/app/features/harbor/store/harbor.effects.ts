@@ -8,6 +8,7 @@ import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
 import { MarketService } from '../services/market.service';
 import { IncomingShipsService } from '../services/incoming-ships.service';
+import { RecruitPoolService } from '../services/recruit-pool.service';
 import { ImprisonedShipsService } from '../services/imprisoned-ships.service';
 import * as ShipActions from '../../ships/store/actions/ship.actions';
 
@@ -25,6 +26,7 @@ export class HarborEffects {
   private savingsService = inject(SavingsService);
   private marketService = inject(MarketService);
   private incomingShipsService = inject(IncomingShipsService);
+  private recruitPoolService = inject(RecruitPoolService);
   private imprisonedShipsService = inject(ImprisonedShipsService);
   private router = inject(Router);
 
@@ -75,6 +77,19 @@ export class HarborEffects {
         this.incomingShipsService.getIncomingShips().pipe(
           map((incomingShips) => HarborActions.loadIncomingShipsSuccess({ incomingShips })),
           catchError((error) => of(HarborActions.loadIncomingShipsFailure({ error }))),
+        ),
+      ),
+    ),
+  );
+
+  /** A newer load wins, as for the Incoming Ships. */
+  loadRecruitPool$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HarborActions.loadRecruitPool),
+      switchMap(() =>
+        this.recruitPoolService.getRecruitPool().pipe(
+          map((recruitPool) => HarborActions.loadRecruitPoolSuccess({ recruitPool })),
+          catchError((error) => of(HarborActions.loadRecruitPoolFailure({ error }))),
         ),
       ),
     ),
