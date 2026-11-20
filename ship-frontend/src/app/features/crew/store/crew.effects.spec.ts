@@ -30,7 +30,7 @@ describe('CrewEffects', () => {
 
   beforeEach(() => {
     actions$ = new ReplaySubject<Action>();
-    service = jasmine.createSpyObj<CrewService>('CrewService', ['hire']);
+    service = jasmine.createSpyObj<CrewService>('CrewService', ['hire', 'dismiss']);
     harborNameService = jasmine.createSpyObj<HarborNameService>('HarborNameService', ['getHarborName']);
     TestBed.configureTestingModule({
       providers: [
@@ -100,6 +100,54 @@ describe('CrewEffects', () => {
 
     expect(afterHire).toEqual(reload);
     expect(afterRefusal).toEqual(reload);
+  });
+
+  it('dismissCrewMember$ emits Success', () => {
+    service.dismiss.and.returnValue(of(undefined));
+    const emitted: Action[] = [];
+    effects.dismissCrewMember$.subscribe((a) => emitted.push(a));
+
+    actions$.next(CrewActions.dismissCrewMember({ shipId: 'ship-1', crewMemberId: 'c1' }));
+
+    expect(service.dismiss).toHaveBeenCalledWith('ship-1', 'c1');
+    expect(emitted).toEqual([CrewActions.dismissCrewMemberSuccess({ crewMemberId: 'c1' })]);
+  });
+
+  it('dismissCrewMember$ emits Failure with the detail', () => {
+    const error = new HttpErrorResponse({ status: 409, error: { detail: 'Mittens is not aboard' } });
+    service.dismiss.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.dismissCrewMember$.subscribe((a) => emitted.push(a));
+
+    actions$.next(CrewActions.dismissCrewMember({ shipId: 'ship-1', crewMemberId: 'c1' }));
+
+    expect(emitted).toEqual([
+      CrewActions.dismissCrewMemberFailure({ crewMemberId: 'c1', error, refusal: 'Mittens is not aboard' }),
+    ]);
+  });
+
+  it('dismissCrewMember$ falls back to a general refusal', () => {
+    const error = new HttpErrorResponse({ status: 0 });
+    service.dismiss.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.dismissCrewMember$.subscribe((a) => emitted.push(a));
+
+    actions$.next(CrewActions.dismissCrewMember({ shipId: 'ship-1', crewMemberId: 'c1' }));
+
+    expect(emitted).toEqual([
+      CrewActions.dismissCrewMemberFailure({ crewMemberId: 'c1', error, refusal: 'The Crew Member could not be dismissed' }),
+    ]);
+  });
+
+  it('a dismissal, successful or refused, reloads the fleet and the Recruit Pool but not the Savings', () => {
+    const reload = [ShipActions.loadShips(), HarborActions.loadRecruitPool()];
+    const emitted: Action[] = [];
+    effects.refreshAfterDismiss$.subscribe((a) => emitted.push(a));
+
+    actions$.next(CrewActions.dismissCrewMemberSuccess({ crewMemberId: 'c1' }));
+    actions$.next(CrewActions.dismissCrewMemberFailure({ crewMemberId: 'c1', error: {}, refusal: 'x' }));
+
+    expect(emitted).toEqual([...reload, ...reload]);
   });
 
   it('loadHarborName$ emits the Harbor name', () => {

@@ -249,6 +249,25 @@ class FakeDrivenPortsTest {
     }
 
     @Test
+    fun `removeCrewMember mirrors the adapter - only a Crew Member aboard a ship in the fleet`() {
+        val fleet = InMemoryFleet(InMemoryCatains())
+        val saltyWhisker = Ship(
+            name = "Salty Whisker", catainId = CatainId(SeedData.aCatainId), catainName = "Catain", homeHarbor = HarborName("Port Royal"),
+        )
+        fleet.saveNewShip(ShipRepositoryPort.InitialShipInformation.fromShip(saltyWhisker))
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Brave")
+        fleet.addCrewMember(saltyWhisker.id, mittens)
+        fleet.addCrewMember(saltyWhisker.id, patch)
+
+        fleet.removeCrewMember(saltyWhisker.id, mittens.id)
+
+        fleet.getShipDetails(saltyWhisker.id)!!.crew shouldBe listOf(patch)
+        shouldThrow<IllegalStateException> { fleet.removeCrewMember(saltyWhisker.id, mittens.id) }
+        shouldThrow<IllegalStateException> { fleet.removeCrewMember(ShipId(UUID.randomUUID()), patch.id) }
+    }
+
+    @Test
     fun `takeRecruit is first-wins, hides the Recruit from the pool and keeps its ordinal counted`() {
         val recruits = InMemoryRecruits()
         val mittens = Recruit(RecruitId(UUID.randomUUID()), "Mittens", "Fearless")

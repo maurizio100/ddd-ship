@@ -1,8 +1,10 @@
 package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
+import com.sonicdevelopment.domain.exception.DismissRefusedException
 import com.sonicdevelopment.domain.exception.HireRefusedException
 import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.RecruitId
 import com.sonicdevelopment.domain.model.values.ShipId
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.post
 import java.util.UUID
 
@@ -89,6 +92,39 @@ class ShipCrewControllerTest {
         hire().andExpect {
             status { isConflict() }
             jsonPath("$.title") { value("Savings do not cover") }
+        }
+    }
+
+    private val crewMemberId = UUID.randomUUID()
+
+    private fun dismiss() = mockMvc.delete("/web/ships/$shipId/crew/$crewMemberId")
+
+    @Test
+    fun `DELETE crew answers 204 after the Dismissal`() {
+        every { crewManagementPort.dismiss(ShipId(shipId), CrewMemberId(crewMemberId)) } returns true
+
+        dismiss().andExpect { status { isNoContent() } }
+    }
+
+    @Test
+    fun `DELETE crew answers 404 for a ship not in the fleet`() {
+        every { crewManagementPort.dismiss(any(), any()) } returns false
+
+        dismiss().andExpect {
+            status { isNotFound() }
+            content { contentTypeCompatibleWith("application/problem+json") }
+        }
+    }
+
+    @Test
+    fun `DELETE crew answers 409 Problem Details for DismissRefusedException`() {
+        every { crewManagementPort.dismiss(any(), any()) } throws DismissRefusedException("Old Barnacle is at sea")
+
+        dismiss().andExpect {
+            status { isConflict() }
+            content { contentTypeCompatibleWith("application/problem+json") }
+            jsonPath("$.title") { value("Dismissal refused") }
+            jsonPath("$.detail") { value("Old Barnacle is at sea") }
         }
     }
 }

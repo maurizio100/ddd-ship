@@ -4,6 +4,8 @@ import * as CrewActions from './crew.actions';
 
 export const initialState: CrewState = {
   hiringRecruitIds: [],
+  dismissingCrewMemberIds: [],
+  dismissRefusal: null,
   hireRefusal: null,
   newInPoolRecruitIds: [],
   harborName: null,
@@ -27,8 +29,22 @@ export const crewReducers = createReducer(
     hiringRecruitIds: state.hiringRecruitIds.filter((id) => id !== recruitId),
     hireRefusal: { recruitId, message: refusal, savingsShort },
   })),
+  on(CrewActions.dismissCrewMember, (state, { crewMemberId }) => ({
+    ...state,
+    dismissingCrewMemberIds: [...state.dismissingCrewMemberIds, crewMemberId],
+    dismissRefusal: null,
+  })),
+  on(CrewActions.dismissCrewMemberSuccess, (state, { crewMemberId }) => ({
+    ...state,
+    dismissingCrewMemberIds: state.dismissingCrewMemberIds.filter((id) => id !== crewMemberId),
+  })),
+  on(CrewActions.dismissCrewMemberFailure, (state, { crewMemberId, refusal }) => ({
+    ...state,
+    dismissingCrewMemberIds: state.dismissingCrewMemberIds.filter((id) => id !== crewMemberId),
+    dismissRefusal: { crewMemberId, message: refusal },
+  })),
   // A refusal belongs to the visit to one ship: entering the Crew screen starts clean.
-  on(CrewActions.loadHarborName, (state) => ({ ...state, hireRefusal: null })),
+  on(CrewActions.loadHarborName, (state) => ({ ...state, hireRefusal: null, dismissRefusal: null })),
   on(CrewActions.loadHarborNameSuccess, (state, { harborName }) => ({ ...state, harborName })),
   on(CrewActions.loadHarborNameFailure, (state, { error }) => ({ ...state, error })),
 );

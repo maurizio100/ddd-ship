@@ -3,6 +3,7 @@ package com.sonicdevelopment.domain.service
 import com.sonicdevelopment.domain.exception.HireRefusedException
 import com.sonicdevelopment.domain.exception.SavingsDoNotCoverException
 import com.sonicdevelopment.domain.model.Recruit
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.RecruitId
 import com.sonicdevelopment.domain.model.values.ShipId
@@ -23,6 +24,10 @@ import org.springframework.stereotype.Service
  * the conditional debit of the Savings before anything else is written, so nothing is Hired unpaid; the Recruit is
  * taken by a conditional step, and a Recruit taken meanwhile throws so the debit rolls back; then the Crew Member is
  * added and a new Recruit is offered at the next never-used ordinal. Nothing is published.
+ *
+ * A Dismiss takes the same ship lock, so it and a Hire on one ship run one after the other; the guards of
+ * [com.sonicdevelopment.domain.model.Ship.dismiss] run before the Crew Member is removed. It moves no money and
+ * writes no Recruit Pool row: the Recruit stays taken and is never offered again. Nothing is published.
  */
 @Service
 class CrewManagementService(
@@ -57,6 +62,14 @@ class CrewManagementService(
             savings = savingsRepositoryPort.getSavings(),
             newRecruit = RecruitDTO(newRecruit.id.id, newRecruit.name, newRecruit.trait, HiringFee.AMOUNT),
         )
+    }
+
+    @Transactional
+    override fun dismiss(shipId: ShipId, crewMemberId: CrewMemberId): Boolean {
+        val ship = shipRepositoryPort.lockShip(shipId) ?: return false
+        ship.dismiss(crewMemberId, currentHarbor)
+        shipRepositoryPort.removeCrewMember(ship.id, crewMemberId)
+        return true
     }
 
     /** A conflict means a concurrent Hire or opening took that ordinal first, so the next one is tried. */

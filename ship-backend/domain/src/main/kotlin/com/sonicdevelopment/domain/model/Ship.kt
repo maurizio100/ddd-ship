@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.DismissRefusedException
 import com.sonicdevelopment.domain.exception.HireRefusedException
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.RefusedCargoException
@@ -216,6 +217,21 @@ class Ship(
             )
         }
         return CrewMember.hired(recruit).also { crewAboard.add(it) }
+    }
+
+    /**
+     * Dismisses the Crew Member [crewMemberId] at [currentHarbor]. Refused, in this order: the ship is at sea,
+     * [currentHarbor] is not its Home Harbor, the Crew Member is not aboard. A refusal changes nothing.
+     */
+    fun dismiss(crewMemberId: CrewMemberId, currentHarbor: HarborName): CrewMember {
+        if (shippingState() == ShippingState.SHIPPING) throw DismissRefusedException("$shipName is at sea")
+        if (homeHarbor != currentHarbor) {
+            throw DismissRefusedException("${currentHarbor.name} is not the Home Harbor of $shipName")
+        }
+        val member = crewAboard.firstOrNull { it.id == crewMemberId }
+            ?: throw DismissRefusedException("The Crew Member is not aboard")
+        crewAboard.remove(member)
+        return member
     }
 
     private fun moveCargoAboardIntoLoadedCargo() {

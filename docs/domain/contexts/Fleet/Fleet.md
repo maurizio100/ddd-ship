@@ -39,6 +39,7 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 | Kafka (Debezium) | Catain changed | Event |
 
 ## Business decisions
+- A Crew Member can be dismissed only while the ship is in port at its Home Harbor. No money moves, and the Recruit is never offered again.
 - A Harbor offers a Recruit Pool of five Recruits, generated from its Harbor Name when it first opens and kept on every later opening, with no coordination between Harbors. No Recruit is offered at two Harbors: Recruit ids never collide, though a name may repeat between Harbors.
 - A Hired Recruit leaves the Recruit Pool for good, and the next Recruit never generated at the Harbor takes its place, so the pool offers five Recruits again.
 - A new ship's Catain must be on the roster.

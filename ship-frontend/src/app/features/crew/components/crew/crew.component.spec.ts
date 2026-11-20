@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 
+import { dismissCrewMember } from '../../store/crew.actions';
 import { CrewComponent } from './crew.component';
 import { Recruit } from '../../../harbor/models/recruit';
 import { Ship, ShipClass, ShippingState } from '../../../ships/models/ship';
@@ -42,6 +43,8 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
     });
     const crewState: CrewState = {
       hiringRecruitIds: [],
+      dismissingCrewMemberIds: [],
+      dismissRefusal: null,
       hireRefusal: NO_REFUSAL,
       newInPoolRecruitIds: [],
       harborName: 'Port Royal',
@@ -290,5 +293,59 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
     render();
 
     expect(byTestId('crew-harbor-error')).toBeNull();
+  });
+
+  describe('Dismiss', () => {
+    const crewed = { crew: [MITTENS] };
+
+    it('offers a Dismiss button per Crew Member in port at the Home Harbor, with a label and a note', () => {
+      render({ ship: crewed });
+
+      const button = all('crew-dismiss')[0];
+      expect(all('crew-dismiss').length).toBe(1);
+      expect(button.getAttribute('aria-label')).toBe('Dismiss Mittens, no refund of the Hiring Fee');
+      expect(button.hasAttribute('mat-stroked-button')).toBeTrue();
+      expect(text('crew-dismiss-note')).toBe(
+        'A dismissed Crew Member leaves for good: no refund, and they do not return to the Recruit Pool.',
+      );
+    });
+
+    it('dispatches dismissCrewMember on click', () => {
+      render({ ship: crewed });
+
+      all('crew-dismiss')[0].click();
+
+      expect(store.dispatch).toHaveBeenCalledWith(
+        dismissCrewMember({ shipId: fixture.componentInstance.ship()!.id, crewMemberId: MITTENS.id }),
+      );
+    });
+
+    it('disables the button while its dismissal is in flight', () => {
+      render({ ship: crewed, crew: { dismissingCrewMemberIds: [MITTENS.id] } });
+
+      expect((all('crew-dismiss')[0] as HTMLButtonElement).disabled).toBeTrue();
+    });
+
+    it('offers no Dismiss away from the Home Harbor', () => {
+      render({ ship: crewed, crew: { harborName: 'Tortuga' } });
+
+      expect(all('crew-dismiss')).toEqual([]);
+      expect(byTestId('crew-dismiss-note')).toBeNull();
+    });
+
+    it('offers no Dismiss while the ship is at sea', () => {
+      render({ ship: { ...crewed, shippingState: ShippingState.SHIPPING } });
+
+      expect(all('crew-dismiss')).toEqual([]);
+      expect(byTestId('crew-dismiss-note')).toBeNull();
+    });
+
+    it('shows the refusal as an alert', () => {
+      render({ ship: crewed, crew: { dismissRefusal: { crewMemberId: MITTENS.id, message: 'Mittens is not aboard' } } });
+
+      const alert = byTestId('crew-dismiss-refusal');
+      expect(alert!.getAttribute('role')).toBe('alert');
+      expect(alert!.textContent!.trim()).toBe('Mittens is not aboard');
+    });
   });
 });

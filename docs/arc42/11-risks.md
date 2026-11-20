@@ -48,4 +48,5 @@ decisions** — each needs a call from the project owner (fix, accept, or turn i
   (`lockShip`) → `Ship.hire` guard → conditional Savings debit → conditional `takeRecruit` →
   `addCrewMember` → top-up must stay, in one transaction; a write moved above the debit hires a Recruit
   nobody paid for, and dropping the lock lets two concurrent Hires overfill a Crew. Deleting a Recruit
-  instead of marking it hired reuses its ordinal and brings it back to the pool.
+  instead of marking it hired reuses its ordinal and brings it back to the pool. A Dismiss takes the same
+  `lockShip`; no `-Pdb` test yet runs a Dismiss and a Hire on one ship concurrently.

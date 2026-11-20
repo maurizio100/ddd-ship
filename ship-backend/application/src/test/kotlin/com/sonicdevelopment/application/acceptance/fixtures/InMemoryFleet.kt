@@ -2,6 +2,7 @@ package com.sonicdevelopment.application.acceptance.fixtures
 
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
 import com.sonicdevelopment.domain.model.enums.ShipClass
@@ -139,6 +140,13 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
     override fun addCrewMember(shipId: ShipId, crewMember: CrewMember) {
         val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
         ships[shipId] = record.copy(crew = record.crew + crewMember)
+    }
+
+    @Synchronized
+    override fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId) {
+        val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
+        check(record.crew.any { it.id == crewMemberId }) { "Crew Member $crewMemberId is not aboard $shipId" }
+        ships[shipId] = record.copy(crew = record.crew.filterNot { it.id == crewMemberId })
     }
 
     @Synchronized

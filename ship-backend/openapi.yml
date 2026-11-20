@@ -550,7 +550,7 @@ paths:
         In one transaction the Harbor pays the Hiring Fee from its Savings, the Recruit from this Harbor's Recruit
         Pool becomes a Crew Member of the ship (same id, name and trait) and a new Recruit takes its place in the
         pool. A refused Hire changes nothing. Nothing is published. Read the fleet, Savings and Recruit Pool from
-        `/web/ships`, `/web/savings` and `/web/recruits`.
+        `/web/ships`, `/web/savings` and `/web/recruits`. A Dismissed Crew Member does not return to the pool.
       operationId: hireRecruit
       tags: [Ships]
       parameters:
@@ -590,6 +590,46 @@ paths:
             The Hire is refused and nothing changes: the Crew is full, the ship is away from its Home Harbor or at
             sea, or the Recruit is not offered (title "Hire refused"), or the Savings do not cover the Hiring Fee
             (title "Savings do not cover", `detail` "The Savings do not cover the Hiring Fee of 50.00 $").
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /web/ships/{shipId}/crew/{crewMemberId}:
+    delete:
+      summary: Dismiss a Crew Member from a ship
+      description: >-
+        Removes the Crew Member from the ship's Crew, only while the ship is in port at its Home Harbor. No money
+        moves (the Hiring Fee is not refunded), and the Recruit stays hired, so it is never offered in the Recruit
+        Pool again. Nothing is published.
+      operationId: dismissCrewMember
+      tags: [Ships]
+      parameters:
+        - name: shipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: crewMemberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: The Crew Member was Dismissed
+        '404':
+          description: Ship not found in this Harbor's fleet
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: >-
+            The Dismissal is refused and nothing changes: the ship is away from its Home Harbor or at sea, or the
+            Crew Member is not aboard (title "Dismissal refused").
           content:
             application/problem+json:
               schema:

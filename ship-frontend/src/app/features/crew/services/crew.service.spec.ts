@@ -38,4 +38,15 @@ describe('CrewService', () => {
     request.flush(hire);
     expect(result).toEqual(hire);
   });
+
+  it('dismiss DELETEs /ships/<id>/crew/<memberId>', () => {
+    let done = false;
+
+    service.dismiss('ship-1', 'c1').subscribe(() => (done = true));
+
+    const request = http.expectOne(`${environment.baseUrl}/ships/ship-1/crew/c1`);
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    expect(done).toBeTrue();
+  });
 });

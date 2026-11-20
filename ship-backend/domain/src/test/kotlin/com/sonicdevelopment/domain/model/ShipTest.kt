@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.DismissRefusedException
 import com.sonicdevelopment.domain.exception.HireRefusedException
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.RefusedCargoException
@@ -610,5 +611,28 @@ class ShipTest {
         shouldThrow<HireRefusedException> { ship.hire(mittens, portRoyal) }.message shouldBe
             "The Crew is full: a Sloop carries 2 Crew Members"
         ship.crew.size shouldBe 2
+    }
+
+    @Test
+    fun `dismiss refuses at sea, away from the Home Harbor and a Crew Member not aboard, in that order, and changes nothing, otherwise removes and returns the member`() {
+        val portRoyal = HarborName("Port Royal")
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+
+        val atSea = aShip(name = "Old Barnacle", crew = listOf(mittens)).also { it.release(ShippingQuote("Fair winds"), HarborName("Tortuga")) }
+        shouldThrow<DismissRefusedException> { atSea.dismiss(mittens.id, HarborName("Tortuga")) }.message shouldBe "Old Barnacle is at sea"
+        atSea.crew shouldBe listOf(mittens)
+
+        val away = aShip(name = "Sea Biscuit", crew = listOf(mittens))
+        shouldThrow<DismissRefusedException> { away.dismiss(mittens.id, HarborName("Tortuga")) }.message shouldBe
+            "Tortuga is not the Home Harbor of Sea Biscuit"
+        away.crew shouldBe listOf(mittens)
+
+        val ship = aShip(crew = listOf(mittens))
+        val stranger = CrewMemberId(UUID.randomUUID())
+        shouldThrow<DismissRefusedException> { ship.dismiss(stranger, portRoyal) }.message shouldBe "The Crew Member is not aboard"
+        ship.crew shouldBe listOf(mittens)
+
+        ship.dismiss(mittens.id, portRoyal) shouldBe mittens
+        ship.crew shouldBe emptyList()
     }
 }
