@@ -10,7 +10,7 @@ fun toHireResponse(hire: HireDTO) =
     HireResponse(
         shipId = hire.shipId.id,
         name = hire.shipName,
-        crewMember = CrewMemberResponse(hire.crewMember.id, hire.crewMember.name, hire.crewMember.trait, hire.crewMember.portrait.toResponse()),
+        crewMember = CrewMemberResponse(hire.crewMember.id, hire.crewMember.name, hire.crewMember.trait, hire.crewMember.refund.toDecimalString(), hire.crewMember.portrait.toResponse()),
         hiringFee = hire.hiringFee.toDecimalString(),
         savings = hire.savings.toDecimalString(),
         newRecruit = RecruitResponse(

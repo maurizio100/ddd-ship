@@ -1042,7 +1042,7 @@ components:
 
     CrewMember:
       type: object
-      required: [id, name, trait, portrait]
+      required: [id, name, trait, refund, portrait]
       properties:
         id:
           type: string
@@ -1052,6 +1052,11 @@ components:
           type: string
         trait:
           type: string
+        refund:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: '25.00'
+          description: 'What a Dismiss refunds into the Savings: half the Hiring Fee'
         portrait:
           $ref: '#/components/schemas/Portrait'
 
