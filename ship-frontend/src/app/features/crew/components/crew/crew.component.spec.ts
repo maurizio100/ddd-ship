@@ -101,8 +101,7 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
     const rows = all('crew-recruit');
     rows.forEach((row, i) => {
       const svg = row.querySelector('app-cat-portrait svg')!;
-      expect(svg.getAttribute('role')).toBe('img');
-      expect(svg.getAttribute('aria-label')).toBe(`Portrait of ${RECRUITS[i].name}`);
+      expect(svg.getAttribute('aria-hidden')).toBe('true');
       expect(svg.getAttribute('data-coat')).toBe(RECRUITS[i].portrait.coat);
     });
   });
@@ -118,7 +117,7 @@ describe('CrewComponent (A Harbor offers five Recruits)', () => {
     render({ ship: { shipClass: ShipClass.SLOOP, crewCapacity: 2, crew: [{ ...MITTENS, portrait }] } });
 
     const svg = all('crew-member')[0].querySelector('app-cat-portrait svg')!;
-    expect(svg.getAttribute('aria-label')).toBe('Portrait of Mittens');
+    expect(svg.getAttribute('aria-hidden')).toBe('true');
     expect([svg.getAttribute('data-fur'), svg.getAttribute('data-coat'), svg.getAttribute('data-eyes'), svg.getAttribute('data-accessory')]).toEqual(['black', 'tuxedo', 'blue', 'earring']);
   });
 

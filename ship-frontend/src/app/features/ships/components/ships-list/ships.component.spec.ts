@@ -302,7 +302,7 @@ describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)',
     ], []);
 
     const svgs = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="ship-crew-portraits"] svg')) as SVGElement[];
-    expect(svgs.map((svg) => svg.getAttribute('aria-label'))).toEqual(['Portrait of Mittens', 'Portrait of Patch']);
+    expect(svgs.map((svg) => svg.getAttribute('aria-hidden'))).toEqual(['true', 'true']);
     expect(svgs.map((svg) => svg.getAttribute('data-fur'))).toEqual(['cream', 'cream']);
     expect(fixture.nativeElement.querySelector('[data-testid="ship-crew-count"] mat-icon')!.getAttribute('fonticon')).toBe('groups');
   });

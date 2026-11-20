@@ -26,7 +26,7 @@
         <div class="berths">
           @for (member of ship.crew; track member.id) {
             <div class="member" data-testid="crew-member">
-              <app-cat-portrait [portrait]="member.portrait" [name]="member.name" [ring]="true" />
+              <app-cat-portrait [portrait]="member.portrait" [name]="member.name" [ring]="true" [decorative]="true" />
               <span class="recruit__text">
                 <span class="recruit__name" data-testid="crew-member-name">{{ member.name }}</span>
                 <span class="chip chip--trait" data-testid="crew-member-trait">{{ member.trait }}</span>
@@ -101,7 +101,7 @@
             <ul class="recruits" aria-label="Recruit Pool">
               @for (recruit of recruitPool(); track recruit.id) {
                 <li class="recruit" data-testid="crew-recruit">
-                  <app-cat-portrait [portrait]="recruit.portrait" [name]="recruit.name" />
+                  <app-cat-portrait [portrait]="recruit.portrait" [name]="recruit.name" [decorative]="true" />
                   <span class="recruit__text">
                     <span class="recruit__name" data-testid="crew-recruit-name">{{ recruit.name }}</span>
                     <span class="recruit__trait" data-testid="crew-recruit-trait">{{ recruit.trait }}</span>

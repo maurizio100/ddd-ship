@@ -287,11 +287,6 @@
   --crew-portrait-size: 32px;
 }
 
-.crew-portrait ::ng-deep svg {
-  width: var(--crew-portrait-size);
-  height: var(--crew-portrait-size);
-}
-
 .crew-names {
   color: var(--hs-muted);
 }

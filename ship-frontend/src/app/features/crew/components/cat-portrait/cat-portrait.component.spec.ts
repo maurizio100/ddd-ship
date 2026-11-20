@@ -22,6 +22,19 @@ describe('CatPortraitComponent', () => {
     expect(svg.getAttribute('aria-label')).toBe('Portrait of Mittens');
   });
 
+  it('hides a decorative portrait from assistive technology', () => {
+    fixture = TestBed.createComponent(CatPortraitComponent);
+    fixture.componentRef.setInput('portrait', base);
+    fixture.componentRef.setInput('name', 'Mittens');
+    fixture.componentRef.setInput('decorative', true);
+    fixture.detectChanges();
+    const svg: SVGElement = fixture.nativeElement.querySelector('svg');
+
+    expect(svg.getAttribute('aria-hidden')).toBe('true');
+    expect(svg.hasAttribute('role')).toBeFalse();
+    expect(svg.hasAttribute('aria-label')).toBeFalse();
+  });
+
   it('draws a brass ring only when asked to', () => {
     expect(render(base).querySelector('.portrait__ring')).toBeNull();
     expect(render(base, 'Mittens', true).querySelector('.portrait__ring')).not.toBeNull();

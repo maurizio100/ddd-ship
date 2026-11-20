@@ -106,7 +106,7 @@
               <span class="chip crew-count" data-testid="ship-crew-count"><mat-icon fontIcon="groups" aria-hidden="true"></mat-icon>Crew {{ ship.crew.length }} / {{ ship.crewCapacity }}</span>
               <span class="crew-portraits" data-testid="ship-crew-portraits">
                 @for (member of ship.crew; track member.id) {
-                  <app-cat-portrait class="crew-portrait" [portrait]="member.portrait" [name]="member.name" [ring]="true" />
+                  <app-cat-portrait class="crew-portrait" [portrait]="member.portrait" [name]="member.name" [ring]="true" [decorative]="true" />
                 }
               </span>
               <span class="crew-names" data-testid="ship-crew-names">{{ crewNames(ship) }}</span>

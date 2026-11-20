@@ -1,5 +1,5 @@
 import { Component, computed, input } from '@angular/core';
-import { Accessory, Coat, Eyes, Fur, Portrait } from '../../../ships/models/portrait';
+import { Coat, Eyes, Fur, Portrait } from '../../../ships/models/portrait';
 
 const FUR_COLOURS: Record<Fur, string> = {
   ginger: '#D98B3A',
@@ -19,8 +19,6 @@ const EYE_COLOURS: Record<Eyes, string> = {
 /** Marking colour of each coat: a darker or lighter tone of the fur. */
 const COAT_MARKS: Record<Coat, boolean> = { plain: false, tabby: true, tuxedo: true, spotted: true };
 
-const ACCESSORIES: Record<Accessory, true> = { none: true, 'eye-patch': true, bandana: true, earring: true };
-
 /** A cat head as an inline SVG, drawn from a Recruit Portrait, in a brass ring. */
 @Component({
   selector: 'app-cat-portrait',
@@ -31,9 +29,10 @@ export class CatPortraitComponent {
   portrait = input.required<Portrait>();
   name = input.required<string>();
   ring = input(false);
+  /** True when the name is shown next to the portrait: hides it from assistive technology. */
+  decorative = input(false);
 
   fur = computed(() => FUR_COLOURS[this.portrait().fur]);
   eyeColour = computed(() => EYE_COLOURS[this.portrait().eyes]);
   hasMarks = computed(() => COAT_MARKS[this.portrait().coat]);
-  accessoryKnown = computed(() => ACCESSORIES[this.portrait().accessory]);
 }

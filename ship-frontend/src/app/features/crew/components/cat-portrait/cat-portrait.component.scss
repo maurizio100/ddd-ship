@@ -4,8 +4,8 @@
 }
 
 .portrait {
-  width: 40px;
-  height: 40px;
+  width: var(--crew-portrait-size, 40px);
+  height: var(--crew-portrait-size, 40px);
   border-radius: 50%;
   overflow: hidden;
 
