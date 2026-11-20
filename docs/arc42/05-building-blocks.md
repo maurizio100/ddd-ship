@@ -38,7 +38,7 @@ Per [ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md), the
 above (frontend, backend, PostgreSQL, MinIO, Debezium connector) is deployed once per Harbor, and the
 Harbors share one Kafka. ship-backend also **consumes** events
 ([ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)).
-ship-terminal stays one departure board for all Harbors, and ship-coast-guard one Coast Guard for all of them.
+ship-terminal stays one board of every event for all Harbors, and ship-coast-guard one Coast Guard for all of them.
 
 ```mermaid
 flowchart LR

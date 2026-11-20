@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.common.serialization.Deserializer
 import java.io.Serializable
 import java.util.*
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -42,18 +41,36 @@ data class ShippingEvent @JsonCreator constructor(
     }
 }
 
-class ShippingEventDeserializer : Deserializer<ShippingEvent> {
+data class ShipArrivedEvent @JsonCreator constructor(
+    @JsonProperty("shipId") val shipId: UUID,
+    @JsonProperty("shipName") val shipName: String,
+    @JsonProperty("shippingId") val shippingId: UUID?,
+    @JsonProperty("originHarbor") val originHarbor: String,
+    @JsonProperty("destinationHarbor") val destinationHarbor: String
+) : Serializable
 
-    private val objectMapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+data class HarborOpenedEvent @JsonCreator constructor(
+    @JsonProperty("harborName") val harborName: String
+) : Serializable
 
-    override fun deserialize(topic: String?, data: ByteArray?): ShippingEvent? {
-        return try {
-            val mapped = objectMapper.readValue(data, String::class.java)
-            return objectMapper.readValue(mapped, ShippingEvent::class.java)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
+data class ShipImprisonedEvent @JsonCreator constructor(
+    @JsonProperty("shipId") val shipId: UUID,
+    @JsonProperty("shipName") val shipName: String,
+    @JsonProperty("holdingHarbor") val holdingHarbor: String,
+    @JsonProperty("homeHarbor") val homeHarbor: String,
+    @JsonProperty("shippingId") val shippingId: UUID?
+) : Serializable
+
+private val objectMapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+
+/** Reads a JSON string literal (outbox, Coast Guard) or a plain JSON object; null when unreadable. */
+fun <T> parseEnvelope(raw: String?, type: Class<T>): T? {
+    if (raw == null) return null
+    return try {
+        val node = objectMapper.readTree(raw)
+        if (node.isTextual) objectMapper.readValue(node.asText(), type) else objectMapper.treeToValue(node, type)
+    } catch (e: Exception) {
+        null
     }
 }
 
@@ -66,28 +83,36 @@ fun eventTypeOf(record: ConsumerRecord<*, *>): String? {
     }
 }
 
-fun shouldAnnounce(eventType: String?, event: ShippingEvent?): Boolean {
-    return eventType == SHIPPING_PUBLISHED && event != null
-}
-
 private val logger = System.getLogger("ship-terminal")
 
-fun handleRecord(record: ConsumerRecord<String, ShippingEvent?>): Boolean {
-    val eventType = eventTypeOf(record)
-    val event = record.value()
+private fun <T> announce(raw: String?, type: Class<T>, kind: String, out: (String) -> Unit, format: (T) -> String): Boolean {
+    val event = parseEnvelope(raw, type)
+    if (event == null) {
+        out("Could not read a $kind")
+        return false
+    }
+    out(format(event))
+    return true
+}
 
-    return if (shouldAnnounce(eventType, event)) {
-        printShippingEvent(event!!)
-        true
-    } else if (eventType == SHIPPING_PUBLISHED) {
-        logger.log(
-            System.Logger.Level.WARNING,
-            "Could not read $SHIPPING_PUBLISHED record at offset ${record.offset()} of ${record.topic()}-${record.partition()}"
-        )
-        false
-    } else {
-        logger.log(System.Logger.Level.DEBUG, "Skipping event type '$eventType'")
-        false
+fun handleRecord(record: ConsumerRecord<String, String?>, out: (String) -> Unit = ::println): Boolean {
+    val kind = eventTypeOf(record)
+    val raw = record.value()
+    return when (kind) {
+        SHIPPING_PUBLISHED -> announce(raw, ShippingEvent::class.java, "Shipping Published", out, ::formatDeparture)
+        "ship-arrived" -> announce(raw, ShipArrivedEvent::class.java, "Ship Arrived", out) {
+            "\uD83D\uDEA2 ${it.shipName} has arrived at ${it.destinationHarbor} from ${it.originHarbor}"
+        }
+        "harbor-opened" -> announce(raw, HarborOpenedEvent::class.java, "Harbor Opened", out) {
+            "\u2693 Harbor ${it.harborName} has opened"
+        }
+        "ship-imprisoned" -> announce(raw, ShipImprisonedEvent::class.java, "Ship Imprisoned", out) {
+            "\u26D3 ${it.shipName} is imprisoned at ${it.holdingHarbor} and its Home Harbor is ${it.homeHarbor}"
+        }
+        else -> {
+            out("Unknown Event $kind: ${raw?.replace("\n", " ")}")
+            false
+        }
     }
 }
 
@@ -96,34 +121,38 @@ fun main() {
     config["bootstrap.servers"] = "localhost:9094"
     config["group.id"] = "ship-terminal"
     config["key.deserializer"] = StringDeserializer::class.java.name
-    config["value.deserializer"] = ShippingEventDeserializer::class.java.name
+    config["value.deserializer"] = StringDeserializer::class.java.name
     config["auto.offset.reset"] = "earliest"
 
-    val consumer = KafkaConsumer<String, ShippingEvent?>(config)
-    consumer.subscribe(listOf("hexagonship-shipping"))
+    val consumer = KafkaConsumer<String, String?>(config)
+    consumer.subscribe(listOf("hexagonship-shipping", "hexagonship-harbor", "hexagonship-coast-guard"))
 
     println("Started consuming messages...")
 
     while (true) {
         val records = consumer.poll(100)
         for (record in records) {
-            handleRecord(record)
+            try {
+                handleRecord(record)
+            } catch (e: Exception) {
+                logger.log(System.Logger.Level.ERROR, "Failed to handle record at offset ${record.offset()}: ${e.message}")
+            }
         }
     }
 }
 
-fun printShippingEvent(event: ShippingEvent) {
-    println("🚢 Ship Name: ${event.shipEventData.shipName}")
-    println("🧑‍✈️ Captain Name: ${event.catain.catainName}")
-    println("⚖️ Weight: ${event.shippingEventData.weight} kg")
-
+fun formatDeparture(event: ShippingEvent): String {
+    val lines = mutableListOf(
+        "🚢 Ship Name: ${event.shipEventData.shipName}",
+        "🧑‍✈️ Captain Name: ${event.catain.catainName}",
+        "⚖️ Weight: ${event.shippingEventData.weight} kg"
+    )
     if (event.shippingEventData.cargo.isNotEmpty()) {
-        println("📦 Cargo:")
-        event.shippingEventData.cargo.forEachIndexed { index, cargo ->
-            println("  ${index + 1}. ${cargo.cargoName}")
-        }
+        lines += "📦 Cargo:"
+        event.shippingEventData.cargo.forEachIndexed { index, cargo -> lines += "  ${index + 1}. ${cargo.cargoName}" }
     } else {
-        println("📦 No cargo loaded.")
+        lines += "📦 No cargo loaded."
     }
-    println("===================================")
+    lines += "==================================="
+    return lines.joinToString("\n")
 }

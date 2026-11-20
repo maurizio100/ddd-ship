@@ -1,17 +1,17 @@
 # ship-terminal
 
-The harbor's departure board. A standalone Kafka consumer that reads Shipping Published events from
-`hexagonship-shipping` and prints each departed ship with its Catain, weight and Cargo. It filters
-records by the `eventType` header and announces only `shipping-published` events; other event types
-are skipped. It only reads the published event, keeps its own copy of the event model, and owns no
-data. It never calls ship-backend and has no database.
+The board of every event between the Harbors. A standalone Kafka consumer that announces each
+departure (Shipping Published), arrival (Ship Arrived), Harbor opening (Harbor Opened) and
+imprisonment (Ship Imprisoned), dispatching on the `eventType` header; an event of any other kind is
+shown as received. It only reads published events, keeps its own copy of each event model, and owns
+no data. It never calls ship-backend and has no database.
 
 - **Bounded context(s):** HarborTerminal
 - **Building block:** ship-terminal ([05-building-blocks.md](../../arc42/05-building-blocks.md), Level 1)
 - **Code lives in:** `ship-terminal/`
 - **Tech:** Kotlin 2.1 (plain JVM app, no Spring), kafka-clients, Jackson, Maven
 - **Build & test:** see *How to run* below
-- **Talks to:** Kafka (topic `hexagonship-shipping`, group `ship-terminal`)
+- **Talks to:** Kafka (topics `hexagonship-shipping`, `hexagonship-harbor`, `hexagonship-coast-guard`; group `ship-terminal`)
 
 ## How to run
 

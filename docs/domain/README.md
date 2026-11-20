@@ -23,6 +23,6 @@ its own fleet, Stock and Savings, and ships sail between Harbors. Derived from t
 | [CargoLoading](contexts/CargoLoading/CargoLoading.md) | Loading Cargo onto ships within the Max Weight | [glossary](contexts/CargoLoading/glossary.md) |
 | [CoastGuard](contexts/CoastGuard/CoastGuard.md) | Imprisoning ships that carry Contraband too often (counting, Ship Imprisoned, Confiscation, Fine and freeing built) | [glossary](contexts/CoastGuard/glossary.md) |
 | [Fleet](contexts/Fleet/Fleet.md) | Ship registry and Catain roster | [glossary](contexts/Fleet/glossary.md) |
-| [HarborTerminal](contexts/HarborTerminal/HarborTerminal.md) | Departure board consuming Shipping Published | [glossary](contexts/HarborTerminal/glossary.md) |
+| [HarborTerminal](contexts/HarborTerminal/HarborTerminal.md) | Board of every event between the Harbors | [glossary](contexts/HarborTerminal/glossary.md) |
 | [Shipping](contexts/Shipping/Shipping.md) | Voyage lifecycle and Release | [glossary](contexts/Shipping/glossary.md) |
 | [Trade](contexts/Trade/Trade.md) | A Harbor's money: Prices, Savings, Market, Delivery Price, collecting Earnings and crediting them on Arrival at the Home Harbor (built) | [glossary](contexts/Trade/glossary.md) |
