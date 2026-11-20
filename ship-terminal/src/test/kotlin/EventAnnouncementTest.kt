@@ -82,4 +82,38 @@ class EventAnnouncementTest {
         assertTrue(next)
         assertTrue(out[1].contains("Isla de Muerta"), out[1])
     }
+
+    private fun departure(json: String): String {
+        val out = mutableListOf<String>()
+        assertTrue(handleRecord(record("shipping-published", json), out::add))
+        return out.joinToString("\n")
+    }
+
+    @Test
+    fun departureNamesEveryCrewMemberWithTrait() {
+        val raw = javaClass.getResourceAsStream("/events/shipping-published-crew.json")!!.readBytes().toString(Charsets.UTF_8)
+
+        val text = departure(raw)
+
+        val cargo = text.indexOf("Tea")
+        val crew = text.indexOf("🐾 Crew:")
+        assertTrue(crew > cargo && cargo > 0, text)
+        assertTrue(text.contains("  1. Mittens (Strong Paws)"), text)
+        assertTrue(text.contains("  2. Patch (Sharp Eyes)"), text)
+        assertTrue(text.indexOf("Patch") < text.indexOf("==="), text)
+    }
+
+    @Test
+    fun departureWithoutCrewSaysSailsWithoutCrew() {
+        val base = """{"shipEventData":{"shipId":"$shipId","shipName":"Old Barnacle"CREW},"shippingEventData":{"shippingId":"$shippingId","weight":10.0,"shippingQuote":null,"cargo":[{"cargoId":"$shipId","cargoName":"Rum"}]},"catain":{"catainId":"$shipId","catainName":"Hook"}}"""
+        for (crew in listOf("", ""","crew":[]""")) {
+            val text = departure(literal(base.replace("CREW", crew)))
+
+            assertTrue(text.contains("Old Barnacle"), text)
+            assertTrue(text.contains("Hook"), text)
+            assertTrue(text.contains("10.0"), text)
+            assertTrue(text.contains("Rum"), text)
+            assertTrue(text.contains("🐾 Sails without Crew."), text)
+        }
+    }
 }
