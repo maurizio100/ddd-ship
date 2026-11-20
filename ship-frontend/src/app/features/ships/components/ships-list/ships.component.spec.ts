@@ -52,6 +52,18 @@ describe('ShipsComponent (The voyage ends at the Origin Harbor)', () => {
     expect(all('ship').some((ship) => ship.textContent!.includes('Black Pearl'))).toBeFalse();
   });
 
+  it('Every ship card has a Crew button to its Crew screen', () => {
+    render([
+      anAvailableShip({ shippingState: ShippingState.SHIPPING }),
+      anAvailableShip({ id: 'a7c1e9b3-0000-4000-8000-000000000004', name: 'Flying Dutchman', shippingState: ShippingState.IDLE }),
+    ]);
+
+    expect(all('ship-crew').map((a) => a.getAttribute('href'))).toEqual([
+      '/ships/5f1d7c2e-0000-4000-8000-000000000001/crew',
+      '/ships/a7c1e9b3-0000-4000-8000-000000000004/crew',
+    ]);
+  });
+
   it('An arrived ship can sail back', () => {
     render([anAvailableShip({ shippingState: ShippingState.IDLE })]);
 

@@ -43,6 +43,7 @@ class FakeDrivenPorts {
     val fleet = InMemoryFleet(catains)
     val stock = InMemoryStock(catalog)
     val prices = InMemoryPrices(catalog)
+    val recruits = InMemoryRecruits()
     val savings = InMemorySavings()
     val outbox = InMemoryOutbox()
     val inbox = InMemoryInbox()
@@ -53,6 +54,7 @@ class FakeDrivenPorts {
         fleet.reset()
         stock.reset()
         prices.reset()
+        recruits.reset()
         savings.reset()
         outbox.reset()
         inbox.reset()
@@ -97,6 +99,9 @@ class FakeDrivenPortsConfiguration {
 
     @Bean
     fun priceRepositoryPort(ports: FakeDrivenPorts): com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort = ports.prices
+
+    @Bean
+    fun recruitPoolRepositoryPort(ports: FakeDrivenPorts): com.sonicdevelopment.domain.ports.driven.RecruitPoolRepositoryPort = ports.recruits
 
     @Bean
     fun savingsRepositoryPort(ports: FakeDrivenPorts): com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort = ports.savings

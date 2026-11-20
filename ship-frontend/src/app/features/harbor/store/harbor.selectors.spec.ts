@@ -4,6 +4,7 @@ import {
   selectHasImprisonedShips,
   selectImprisonedShips,
   selectIncomingShips,
+  selectRecruitPool,
   selectPayingFineShipIds,
   selectPurchaseRefusal,
   selectRefuseFailure,
@@ -21,11 +22,13 @@ describe('harbor selectors', () => {
   const stock = [aStockedCargo({ name: 'Rum', quantity: 0 })];
   const savings = aSavings({ amount: '640.50' });
   const incomingShips = [anIncomingShipListing()];
+  const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed' }];
   const root = {
     harbor: {
       stock,
       savings,
       incomingShips,
+      recruitPool,
       loading: true,
       error: 'boom',
       purchaseRefusal: 'The Savings do not cover 100.00 $',
@@ -45,6 +48,7 @@ describe('harbor selectors', () => {
   it('selectUnloadRefusal reads the unload refusal', () =>
     expect(selectUnloadRefusal(root)).toBe('The Savings do not cover the Delivery Price of 115.00 $'));
   it('selectIncomingShips reads the Incoming Ships', () => expect(selectIncomingShips(root)).toEqual(incomingShips));
+  it('selectRecruitPool reads the Recruit Pool', () => expect(selectRecruitPool(root)).toEqual(recruitPool));
   it('selectUnloadingShipIds reads unloadingShipIds', () => expect(selectUnloadingShipIds(root)).toEqual(['s1']));
   it('selectRefuseFailure reads the refuse failure', () =>
     expect(selectRefuseFailure(root)).toBe('Salty Whisker is not an Incoming Ship anymore'));

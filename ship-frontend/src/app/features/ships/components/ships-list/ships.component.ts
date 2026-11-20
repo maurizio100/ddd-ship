@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
 import {Store} from "@ngrx/store";
-import {Ship, SHIP_CLASS_LABELS, ShippingState} from "../../models/ship";
+import {Ship, SHIP_CLASS_LABELS, shipStatusLabel, ShippingState} from "../../models/ship";
 import {
   selectAllShips,
   selectArrivalNotices,
@@ -147,15 +147,7 @@ export class ShipsComponent implements OnInit, OnDestroy {
   }
 
   statusLabel(ship: Ship): string {
-    if (this.isImprisoned(ship)) return 'Imprisoned';
-    switch (ship.shippingState) {
-      case ShippingState.PREPARING:
-        return 'Preparing';
-      case ShippingState.SHIPPING:
-        return 'At sea';
-      default:
-        return 'In port';
-    }
+    return shipStatusLabel(ship);
   }
 
   catainImageUrl(ship: Ship): string | null {

@@ -9,6 +9,7 @@ import * as HarborActions from './harbor.actions';
 import { StockService } from '../services/stock.service';
 import { SavingsService } from '../services/savings.service';
 import { MarketService } from '../services/market.service';
+import { RecruitPoolService } from '../services/recruit-pool.service';
 import { IncomingShipsService } from '../services/incoming-ships.service';
 import { ImprisonedShipsService } from '../services/imprisoned-ships.service';
 import { Router } from '@angular/router';
@@ -22,6 +23,7 @@ describe('HarborEffects', () => {
   let stockService: jasmine.SpyObj<StockService>;
   let savingsService: jasmine.SpyObj<SavingsService>;
   let marketService: jasmine.SpyObj<MarketService>;
+  let recruitPoolService: jasmine.SpyObj<RecruitPoolService>;
   let incomingShipsService: jasmine.SpyObj<IncomingShipsService>;
   let imprisonedShipsService: jasmine.SpyObj<ImprisonedShipsService>;
   let router: jasmine.SpyObj<Router>;
@@ -31,6 +33,7 @@ describe('HarborEffects', () => {
     stockService = jasmine.createSpyObj<StockService>('StockService', ['getStock']);
     savingsService = jasmine.createSpyObj<SavingsService>('SavingsService', ['getSavings']);
     marketService = jasmine.createSpyObj<MarketService>('MarketService', ['buyCargo']);
+    recruitPoolService = jasmine.createSpyObj<RecruitPoolService>('RecruitPoolService', ['getRecruitPool']);
     incomingShipsService = jasmine.createSpyObj<IncomingShipsService>('IncomingShipsService', ['getIncomingShips', 'unload', 'refuse']);
     imprisonedShipsService = jasmine.createSpyObj<ImprisonedShipsService>('ImprisonedShipsService', ['getImprisonedShips', 'payFine']);
     router = jasmine.createSpyObj<Router>('Router', ['navigate']);
@@ -42,6 +45,7 @@ describe('HarborEffects', () => {
         { provide: StockService, useValue: stockService },
         { provide: SavingsService, useValue: savingsService },
         { provide: MarketService, useValue: marketService },
+        { provide: RecruitPoolService, useValue: recruitPoolService },
         { provide: IncomingShipsService, useValue: incomingShipsService },
         { provide: ImprisonedShipsService, useValue: imprisonedShipsService },
         { provide: Router, useValue: router },
@@ -163,6 +167,28 @@ describe('HarborEffects', () => {
     actions$.next(HarborActions.loadIncomingShips());
 
     expect(emitted).toEqual([HarborActions.loadIncomingShipsFailure({ error })]);
+  });
+
+  it('loadRecruitPool$ emits loadRecruitPoolSuccess with the service result', () => {
+    const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed' }];
+    recruitPoolService.getRecruitPool.and.returnValue(of(recruitPool));
+    const emitted: Action[] = [];
+    effects.loadRecruitPool$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.loadRecruitPool());
+
+    expect(emitted).toEqual([HarborActions.loadRecruitPoolSuccess({ recruitPool })]);
+  });
+
+  it('loadRecruitPool$ emits loadRecruitPoolFailure when the service fails', () => {
+    const error = new Error('boom');
+    recruitPoolService.getRecruitPool.and.returnValue(throwError(() => error));
+    const emitted: Action[] = [];
+    effects.loadRecruitPool$.subscribe((action) => emitted.push(action));
+
+    actions$.next(HarborActions.loadRecruitPool());
+
+    expect(emitted).toEqual([HarborActions.loadRecruitPoolFailure({ error })]);
   });
 
   it('watchFleet$ starts and stops the ships store fleet-events stream with the arrivals watch', () => {

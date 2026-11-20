@@ -77,6 +77,11 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
   sea / Imprisoned, the last an `ink` chip with a brass lock icon), the Catain portrait in a brass ring overlapping the picture, Ship Name, "under `<Catain>`",
   "Home Harbor `<Harbor>`", "`<Ship Class>` · Crew Capacity `<n>`" (sailing icon; the Crew Capacity taken from the backend), "Arrived from `<Harbor>`" when set, and the card's actions. Arrival notices (", imprisoned" appended for an imprisoned Arrival) and imprisonment notices (lock icon) are `ink` bars with a
   dismiss button above the grid; a refused new Shipping is an `oxblood` alert in the ship card's actions. An Imprisoned Ship's card carries a Fine panel (the Fine, whether the Savings cover it, a filled Pay Fine button); a paid Fine is an `ink` notice bar with a dismiss button that also dismisses itself after 8 s.
+- **Crew** — `/ships/:id/crew`, reached by a "Crew" button on every ship card: a back link "Available
+  Ships", a header (kicker "The crew of", Ship Name, muted facts line, Savings on the right) and two panels
+  side by side, stacked at phone width: "Crew" (capacity chip, dashed "A free berth" placeholders with a
+  `person_add` icon) and "Recruit Pool" (rows with a lettered circle, name and muted trait). The Recruit
+  Pool is shown on this screen only, not on the Harbor page.
 - **Imprisoned Ships** — kicker "Held in the harbor brig", one card per Imprisoned Ship with its Fine and Pay Fine.
 - **Create ship** — Ship Name field, then the Ship Class picker (Sloop, Brig, Galleon as smaller radio
   cards with a `sailing` icon, the selected one framed in `oxblood` and badged; a "Choose a Ship Class"

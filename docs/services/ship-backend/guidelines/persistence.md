@@ -165,6 +165,9 @@
   `price_amount NUMERIC(8,2)` and `ck_prices_price_amount_not_negative`.
 - Prices are rolled in code by `openHarbor`, not seeded by a migration: the roll is a domain rule
   (`PriceRoll`), and each Harbor rolls its own.
+- Per-Harbor runtime data (Prices, the Recruit Pool) is filled by `openHarbor()` in the opening transaction
+  with `INSERT … ON CONFLICT DO NOTHING`, never by a Flyway seed. Recruits (`recruits`) are numbered by a
+  per-Harbor `ordinal` that is never reused.
 - It is written only through `PriceRepositoryPort.rememberPrice`, in the caller's transaction
   (`Propagation.MANDATORY`) with `INSERT … ON CONFLICT (cargo_id) DO NOTHING`. A Price is never re-rolled
   or overwritten.

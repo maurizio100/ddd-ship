@@ -19,4 +19,7 @@ interface HarborInformationPort {
      * cover it. A ship sent home imprisoned is not listed while it is at sea.
      */
     fun getImprisonedShips(): List<ImprisonedShipDTO>
+
+    /** The Recruits this Harbor offers: its Recruit Pool, in the order they were generated. */
+    fun getRecruitPool(): List<RecruitDTO>
 }
