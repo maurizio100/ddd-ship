@@ -35,3 +35,16 @@ export const SHIP_CLASS_LABELS: Record<ShipClass, string> = {
   [ShipClass.BRIG]: 'Brig',
   [ShipClass.GALLEON]: 'Galleon',
 };
+
+/** The status wording of a ship: an Imprisoned Ship in port, else by its Shipping. */
+export function shipStatusLabel(ship: Ship): string {
+  if (ship.imprisoned && ship.shippingState !== ShippingState.SHIPPING) return 'Imprisoned';
+  switch (ship.shippingState) {
+    case ShippingState.PREPARING:
+      return 'Preparing';
+    case ShippingState.SHIPPING:
+      return 'At sea';
+    default:
+      return 'In port';
+  }
+}

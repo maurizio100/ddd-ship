@@ -131,6 +131,7 @@
             @if (ship.incoming) {
               <p class="incoming" data-testid="ship-incoming">{{ ship.name }} must be unloaded or refused first</p>
             }
+            <a mat-stroked-button [routerLink]="['/ships', ship.id, 'crew']" data-testid="ship-crew"><mat-icon fontIcon="groups"></mat-icon>Crew</a>
             @if (canCreateNewShipping(ship)) {
               <button mat-flat-button type="button" data-testid="new-shipping" (click)="createShipping(ship)">New shipping</button>
             }

@@ -7,6 +7,13 @@ import {CATAIN_STORE_PROVIDERS} from './features/catains/store/CatainStoreProvid
 export const routes: Routes = [
   {path: '', redirectTo: '/ships', pathMatch: 'full'},
   {
+    path: 'ships/:id/crew',
+    providers: [HARBOR_STORE_PROVIDERS, SHIPS_STORE_PROVIDERS],
+    loadComponent: () =>
+      import('./features/crew/components/crew/crew.component')
+        .then(m => m.CrewComponent)
+  },
+  {
     path: 'ships',
     loadChildren: () =>
       import('./features/ships/ShipRouting')
