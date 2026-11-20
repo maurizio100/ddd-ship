@@ -151,8 +151,8 @@ fun main() {
 fun formatDeparture(event: ShippingEvent): String {
     val lines = mutableListOf(
         "🚢 Ship Name: ${event.shipEventData.shipName}",
-        "🧑‍✈️ Captain Name: ${event.catain.catainName}",
-        "⚖️ Weight: ${event.shippingEventData.weight} kg"
+        "🧑‍✈️ Catain: ${event.catain.catainName}",
+        "⚖️ Weight: ${event.shippingEventData.weight}"
     )
     if (event.shippingEventData.cargo.isNotEmpty()) {
         lines += "📦 Cargo:"

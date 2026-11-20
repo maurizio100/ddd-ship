@@ -16,7 +16,7 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 - ship-terminal — a standalone Kafka consumer (group `ship-terminal`) on topics `hexagonship-shipping`, `hexagonship-harbor` and `hexagonship-coast-guard`.
 
 ## Behaviour
-- Announce a Shipping Published as a departure: ship name, "Captain Name" (the Catain), weight and the Cargo list.
+- Announce a Shipping Published as a departure: ship name, Catain, weight (no unit) and the Cargo list.
 - Announce a Ship Arrived as an arrival: the ship, its Destination Harbor and its Origin Harbor.
 - Announce a Harbor Opened: the Harbor Name.
 - Announce a Ship Imprisoned: the ship, the Harbor holding it and its Home Harbor.

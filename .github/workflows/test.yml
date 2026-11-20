@@ -60,3 +60,21 @@ jobs:
 
     - name: Run Coast Guard tests
       run: cd ship-coast-guard && mvn -q verify
+
+  terminal:
+    name: Terminal tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 21
+        cache: maven
+
+    - name: Run Terminal tests
+      run: cd ship-terminal && mvn -q verify

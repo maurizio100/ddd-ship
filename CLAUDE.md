@@ -85,7 +85,7 @@ component(s) it touches and open only the documents its index points you at:
   behavioral changes (new features, rule changes) and `chore-story` for non-behavioral changes
   (layout tweaks, refactorings, dependency updates, tooling).
 - Story IDs: `STORY-NNN` / Epic IDs: `EPIC-NNN` / ADR IDs: `NNNN`
-- Branch names: `STORY-NNN-kebab-case-title`
+- Branch names: `<type>/STORY-NNN-kebab-case-title` (e.g. `feature/`, `chore/`)
 - Commit messages: Conventional Commits with `Refs: STORY-NNN` in footer
 - One change request per story, draft while in progress, squash on merge
 - Default branch: `main`
