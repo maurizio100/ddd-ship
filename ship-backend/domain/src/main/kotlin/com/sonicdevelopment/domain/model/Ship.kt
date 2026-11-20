@@ -28,7 +28,12 @@ class Ship(
     earnings: Money = Money.dollars(0),
     imprisoned: Boolean = false,
     val shipClass: ShipClass = ShipClass.SLOOP,
+    crew: List<CrewMember> = emptyList(),
 ) {
+    private val crewAboard: MutableList<CrewMember> = crew.toMutableList()
+
+    /** The Crew aboard, read-only. */
+    val crew: List<CrewMember> get() = crewAboard.toList()
 
     /** How many Crew Members the ship can carry, set by its Ship Class. */
     val crewCapacity: Int get() = shipClass.crewCapacity

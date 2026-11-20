@@ -20,5 +20,7 @@ data class ShipDTO(
     val imprisoned: Boolean = false,
     /** The ship's Ship Class, which sets its Crew Capacity. */
     val shipClass: ShipClass = ShipClass.SLOOP,
+    /** The Crew aboard. */
+    val crew: List<CrewMemberDTO> = emptyList(),
 ) {
 }

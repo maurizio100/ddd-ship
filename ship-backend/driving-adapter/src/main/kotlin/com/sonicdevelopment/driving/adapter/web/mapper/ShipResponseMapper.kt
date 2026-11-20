@@ -3,6 +3,7 @@ package com.sonicdevelopment.driving.adapter.web.mapper
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDTO
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
 import com.sonicdevelopment.driving.adapter.web.responsemodel.CargoResponse
+import com.sonicdevelopment.driving.adapter.web.responsemodel.CrewMemberResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.ShipDetailResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.ShipOverviewResponse
 
@@ -19,6 +20,7 @@ fun toShipResponse(ship: ShipDTO) =
         imprisoned = ship.imprisoned,
         shipClass = ship.shipClass,
         crewCapacity = ship.shipClass.crewCapacity,
+        crew = ship.crew.map { CrewMemberResponse(it.id, it.name, it.trait) },
     )
 fun toShipDetailResponse(ship: ShipDetailDTO) =
     ShipDetailResponse(

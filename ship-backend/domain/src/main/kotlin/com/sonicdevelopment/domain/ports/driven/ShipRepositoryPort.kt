@@ -1,6 +1,7 @@
 package com.sonicdevelopment.domain.ports.driven
 
 import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.model.CrewMember
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.values.CatainId
@@ -84,4 +85,7 @@ interface ShipRepositoryPort {
 
     /** Deletes the ship's Cargo aboard; runs in the caller's transaction. */
     fun clearCargoAboard(shipId: ShipId)
+
+    /** Adds [crewMember] to the Crew of a ship in the fleet; fails for a ship that is not in the fleet. Runs in the caller's transaction. */
+    fun addCrewMember(shipId: ShipId, crewMember: CrewMember)
 }

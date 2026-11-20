@@ -15,5 +15,5 @@ class RecruitController(
 ) {
     @GetMapping
     fun getRecruitPool(): List<RecruitResponse> =
-        harborInformationPort.getRecruitPool().map { RecruitResponse(it.id, it.name, it.trait) }
+        harborInformationPort.getRecruitPool().map { RecruitResponse(it.id, it.name, it.trait, it.hiringFee.toDecimalString()) }
 }

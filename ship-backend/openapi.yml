@@ -715,6 +715,11 @@ components:
           type: integer
           example: 2
           description: How many Crew Members the ship can carry, set by its Ship Class (Sloop 2, Brig 4, Galleon 6)
+        crew:
+          type: array
+          description: The Crew aboard the ship
+          items:
+            $ref: '#/components/schemas/CrewMember'
 
     ShipDetailResponse:
       type: object
@@ -885,9 +890,22 @@ components:
           example: '1000.00'
           description: The Savings in dollars, as a decimal string with two decimals, never a JSON number
 
-    Recruit:
+    CrewMember:
       type: object
       required: [id, name, trait]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The UUID of the Recruit it was Hired as
+        name:
+          type: string
+        trait:
+          type: string
+
+    Recruit:
+      type: object
+      required: [id, name, trait, hiringFee]
       properties:
         id:
           type: string
@@ -898,6 +916,11 @@ components:
         trait:
           type: string
           example: Fearless
+        hiringFee:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "50.00"
+          description: The Hiring Fee in dollars, a decimal string with two decimals
 
     ProblemDetail:
       type: object

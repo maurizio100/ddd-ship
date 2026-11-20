@@ -5,6 +5,7 @@ import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShipId
+import com.sonicdevelopment.domain.ports.driving.ship.CrewMemberDTO
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDTO
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
 import com.sonicdevelopment.domain.ports.driving.ship.ShipInformationPort
@@ -101,6 +102,24 @@ class ShipControllerTest {
             status { isOk() }
             jsonPath("$[0].imprisoned") { value(true) }
             jsonPath("$[1].imprisoned") { value(false) }
+        }
+    }
+
+    @Test
+    fun `GET web ships lists each ship's crew`() {
+        val member = UUID.randomUUID()
+        every { shipInformationPort.getAllShips() } returns listOf(
+            ShipDTO(blackPearl, "Black Pearl", "Whiskers", ShippingState.IDLE, homeHarbor = "Port Royal",
+                crew = listOf(CrewMemberDTO(member, "Mittens", "Fearless"))),
+            ShipDTO(interceptor, "Interceptor", "Whiskers", ShippingState.IDLE, homeHarbor = "Tortuga"),
+        )
+
+        mockMvc.get("/web/ships").andExpect {
+            status { isOk() }
+            jsonPath("$[0].crew[0].id") { value(member.toString()) }
+            jsonPath("$[0].crew[0].name") { value("Mittens") }
+            jsonPath("$[0].crew[0].trait") { value("Fearless") }
+            jsonPath("$[1].crew") { isEmpty() }
         }
     }
 

@@ -22,5 +22,8 @@ class RecruitPersistenceEntity(
     var name: String,
 
     @Column(name = "trait")
-    var trait: String
+    var trait: String,
+
+    @Column(name = "recruit_hired")
+    var recruitHired: Boolean = false
 )

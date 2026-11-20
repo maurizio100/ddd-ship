@@ -11,6 +11,7 @@ import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.model.values.ShippingId
@@ -36,6 +37,18 @@ class ShipTest {
         shipOf(ShipClass.GALLEON).crewCapacity shouldBe 6
         ShipClass.entries.forEach { shipOf(it).maxWeight shouldBe 15.0F }
         aShip().shipClass shouldBe ShipClass.SLOOP
+    }
+
+    @Test
+    fun `a ship carries the Crew it was built with`() {
+        val member = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val ship = Ship(
+            name = "Black Pearl", catainId = CatainId(UUID.randomUUID()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), crew = listOf(member),
+        )
+
+        ship.crew shouldBe listOf(member)
+        aShip().crew shouldBe emptyList()
     }
 
     @Test

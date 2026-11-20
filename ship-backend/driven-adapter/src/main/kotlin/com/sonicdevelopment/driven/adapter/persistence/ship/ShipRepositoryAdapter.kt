@@ -1,6 +1,7 @@
 package com.sonicdevelopment.driven.adapter.persistence.ship
 
 import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.model.CrewMember
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.Shipping
 import com.sonicdevelopment.domain.model.enums.ShipClass
@@ -27,6 +28,7 @@ class ShipRepositoryAdapter(
     private val catainRepository: CatainPersistenceEntityRepository,
     private val cargoRepository: CargoRepository,
     private val cargoAboardRepository: ShipCargoAboardPersistenceEntityRepository,
+    private val crewMemberRepository: CrewMemberPersistenceEntityRepository,
 ): ShipRepositoryPort {
     /**
      * Saves the ship by its Ship Id: a known Ship Id (renamed, or back in the fleet) keeps its one row.
@@ -78,6 +80,7 @@ class ShipRepositoryAdapter(
         shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id) ?: return false
         shippingRepository.deleteByShip_shipId(shipId.id)
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
+        crewMemberRepository.deleteAllByShip_ShipId(shipId.id)
         shipPersistenceEntityRepository.deleteByShipId(shipId.id)
         return true
     }
@@ -135,6 +138,18 @@ class ShipRepositoryAdapter(
         cargoAboardRepository.deleteAllByShip_ShipId(shipId.id)
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun addCrewMember(shipId: ShipId, crewMember: CrewMember) {
+        val ship = checkNotNull(shipPersistenceEntityRepository.findByShipIdAndInFleetTrue(shipId.id)) {
+            "Ship ${shipId.id} is not in the fleet, so it cannot take a Crew Member"
+        }
+        crewMemberRepository.save(
+            CrewMemberPersistenceEntity(
+                crewMemberId = crewMember.id.id, name = crewMember.name, trait = crewMember.trait, ship = ship
+            )
+        )
+    }
+
     override fun getAllShips(): List<Ship> {
         return shipPersistenceEntityRepository.findAllByInFleetTrue().map { toShip(it) }
     }
@@ -155,6 +170,8 @@ class ShipRepositoryAdapter(
         val arrivedFrom = shipPersistenceEntity.arrivedFrom?.let { HarborName(it) }
         val homeHarbor = HarborName(shipPersistenceEntity.homeHarbor)
         val cargoAboard = cargoAboardRepository.findAllByShip_IdOrderById(shipPersistenceEntity.id!!).map { toCargo(it.cargo) }
+        val crew = crewMemberRepository.findAllByShip_IdOrderById(shipPersistenceEntity.id!!)
+            .map { CrewMember(CrewMemberId(it.crewMemberId), it.name, it.trait) }
 
         return shippingPersistenceEntity?.let {
             Ship(
@@ -171,6 +188,7 @@ class ShipRepositoryAdapter(
                 earnings = Money(shipPersistenceEntity.earnings),
                 imprisoned = shipPersistenceEntity.imprisoned,
                 shipClass = ShipClass.valueOf(shipPersistenceEntity.shipClass.name),
+                crew = crew,
             )
         } ?: Ship(
             id = ShipId(shipPersistenceEntity.shipId),
@@ -184,6 +202,7 @@ class ShipRepositoryAdapter(
             earnings = Money(shipPersistenceEntity.earnings),
             imprisoned = shipPersistenceEntity.imprisoned,
             shipClass = ShipClass.valueOf(shipPersistenceEntity.shipClass.name),
+            crew = crew,
         )
     }
 

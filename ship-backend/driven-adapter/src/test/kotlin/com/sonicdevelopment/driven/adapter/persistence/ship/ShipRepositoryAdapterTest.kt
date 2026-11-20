@@ -2,6 +2,8 @@ package com.sonicdevelopment.driven.adapter.persistence.ship
 
 import com.sonicdevelopment.driven.adapter.DbTest
 import com.sonicdevelopment.domain.model.Cargo
+import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
@@ -51,7 +53,33 @@ class ShipRepositoryAdapterTest {
 
     @BeforeEach
     fun truncateMutableTables() {
-        jdbcTemplate.execute("TRUNCATE TABLE ships_cargos_aboard, ships_cargos, shippings, ships")
+        jdbcTemplate.execute("TRUNCATE TABLE crew_members, ships_cargos_aboard, ships_cargos, shippings, ships")
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRED)
+    fun `addCrewMember stores a Crew Member aboard and every read returns it, delete removes it, saveNewShip keeps it`() {
+        val blackPearl = aShip("Black Pearl")
+        val mittens = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val patch = CrewMember(CrewMemberId(UUID.randomUUID()), "Patch", "Calm")
+
+        ships.addCrewMember(blackPearl.id, mittens)
+        ships.addCrewMember(blackPearl.id, patch)
+        flushAndClear()
+
+        ships.getShipDetails(blackPearl.id)!!.crew shouldBe listOf(mittens, patch)
+        ships.getAllShips().single().crew shouldBe listOf(mittens, patch)
+        ships.lockShip(blackPearl.id)!!.crew shouldBe listOf(mittens, patch)
+
+        ships.saveNewShip(InitialShipInformation.fromShip(blackPearl))
+        flushAndClear()
+        ships.getShipDetails(blackPearl.id)!!.crew shouldBe listOf(mittens, patch)
+
+        shouldThrow<IllegalStateException> { ships.addCrewMember(ShipId(UUID.randomUUID()), mittens) }
+
+        ships.delete(blackPearl.id) shouldBe true
+        flushAndClear()
+        jdbcTemplate.queryForObject("SELECT count(*) FROM crew_members", Int::class.java) shouldBe 0
     }
 
     @Test
