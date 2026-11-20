@@ -99,6 +99,12 @@
   font-size: 21px;
 }
 
+.ship-class-capacity {
+  font-size: 13px;
+  color: var(--hs-muted, var(--hs-ink));
+  opacity: 0.75;
+}
+
 .ship-class-required {
   margin: 0 auto 0 0;
   align-self: center;

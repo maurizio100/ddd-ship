@@ -34,6 +34,17 @@ export class ShipEffects {
     )
   });
 
+  loadShipClasses$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(ShipActions.loadShipClasses),
+      switchMap(() => this.shipService.getShipClasses()
+        .pipe(
+          map(shipClasses => ShipActions.loadShipClassesSuccess({shipClasses})),
+          catchError(() => of(ShipActions.loadShipClassesFailure({error: 'Failed to load ship classes'})))
+        ))
+    )
+  });
+
   createShip$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(ShipActions.addShip),
