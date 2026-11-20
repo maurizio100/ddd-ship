@@ -6,5 +6,7 @@ import java.util.UUID
 data class RecruitResponse(
     val id: UUID,
     val name: String,
-    val trait: String
+    val trait: String,
+    /** The Hiring Fee: a decimal string with two decimals. */
+    val hiringFee: String
 )

@@ -13,10 +13,15 @@ class RecruitPoolRepositoryAdapter(
 ) : RecruitPoolRepositoryPort {
 
     override fun getRecruits(): List<Recruit> =
-        recruitPersistenceEntityRepository.findAllByOrderByOrdinalAsc()
+        recruitPersistenceEntityRepository.findAllByRecruitHiredFalseOrderByOrdinalAsc()
             .map { Recruit(RecruitId(it.recruitId), it.name, it.trait) }
 
     override fun nextOrdinal(): Int = (recruitPersistenceEntityRepository.findMaxOrdinal() ?: -1) + 1
+
+    /** One conditional `UPDATE`: the first Hire of a Recruit wins; the row stays so its ordinal is never reused. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun takeRecruit(recruitId: RecruitId): Boolean =
+        recruitPersistenceEntityRepository.hire(recruitId.id) == 1
 
     /** One `INSERT … ON CONFLICT DO NOTHING`, so the first Recruit per ordinal wins, also against a concurrent opening. */
     @Transactional(propagation = Propagation.MANDATORY)

@@ -44,3 +44,8 @@ decisions** — each needs a call from the project owner (fix, accept, or turn i
   Ship. The order lock (`lockShip`) → `Ship.free` guard → conditional Savings debit → conditional `free` write
   must stay, in one transaction; a write moved above the debit frees a ship nobody paid for, and dropping the
   lock lets two concurrent payments race.
+- **Hiring** (`CrewManagementService.hire`): it debits the Savings and fills a Crew. The order lock
+  (`lockShip`) → `Ship.hire` guard → conditional Savings debit → conditional `takeRecruit` →
+  `addCrewMember` → top-up must stay, in one transaction; a write moved above the debit hires a Recruit
+  nobody paid for, and dropping the lock lets two concurrent Hires overfill a Crew. Deleting a Recruit
+  instead of marking it hired reuses its ordinal and brings it back to the pool.

@@ -1,6 +1,7 @@
 package com.sonicdevelopment.driving.adapter.web
 
 import com.ninjasquad.springmockk.MockkBean
+import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborInformationPort
 import com.sonicdevelopment.domain.ports.driving.harbor.RecruitDTO
 import io.mockk.every
@@ -23,11 +24,11 @@ class RecruitControllerTest {
     @Test
     fun `GET web recruits returns the Recruit Pool as JSON`() {
         val id = UUID.fromString("11111111-1111-1111-1111-111111111111")
-        every { harborInformationPort.getRecruitPool() } returns listOf(RecruitDTO(id, "Mittens", "Fearless"))
+        every { harborInformationPort.getRecruitPool() } returns listOf(RecruitDTO(id, "Mittens", "Fearless", Money.of("50.00")))
 
         mockMvc.get("/web/recruits").andExpect {
             status { isOk() }
-            content { json("""[{"id":"$id","name":"Mittens","trait":"Fearless"}]""", true) }
+            content { json("""[{"id":"$id","name":"Mittens","trait":"Fearless","hiringFee":"50.00"}]""", true) }
         }
     }
 }

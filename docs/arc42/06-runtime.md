@@ -265,10 +265,10 @@ back into the Savings at once, and the ship's Earnings stay as they are. A ship 
 nothing is paid, and that Cargo cannot be unloaded into the Stock while preparing (R-12). On its next Release the
 Cargo aboard becomes the Loaded Cargo of the Shipping, in the same transaction.
 
-## 6.8 Hire a Recruit (decided, not built yet)
+## 6.8 Hire a Recruit (built)
 
-Per [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md). REST-driven, in one DB transaction at the ship's Home Harbor. The Recruit Pool is this
-Harbor's own; how it is filled is left to the stories.
+Per [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md). REST-driven, in one DB transaction at the ship's Home Harbor. The User Hires a Recruit onto a
+ship in port at its Home Harbor. The Recruit Pool is this Harbor's own.
 
 ```mermaid
 sequenceDiagram
@@ -276,15 +276,18 @@ sequenceDiagram
     participant FE as ship-frontend
     participant BE as ship-backend
     participant DB as PostgreSQL
-    U->>FE: Hire a Recruit for a ship being prepared
-    FE->>BE: hire Recruit onto ship
+    U->>FE: Hire a Recruit for a ship in port
+    FE->>BE: POST /web/ships/{id}/crew
     rect rgb(240,240,240)
     Note over BE,DB: one DB transaction
-    BE->>BE: check Home Harbor, Shipping being prepared, Crew below Crew Capacity
+    BE->>DB: lock the ship row
+    BE->>BE: check at sea, Home Harbor, Crew below Crew Capacity
     BE->>DB: take the Hiring Fee from the Savings (refused if they fall short, nothing written)
-    BE->>DB: Recruit leaves the Recruit Pool and joins the ship's Crew as a Crew Member
+    BE->>DB: mark the Recruit hired
+    BE->>DB: add the Crew Member aboard the ship
+    BE->>DB: generate the next Recruit
     end
-    BE-->>FE: ship with its Crew
+    BE-->>FE: the Hire (Crew Member, Hiring Fee, Savings, new Recruit)
 ```
 
 Nothing is published: the Crew leaves the Harbor only with the ship, in `shipping-published`.

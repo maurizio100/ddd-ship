@@ -1,0 +1,16 @@
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { Hire, HireRequest } from '../models/hire';
+
+@Injectable({ providedIn: 'root' })
+export class CrewService {
+  private readonly http = inject(HttpClient);
+
+  /** Hires the Recruit onto the ship; the backend pays the Hiring Fee and answers with the Hire. */
+  hire(shipId: string, recruitId: string): Observable<Hire> {
+    const request: HireRequest = { recruitId };
+    return this.http.post<Hire>(`${environment.baseUrl}/ships/${shipId}/crew`, request);
+  }
+}

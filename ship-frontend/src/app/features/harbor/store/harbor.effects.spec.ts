@@ -170,7 +170,7 @@ describe('HarborEffects', () => {
   });
 
   it('loadRecruitPool$ emits loadRecruitPoolSuccess with the service result', () => {
-    const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed' }];
+    const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', hiringFee: '50.00' }];
     recruitPoolService.getRecruitPool.and.returnValue(of(recruitPool));
     const emitted: Action[] = [];
     effects.loadRecruitPool$.subscribe((action) => emitted.push(action));

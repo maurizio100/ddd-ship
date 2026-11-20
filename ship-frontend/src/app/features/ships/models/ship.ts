@@ -1,3 +1,5 @@
+import { CrewMember } from './crew-member';
+
 export interface Ship {
   id: string;
   name: string;
@@ -15,6 +17,8 @@ export interface Ship {
   imprisoned: boolean;
   shipClass: ShipClass;
   crewCapacity: number;
+  /** The Crew aboard, in the order Hired. */
+  crew: CrewMember[];
 }
 
 export enum ShippingState {

@@ -40,6 +40,7 @@ Terms: [`glossary.md`](glossary.md) — this context's own vocabulary, in the fo
 
 ## Business decisions
 - A Harbor offers a Recruit Pool of five Recruits, generated from its Harbor Name when it first opens and kept on every later opening, with no coordination between Harbors. No Recruit is offered at two Harbors: Recruit ids never collide, though a name may repeat between Harbors.
+- A Hired Recruit leaves the Recruit Pool for good, and the next Recruit never generated at the Harbor takes its place, so the pool offers five Recruits again.
 - A new ship's Catain must be on the roster.
 - A Ship Name must be non-blank and shorter than 255 characters; an invalid rename keeps the old name.
 - A ship has exactly one Home Harbor: this Harbor when it is registered here, the Home Harbor carried in Shipping Published when it arrives (the Origin Harbor for an event without one). It never changes, not by a rename, a Release, an unloading or a later Arrival.

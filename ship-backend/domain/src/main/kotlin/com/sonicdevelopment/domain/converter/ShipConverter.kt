@@ -3,6 +3,7 @@ package com.sonicdevelopment.domain.converter
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
+import com.sonicdevelopment.domain.ports.driving.ship.CrewMemberDTO
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDTO
 import com.sonicdevelopment.domain.ports.driving.ship.ShipDetailDTO
 
@@ -19,6 +20,7 @@ object ShipConverter {
             earnings = ship.earnings,
             imprisoned = ship.isImprisoned,
             shipClass = ship.shipClass,
+            crew = ship.crew.map { CrewMemberDTO(it.id.id, it.name, it.trait) },
         )
 
     fun toShipDetailDTO(ship: Ship) =

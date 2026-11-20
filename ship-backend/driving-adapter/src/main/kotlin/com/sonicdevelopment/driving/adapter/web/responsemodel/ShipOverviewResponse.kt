@@ -22,4 +22,6 @@ data class ShipOverviewResponse(
     val shipClass: ShipClass,
     /** How many Crew Members the ship can carry, set by its Ship Class. */
     val crewCapacity: Int,
+    /** The Crew aboard. */
+    val crew: List<CrewMemberResponse> = emptyList(),
 )

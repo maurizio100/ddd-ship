@@ -59,4 +59,19 @@ class RecruitPoolRepositoryAdapterTest {
         recruits.getRecruits() shouldBe listOf(a, b)
         recruits.nextOrdinal() shouldBe 8
     }
+
+    @Test
+    fun `takeRecruit marks an offered Recruit hired once, the pool drops it and nextOrdinal still counts it`() {
+        val a = recruit("A")
+        val b = recruit("B")
+        recruits.rememberRecruit(0, a)
+        recruits.rememberRecruit(1, b)
+
+        recruits.takeRecruit(b.id) shouldBe true
+        recruits.takeRecruit(b.id) shouldBe false
+        recruits.takeRecruit(RecruitId(UUID.randomUUID())) shouldBe false
+
+        recruits.getRecruits() shouldBe listOf(a)
+        recruits.nextOrdinal() shouldBe 2
+    }
 }

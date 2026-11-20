@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.model
 
+import com.sonicdevelopment.domain.exception.HireRefusedException
 import com.sonicdevelopment.domain.exception.NewShippingRefusedException
 import com.sonicdevelopment.domain.exception.RefusedCargoException
 import com.sonicdevelopment.domain.exception.ShipNotImprisonedException
@@ -11,8 +12,10 @@ import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.CatainId
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
+import com.sonicdevelopment.domain.model.values.RecruitId
 import com.sonicdevelopment.domain.model.values.ShippingId
 import com.sonicdevelopment.domain.model.values.ShippingQuote
 import io.kotest.assertions.throwables.shouldThrow
@@ -36,6 +39,18 @@ class ShipTest {
         shipOf(ShipClass.GALLEON).crewCapacity shouldBe 6
         ShipClass.entries.forEach { shipOf(it).maxWeight shouldBe 15.0F }
         aShip().shipClass shouldBe ShipClass.SLOOP
+    }
+
+    @Test
+    fun `a ship carries the Crew it was built with`() {
+        val member = CrewMember(CrewMemberId(UUID.randomUUID()), "Mittens", "Fearless")
+        val ship = Ship(
+            name = "Black Pearl", catainId = CatainId(UUID.randomUUID()), catainName = "Furry Jones",
+            homeHarbor = HarborName("Port Royal"), crew = listOf(member),
+        )
+
+        ship.crew shouldBe listOf(member)
+        aShip().crew shouldBe emptyList()
     }
 
     @Test
@@ -570,5 +585,30 @@ class ShipTest {
 
         home shouldBe Money.of("80.00")
         ship.earnings shouldBe Money.dollars(0)
+    }
+
+    @Test
+    fun `hire refuses at sea, away from the Home Harbor and with a full Crew, in that order, and changes nothing, otherwise adds the Crew Member with the Recruit id`() {
+        val portRoyal = HarborName("Port Royal")
+        val mittens = Recruit(RecruitId(UUID.randomUUID()), "Mittens", "Fearless")
+
+        val atSea = aShip(name = "Old Barnacle").also { it.release(ShippingQuote("Fair winds"), HarborName("Tortuga")) }
+        shouldThrow<HireRefusedException> { atSea.hire(mittens, HarborName("Tortuga")) }.message shouldBe "Old Barnacle is at sea"
+        atSea.crew shouldBe emptyList()
+
+        val away = aShip(name = "Sea Biscuit")
+        shouldThrow<HireRefusedException> { away.hire(mittens, HarborName("Tortuga")) }.message shouldBe
+            "Tortuga is not the Home Harbor of Sea Biscuit"
+        away.crew shouldBe emptyList()
+
+        val ship = aShip()
+        val member = ship.hire(mittens, portRoyal)
+        member.id.id shouldBe mittens.id.id
+        member.name shouldBe "Mittens"
+        ship.crew shouldBe listOf(member)
+        ship.hire(Recruit(RecruitId(UUID.randomUUID()), "Whiskers", "Brave"), portRoyal)
+        shouldThrow<HireRefusedException> { ship.hire(mittens, portRoyal) }.message shouldBe
+            "The Crew is full: a Sloop carries 2 Crew Members"
+        ship.crew.size shouldBe 2
     }
 }

@@ -79,9 +79,13 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
   dismiss button above the grid; a refused new Shipping is an `oxblood` alert in the ship card's actions. An Imprisoned Ship's card carries a Fine panel (the Fine, whether the Savings cover it, a filled Pay Fine button); a paid Fine is an `ink` notice bar with a dismiss button that also dismisses itself after 8 s.
 - **Crew** — `/ships/:id/crew`, reached by a "Crew" button on every ship card: a back link "Available
   Ships", a header (kicker "The crew of", Ship Name, muted facts line, Savings on the right) and two panels
-  side by side, stacked at phone width: "Crew" (capacity chip, dashed "A free berth" placeholders with a
-  `person_add` icon) and "Recruit Pool" (rows with a lettered circle, name and muted trait). The Recruit
-  Pool is shown on this screen only, not on the Harbor page.
+  side by side, stacked at phone width. The "Crew" panel has a capacity chip "n / m · Class", a card per Crew
+  Member (initial in a brass ring, name, trait chip) and dashed "A free berth: Hire a Recruit" cards. The
+  "Recruit Pool" panel has the line "Hiring Fee 50.00 $, paid from the Savings of `<Home Harbor>`", a filled
+  Hire button per Recruit (aria-label "Hire `<name>` for `<fee>` $") and a "new in the pool" chip. A refused
+  Hire is an `oxblood` alert. A full Crew replaces the pool with an empty-state line. Away from the Home
+  Harbor or at sea the screen is read-only, with an italic line and a `home` icon. The Recruit Pool is shown
+  on this screen only, not on the Harbor page.
 - **Imprisoned Ships** — kicker "Held in the harbor brig", one card per Imprisoned Ship with its Fine and Pay Fine.
 - **Create ship** — Ship Name field, then the Ship Class picker (Sloop, Brig, Galleon as smaller radio
   cards with a `sailing` icon, the selected one framed in `oxblood` and badged; a "Choose a Ship Class"

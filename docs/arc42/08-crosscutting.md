@@ -48,9 +48,10 @@ conditional update, then writes the return Shipping and its `shipping-published`
 transaction; of an unloading and a refusal of the same ship only one takes effect. Decided, not built:
 crediting Earnings at the Home Harbor happens inside the Arrival's inbox transaction ([ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)).
 
-Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): Hiring a Recruit is a REST-driven transaction that takes the Hiring Fee from
-the Savings and adds the Crew Member together (6.8). Storing an arriving ship's Crew happens inside the
-Arrival's inbox transaction.
+Built: Hiring a Recruit is one REST-driven transaction, under the ship's row lock, that takes the Hiring Fee
+from the Savings, marks the Recruit hired and adds the Crew Member together (6.8). Storing an arriving
+ship's Crew inside the Arrival's inbox transaction is decided, not built
+([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)).
 
 Built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): the Coast Guard writes `ship-imprisoned` to Kafka directly, the only
 producer besides Debezium. Its write is not transactional with any database and may be repeated after a

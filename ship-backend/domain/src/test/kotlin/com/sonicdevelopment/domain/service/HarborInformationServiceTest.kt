@@ -54,7 +54,7 @@ class HarborInformationServiceTest {
         val id = UUID.randomUUID()
         every { recruits.getRecruits() } returns listOf(Recruit(RecruitId(id), "Mittens", "Fearless"))
 
-        service.getRecruitPool() shouldBe listOf(RecruitDTO(id, "Mittens", "Fearless"))
+        service.getRecruitPool() shouldBe listOf(RecruitDTO(id, "Mittens", "Fearless", Money.of("50.00")))
     }
 
     @Test
