@@ -11,7 +11,7 @@ ship's own Home Harbor, puts it back into the Savings at once); the Earnings tra
 Shipping Published; when the ship arrives at its Home Harbor, its Earnings go into the Savings. Or the User refuses it: nothing is paid, and the backend
 Releases it to its Home Harbor with its Cargo aboard, or, at its own Home Harbor, keeps it in the fleet with
 that Cargo aboard to be delivered to another Harbor.
-At its Home Harbor, while the ship is in port, the User Hires a Recruit onto it (`POST /web/ships/{id}/crew`): the backend pays the Hiring Fee (50.00 $) from the Savings, adds the Crew Member aboard and offers a new Recruit in its place, in one transaction.
+At its Home Harbor, while the ship is in port, the User Hires a Recruit onto it (`POST /web/ships/{id}/crew`): the backend pays the Hiring Fee (50.00 $) from the Savings, adds the Crew Member aboard and offers a new Recruit in its place, in one transaction. A Dismiss (`DELETE /web/ships/{id}/crew/{crewMemberId}`) removes a Crew Member at the Home Harbor; it reads the ship through `lockShip` like a Hire, so the two serialise, and a Dismiss of a Crew Member not aboard is refused with 409, not ignored.
 At its Home Harbor the User frees an Imprisoned Ship by paying its Fine (50.00 $) from the Savings, in one transaction (`/web/imprisoned-ships`).
 When it consumes Ship Arrived for a ship it Released, it sets that Shipping to `DONE` and the ship
 leaves its fleet.

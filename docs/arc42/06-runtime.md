@@ -290,7 +290,7 @@ sequenceDiagram
     BE-->>FE: the Hire (Crew Member, Hiring Fee, Savings, new Recruit)
 ```
 
-Nothing is published: the Crew leaves the Harbor only with the ship, in `shipping-published`.
+Nothing is published: the Crew leaves the Harbor only with the ship, in `shipping-published`, or by a Dismiss, which also publishes nothing.
 
 ## 6.9 The Coast Guard imprisons a ship
 
