@@ -44,6 +44,7 @@ export const selectStockError = createSelector(selectHarborState, (state) => sta
 export const selectSavings = createSelector(selectHarborState, (state) => state.savings);
 
 export const selectRecruitPool = createSelector(selectHarborState, (state): Recruit[] => state.recruitPool);
+
 export const selectIncomingShips = createSelector(selectHarborState, (state): IncomingShip[] => state.incomingShips);
 
 export const selectPurchaseRefusal = createSelector(selectHarborState, (state) => state.purchaseRefusal);

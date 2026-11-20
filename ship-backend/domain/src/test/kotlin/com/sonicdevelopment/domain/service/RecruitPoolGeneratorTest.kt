@@ -42,4 +42,12 @@ class RecruitPoolGeneratorTest {
         offeredAtPortRoyal.map { it.name }.intersect(offeredAtTortuga.map { it.name }.toSet()) shouldBe emptySet()
         (0 until 50).map { portRoyal.recruit(it).id }.intersect((0 until 50).map { tortuga.recruit(it).id }.toSet()) shouldBe emptySet()
     }
+
+    @Test
+    fun `Port Royal offers exactly these five Recruits`() {
+        (0 until RECRUIT_POOL_SIZE).map { portRoyal.recruit(it).name to portRoyal.recruit(it).trait } shouldBe listOf(
+            "Lavender" to "Sleepy", "Gizmo" to "Greedy", "Soot" to "Curious", "Haddock" to "Sticky-pawed",
+            "Cobweb" to "Stubborn"
+        )
+    }
 }

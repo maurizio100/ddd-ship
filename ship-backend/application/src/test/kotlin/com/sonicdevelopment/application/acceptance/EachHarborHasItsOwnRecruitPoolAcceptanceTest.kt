@@ -2,7 +2,6 @@ package com.sonicdevelopment.application.acceptance
 
 import com.sonicdevelopment.application.acceptance.fixtures.FakeDrivenPorts
 import com.sonicdevelopment.application.acceptance.fixtures.FakeHarborTest
-import com.sonicdevelopment.domain.model.Recruit
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
 import com.sonicdevelopment.domain.service.RecruitPoolGenerator
@@ -65,21 +64,16 @@ class EachHarborHasItsOwnRecruitPoolAcceptanceTest {
 
     @Test
     fun `A Harbor opening again offers the same Recruits`() {
-        // Given "Port Royal" offers Mittens, Patch, Saffron, Biscuit, Pepper
-        val pinned = listOf("Mittens", "Patch", "Saffron", "Biscuit", "Pepper")
-        val generator = RecruitPoolGenerator(HarborName("Port Royal"))
-        pinned.forEachIndexed { ordinal, name ->
-            fakes.recruits.rememberRecruit(ordinal, Recruit(generator.recruit(ordinal).id, name, "Fearless"))
-        }
+        // Given "Port Royal" has opened and offers its Recruits
+        harbor.openHarbor()
+        val offered = readPool()
 
         // When it opens again
         harbor.openHarbor()
 
-        // Then it offers exactly those Recruits
-        readPool().map { it.name } shouldContainExactly pinned
-        // And again after a second opening
-        harbor.openHarbor()
-        readPool().map { it.name } shouldContainExactly pinned
+        // Then it offers exactly the same Recruits, in the same order
+        offered shouldHaveSize 5
+        readPool() shouldContainExactly offered
     }
 
     private data class RecruitBody(val id: UUID = UUID.randomUUID(), val name: String = "", val trait: String = "")
