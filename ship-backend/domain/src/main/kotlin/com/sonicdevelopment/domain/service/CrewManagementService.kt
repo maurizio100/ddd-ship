@@ -33,7 +33,7 @@ class CrewManagementService(
     private val recruitPoolGenerator: RecruitPoolGenerator,
 ) : CrewManagementPort {
 
-    @Transactional(rollbackOn = [RuntimeException::class])
+    @Transactional
     override fun hire(shipId: ShipId, recruitId: RecruitId): HireDTO? {
         val ship = shipRepositoryPort.lockShip(shipId) ?: return null
         val recruit = recruitPoolRepositoryPort.getRecruits().firstOrNull { it.id == recruitId }

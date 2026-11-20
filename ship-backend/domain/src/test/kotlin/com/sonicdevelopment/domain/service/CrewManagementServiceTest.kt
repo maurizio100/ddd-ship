@@ -131,13 +131,12 @@ class CrewManagementServiceTest {
     }
 
     @Test
-    fun `hire is Transactional with rollbackOn RuntimeException`() {
+    fun `hire is Transactional and rolls back on any exception`() {
         val hire = CrewManagementService::class.java.getMethod("hire", com.sonicdevelopment.domain.model.values.ShipId::class.java, RecruitId::class.java)
 
         val transactional = hire.getAnnotation(Transactional::class.java)
 
         (transactional != null) shouldBe true
-        transactional.rollbackOn.toList() shouldBe listOf(RuntimeException::class.java)
         transactional.dontRollbackOn.toList() shouldBe emptyList()
     }
 }

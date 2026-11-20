@@ -588,11 +588,11 @@ class ShipTest {
     }
 
     @Test
-    fun `hire refuses at sea, away from the Home Harbor and with a full Crew, in that order, and changes nothing; otherwise adds the Crew Member with the Recruit's id`() {
+    fun `hire refuses at sea, away from the Home Harbor and with a full Crew, in that order, and changes nothing, otherwise adds the Crew Member with the Recruit id`() {
         val portRoyal = HarborName("Port Royal")
         val mittens = Recruit(RecruitId(UUID.randomUUID()), "Mittens", "Fearless")
 
-        val atSea = aShip(name = "Old Barnacle", activeShipping = null).also { it.release(ShippingQuote("Fair winds"), HarborName("Tortuga")) }
+        val atSea = aShip(name = "Old Barnacle").also { it.release(ShippingQuote("Fair winds"), HarborName("Tortuga")) }
         shouldThrow<HireRefusedException> { atSea.hire(mittens, HarborName("Tortuga")) }.message shouldBe "Old Barnacle is at sea"
         atSea.crew shouldBe emptyList()
 
