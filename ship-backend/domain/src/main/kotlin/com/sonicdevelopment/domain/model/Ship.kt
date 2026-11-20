@@ -6,6 +6,7 @@ import com.sonicdevelopment.domain.exception.ShipNotImprisonedException
 import com.sonicdevelopment.domain.exception.ShipNotIncomingException
 import com.sonicdevelopment.domain.exception.ShippingNotPreparingException
 import com.sonicdevelopment.domain.exception.ShipTooHeavyException
+import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
 import com.sonicdevelopment.domain.model.values.*
 import java.text.DecimalFormat
@@ -26,6 +27,7 @@ class Ship(
     incoming: Boolean = false,
     earnings: Money = Money.dollars(0),
     imprisoned: Boolean = false,
+    val shipClass: ShipClass = ShipClass.SLOOP,
 ) {
 
     /** Whether the ship is an Imprisoned Ship, or sails home from the holding Harbor as one. */
