@@ -16,5 +16,7 @@ class PostgresTestcontainer {
 
     companion object {
         private val container: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:13.6"))
+            // every cached test context keeps its own connection pool open; the default of 100 runs out
+            .withCommand("postgres", "-c", "max_connections=300")
     }
 }
