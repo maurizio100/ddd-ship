@@ -10,6 +10,7 @@ import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.ShipId
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.ship.CrewManagementPort
+import com.sonicdevelopment.domain.ports.driving.ship.DismissalDTO
 import com.sonicdevelopment.driven.adapter.persistence.ship.ShipRepositoryAdapter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -118,7 +119,7 @@ class DismissTransactionTest {
                 crewManagementPort.dismiss(ShipId(shipId), CrewMemberId(crewMemberId))
             }
 
-            first.get(30, TimeUnit.SECONDS).shouldBeInstanceOf<Any>()
+            first.get(30, TimeUnit.SECONDS).shouldBeInstanceOf<DismissalDTO>().refund.toDecimalString() shouldBe "25.00"
             shouldThrow<DismissRefusedException> { second.unwrap() }
 
             jdbcTemplate.queryForObject("SELECT count(*) FROM crew_members", Int::class.java) shouldBe 0
