@@ -18,7 +18,7 @@ describe('RecruitPoolService', () => {
   afterEach(() => http.verify());
 
   it('getRecruitPool GETs /recruits', () => {
-    const pool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', hiringFee: '50.00' }];
+    const pool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const, hiringFee: '50.00' }];
     let result: unknown;
 
     service.getRecruitPool().subscribe((recruits) => (result = recruits));

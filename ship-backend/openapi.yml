@@ -1015,7 +1015,7 @@ components:
 
     CrewMember:
       type: object
-      required: [id, name, trait]
+      required: [id, name, trait, portrait]
       properties:
         id:
           type: string
@@ -1025,10 +1025,12 @@ components:
           type: string
         trait:
           type: string
+        portrait:
+          $ref: '#/components/schemas/Portrait'
 
     Recruit:
       type: object
-      required: [id, name, trait, hiringFee]
+      required: [id, name, trait, portrait, hiringFee]
       properties:
         id:
           type: string
@@ -1039,11 +1041,31 @@ components:
         trait:
           type: string
           example: Fearless
+        portrait:
+          $ref: '#/components/schemas/Portrait'
         hiringFee:
           type: string
           pattern: '^\d+\.\d{2}$'
           example: "50.00"
           description: The Hiring Fee in dollars, a decimal string with two decimals
+
+    Portrait:
+      type: object
+      description: The look of a Recruit, kept when it becomes a Crew Member. Values are lower-kebab names.
+      required: [fur, coat, eyes, accessory]
+      properties:
+        fur:
+          type: string
+          enum: [ginger, grey, black, cream, brown, white]
+        coat:
+          type: string
+          enum: [plain, tabby, tuxedo, spotted]
+        eyes:
+          type: string
+          enum: [green, amber, blue]
+        accessory:
+          type: string
+          enum: [none, eye-patch, bandana, earring]
 
     ProblemDetail:
       type: object

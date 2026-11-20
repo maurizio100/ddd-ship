@@ -1,5 +1,6 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.model.values.Portrait
 import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.model.Cargo
 import com.sonicdevelopment.domain.model.Ship
@@ -54,7 +55,7 @@ class HarborInformationServiceTest {
         val id = UUID.randomUUID()
         every { recruits.getRecruits() } returns listOf(Recruit(RecruitId(id), "Mittens", "Fearless"))
 
-        service.getRecruitPool() shouldBe listOf(RecruitDTO(id, "Mittens", "Fearless", Money.of("50.00")))
+        service.getRecruitPool() shouldBe listOf(RecruitDTO(id, "Mittens", "Fearless", Money.of("50.00"), Portrait.of(id)))
     }
 
     @Test

@@ -275,7 +275,7 @@ describe('harborReducers', () => {
   it('starts with an empty Recruit Pool', () => expect(initialState.recruitPool).toEqual([]));
 
   it('loadRecruitPoolSuccess stores the Recruit Pool', () => {
-    const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', hiringFee: '50.00' }];
+    const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const, hiringFee: '50.00' }];
 
     const state = harborReducers(initialState, HarborActions.loadRecruitPoolSuccess({ recruitPool }));
 
@@ -283,7 +283,7 @@ describe('harborReducers', () => {
   });
 
   it('loadRecruitPoolFailure stores the error and keeps the Recruit Pool', () => {
-    const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', hiringFee: '50.00' }];
+    const recruitPool = [{ id: 'r1', name: 'Mittens', trait: 'Sure-pawed', portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const, hiringFee: '50.00' }];
 
     const state = harborReducers({ ...initialState, recruitPool }, HarborActions.loadRecruitPoolFailure({ error: 'boom' }));
 

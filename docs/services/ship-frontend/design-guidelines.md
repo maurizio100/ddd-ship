@@ -75,12 +75,16 @@ Headings, labels, buttons and notices use the ubiquitous language exactly (`docs
 - **Page header** — italic `muted` kicker line above an IM Fell English heading.
 - **Fleet** — a responsive grid of ship cards: ship picture, status chip (In port / Preparing / At
   sea / Imprisoned, the last an `ink` chip with a brass lock icon), the Catain portrait in a brass ring overlapping the picture, Ship Name, "under `<Catain>`",
-  "Home Harbor `<Harbor>`", "`<Ship Class>` · Crew Capacity `<n>`" (sailing icon; the Crew Capacity taken from the backend), "Arrived from `<Harbor>`" when set, a Crew row when the ship has Crew (a chip with the groups icon "Crew <n> / <Crew Capacity>", overlapping brass-ringed initials (aria-hidden) and the muted names; none for a ship without Crew), and the card's actions. Arrival notices (", imprisoned" appended for an imprisoned Arrival, "with its Crew: <A> and <B>" appended for an Arrival with Crew) and imprisonment notices (lock icon) are `ink` bars with a
+  "Home Harbor `<Harbor>`", "`<Ship Class>` · Crew Capacity `<n>`" (sailing icon; the Crew Capacity taken from the backend), "Arrived from `<Harbor>`" when set, a Crew row when the ship has Crew (a chip with the groups icon "Crew <n> / <Crew Capacity>", overlapping cat portraits in brass rings (decorative) and the muted names; none for a ship without Crew), and the card's actions. Arrival notices (", imprisoned" appended for an imprisoned Arrival, "with its Crew: <A> and <B>" appended for an Arrival with Crew) and imprisonment notices (lock icon) are `ink` bars with a
   dismiss button above the grid; a refused new Shipping is an `oxblood` alert in the ship card's actions. An Imprisoned Ship's card carries a Fine panel (the Fine, whether the Savings cover it, a filled Pay Fine button); a paid Fine is an `ink` notice bar with a dismiss button that also dismisses itself after 8 s.
+- **Cat portraits** — Recruits and Crew Members are drawn by `app-cat-portrait` as an inline SVG in a
+  brass ring, from the portrait the backend sends, in the theme's colours (`--hs-*` tokens). A
+  portrait beside the cat's visible name is decorative (`aria-hidden`); one standing alone is
+  `role="img"` with `aria-label` "Portrait of <name>". Never an image file.
 - **Crew** — `/ships/:id/crew`, reached by a "Crew" button on every ship card: a back link "Available
   Ships", a header (kicker "The crew of", Ship Name, muted facts line, Savings on the right) and two panels
   side by side, stacked at phone width. The "Crew" panel has a capacity chip "n / m · Class", a card per Crew
-  Member (initial in a brass ring, name, trait chip) and dashed "A free berth: Hire a Recruit" cards. The
+  Member (cat portrait in a brass ring, name, trait chip) and dashed "A free berth: Hire a Recruit" cards. The
   "Recruit Pool" panel has the line "Hiring Fee 50.00 $, paid from the Savings of `<Home Harbor>`", a filled
   Hire button per Recruit (aria-label "Hire `<name>` for `<fee>` $") and a "new in the pool" chip. A refused
   Hire is an `oxblood` alert. A full Crew replaces the pool with an empty-state line. Away from the Home

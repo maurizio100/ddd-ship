@@ -198,6 +198,7 @@ export function aRecruit(overrides: Partial<Recruit> = {}): Recruit {
     id: '00000000-0000-4000-8000-000000000010',
     name: 'Mittens',
     trait: 'Strong Paws',
+    portrait: { fur: 'ginger', coat: 'tabby', eyes: 'green', accessory: 'none' } as const,
     hiringFee: '50.00',
     ...overrides,
   };

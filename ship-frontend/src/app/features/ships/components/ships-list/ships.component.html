@@ -103,10 +103,10 @@
           }
           @if (ship.crew.length > 0) {
             <div class="crew-row" data-testid="ship-crew-row">
-              <span class="crew-count" data-testid="ship-crew-count"><mat-icon fontIcon="groups" aria-hidden="true"></mat-icon>Crew {{ ship.crew.length }} / {{ ship.crewCapacity }}</span>
-              <span class="crew-initials" aria-hidden="true">
+              <span class="chip crew-count" data-testid="ship-crew-count"><mat-icon fontIcon="groups" aria-hidden="true"></mat-icon>Crew {{ ship.crew.length }} / {{ ship.crewCapacity }}</span>
+              <span class="crew-portraits" data-testid="ship-crew-portraits">
                 @for (member of ship.crew; track member.id) {
-                  <span class="crew-initial">{{ initial(member.name) }}</span>
+                  <app-cat-portrait class="crew-portrait" [portrait]="member.portrait" [name]="member.name" [ring]="true" [decorative]="true" />
                 }
               </span>
               <span class="crew-names" data-testid="ship-crew-names">{{ crewNames(ship) }}</span>

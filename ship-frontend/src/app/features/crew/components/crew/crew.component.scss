@@ -127,18 +127,6 @@
   align-items: center;
   gap: 12px;
 
-  &__initial {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--hs-sand);
-    font-family: 'IM Fell English', serif;
-    font-size: 20px;
-  }
-
   &__text {
     display: flex;
     flex-direction: column;
@@ -157,11 +145,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.recruit__initial--ring {
-  border: 2px solid var(--hs-brass, #b08d3c);
-  background: transparent;
 }
 
 .chip--trait,

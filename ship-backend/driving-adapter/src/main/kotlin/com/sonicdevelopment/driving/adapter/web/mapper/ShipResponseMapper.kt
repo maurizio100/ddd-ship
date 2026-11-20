@@ -6,6 +6,7 @@ import com.sonicdevelopment.driving.adapter.web.responsemodel.CargoResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.CrewMemberResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.ShipDetailResponse
 import com.sonicdevelopment.driving.adapter.web.responsemodel.ShipOverviewResponse
+import com.sonicdevelopment.driving.adapter.web.responsemodel.toResponse
 
 fun toShipResponse(ship: ShipDTO) =
     ShipOverviewResponse(
@@ -20,7 +21,7 @@ fun toShipResponse(ship: ShipDTO) =
         imprisoned = ship.imprisoned,
         shipClass = ship.shipClass,
         crewCapacity = ship.shipClass.crewCapacity,
-        crew = ship.crew.map { CrewMemberResponse(it.id, it.name, it.trait) },
+        crew = ship.crew.map { CrewMemberResponse(it.id, it.name, it.trait, it.portrait.toResponse()) },
     )
 fun toShipDetailResponse(ship: ShipDetailDTO) =
     ShipDetailResponse(

@@ -2,6 +2,7 @@ package com.sonicdevelopment.driving.adapter.web
 
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborInformationPort
 import com.sonicdevelopment.driving.adapter.web.responsemodel.RecruitResponse
+import com.sonicdevelopment.driving.adapter.web.responsemodel.toResponse
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -15,5 +16,5 @@ class RecruitController(
 ) {
     @GetMapping
     fun getRecruitPool(): List<RecruitResponse> =
-        harborInformationPort.getRecruitPool().map { RecruitResponse(it.id, it.name, it.trait, it.hiringFee.toDecimalString()) }
+        harborInformationPort.getRecruitPool().map { RecruitResponse(it.id, it.name, it.trait, it.hiringFee.toDecimalString(), it.portrait.toResponse()) }
 }
