@@ -116,4 +116,16 @@ class EventAnnouncementTest {
             assertTrue(text.contains("🐾 Sails without Crew."), text)
         }
     }
+
+    @Test
+    fun departureLabelsCatainAndPrintsWeightWithoutUnit() {
+        val json = """{"shipEventData":{"shipId":"$shipId","shipName":"Old Barnacle"},"shippingEventData":{"shippingId":"$shippingId","weight":10.0,"shippingQuote":null,"cargo":[]},"catain":{"catainId":"$shipId","catainName":"Hook"}}"""
+
+        val text = departure(literal(json))
+
+        assertTrue(text.contains("Catain: Hook"), text)
+        assertFalse(text.contains("Captain"), text)
+        assertTrue(text.contains("Weight: 10.0"), text)
+        assertFalse(text.contains("kg"), text)
+    }
 }
