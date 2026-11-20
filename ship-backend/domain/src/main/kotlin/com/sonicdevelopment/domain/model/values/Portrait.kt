@@ -10,6 +10,18 @@ enum class Accessory { NONE, EYE_PATCH, BANDANA, EARRING }
 /** The look of a Recruit and of the Crew Member it becomes (Recruit Portrait). */
 data class Portrait(val fur: FurColour, val coat: CoatPattern, val eyes: EyeColour, val accessory: Accessory) {
     companion object {
-        fun of(id: UUID): Portrait = Portrait(FurColour.GINGER, CoatPattern.PLAIN, EyeColour.GREEN, Accessory.NONE)
+        /** Pure function of the UUID's bits (never `hashCode` or `Random`): the same at every Harbor and JVM. */
+        fun of(id: UUID): Portrait {
+            val hi = id.mostSignificantBits
+            val lo = id.leastSignificantBits
+            return Portrait(
+                fur = pick(FurColour.entries, hi ushr 32),
+                coat = pick(CoatPattern.entries, hi and 0xFFFFFFFFL),
+                eyes = pick(EyeColour.entries, lo ushr 32),
+                accessory = pick(Accessory.entries, lo and 0xFFFFFFFFL),
+            )
+        }
+
+        private fun <T> pick(values: List<T>, bits: Long): T = values[Math.floorMod(bits, values.size.toLong()).toInt()]
     }
 }

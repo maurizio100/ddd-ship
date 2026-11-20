@@ -60,7 +60,7 @@ class CrewManagementService(
             crewMember = CrewMemberDTO(crewMember.id.id, crewMember.name, crewMember.trait),
             hiringFee = HiringFee.AMOUNT,
             savings = savingsRepositoryPort.getSavings(),
-            newRecruit = RecruitDTO(newRecruit.id.id, newRecruit.name, newRecruit.trait, HiringFee.AMOUNT),
+            newRecruit = RecruitDTO(newRecruit.id.id, newRecruit.name, newRecruit.trait, HiringFee.AMOUNT, newRecruit.portrait),
         )
     }
 

@@ -33,7 +33,7 @@ class HarborInformationService(
     override fun getSavings(): Money = savingsRepositoryPort.getSavings()
 
     override fun getRecruitPool(): List<RecruitDTO> =
-        recruitPoolRepositoryPort.getRecruits().map { RecruitDTO(it.id.id, it.name, it.trait, HiringFee.AMOUNT) }
+        recruitPoolRepositoryPort.getRecruits().map { RecruitDTO(it.id.id, it.name, it.trait, HiringFee.AMOUNT, it.portrait) }
 
     /** Delivery Prices are computed when the list is read, from this Harbor's Prices only. */
     override fun getIncomingShips(): List<IncomingShipDTO> {

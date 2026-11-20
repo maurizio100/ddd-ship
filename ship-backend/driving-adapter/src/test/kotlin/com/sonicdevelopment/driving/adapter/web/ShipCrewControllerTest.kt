@@ -1,5 +1,6 @@
 package com.sonicdevelopment.driving.adapter.web
 
+import com.sonicdevelopment.domain.model.values.Portrait
 import com.ninjasquad.springmockk.MockkBean
 import com.sonicdevelopment.domain.exception.DismissRefusedException
 import com.sonicdevelopment.domain.exception.HireRefusedException
@@ -45,7 +46,7 @@ class ShipCrewControllerTest {
         val newRecruit = UUID.randomUUID()
         every { crewManagementPort.hire(ShipId(shipId), RecruitId(recruitId)) } returns HireDTO(
             ShipId(shipId), "Salty Whisker", CrewMemberDTO(recruitId, "Mittens", "Strong Paws"),
-            Money.of("50.00"), Money.of("950.00"), RecruitDTO(newRecruit, "Whiskers", "Brave", Money.of("50.00")),
+            Money.of("50.00"), Money.of("950.00"), RecruitDTO(newRecruit, "Whiskers", "Brave", Money.of("50.00"), Portrait.of(newRecruit)),
         )
 
         hire().andExpect {
