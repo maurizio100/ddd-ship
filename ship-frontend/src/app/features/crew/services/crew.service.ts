@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Hire, HireRequest } from '../models/hire';
 
@@ -10,7 +10,7 @@ export class CrewService {
 
   /** Dismisses the Crew Member from the ship; no refund. */
   dismiss(shipId: string, crewMemberId: string): Observable<void> {
-    return of(undefined);
+    return this.http.delete<void>(`${environment.baseUrl}/ships/${shipId}/crew/${crewMemberId}`);
   }
 
   /** Hires the Recruit onto the ship; the backend pays the Hiring Fee and answers with the Hire. */

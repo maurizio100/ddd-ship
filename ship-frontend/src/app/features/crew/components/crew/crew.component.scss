@@ -199,3 +199,14 @@
   align-items: flex-start;
   gap: 8px;
 }
+
+.dismiss {
+  margin-left: auto;
+  min-height: 44px;
+}
+
+.note {
+  margin: 12px 0 0;
+  color: var(--hs-muted);
+  font-size: 14px;
+}

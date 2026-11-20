@@ -8,8 +8,10 @@ import * as ShipActions from '../../../ships/store/actions/ship.actions';
 import { selectRecruitPool, selectSavings } from '../../../harbor/store/harbor.selectors';
 import { selectAllShips } from '../../../ships/store/selectors/ship.selectors';
 import { SHIP_CLASS_LABELS, ShippingState, shipStatusLabel } from '../../../ships/models/ship';
-import { hireRecruit, loadHarborName } from '../../store/crew.actions';
+import { dismissCrewMember, hireRecruit, loadHarborName } from '../../store/crew.actions';
 import {
+  selectDismissingCrewMemberIds,
+  selectDismissRefusal,
   selectHarborName,
   selectHarborNameError,
   selectHireRefusal,
@@ -33,6 +35,8 @@ export class CrewComponent implements OnInit {
   harborName = this.store.selectSignal(selectHarborName);
   harborNameError = this.store.selectSignal(selectHarborNameError);
   hiringRecruitIds = this.store.selectSignal(selectHiringRecruitIds);
+  dismissingIds = this.store.selectSignal(selectDismissingCrewMemberIds);
+  dismissRefusal = this.store.selectSignal(selectDismissRefusal);
   hireRefusal = this.store.selectSignal(selectHireRefusal);
   newInPoolRecruitIds = this.store.selectSignal(selectNewInPoolRecruitIds);
   private readonly ships = this.store.selectSignal(selectAllShips);
@@ -57,6 +61,8 @@ export class CrewComponent implements OnInit {
   });
   /** The Recruit Pool is offered only to a ship in port at its Home Harbor with a free berth. */
   poolOffered = computed(() => !this.atSea() && !this.away() && !this.crewFull());
+  /** Dismissing, like Hiring, is only possible in port at the Home Harbor. */
+  canDismiss = computed(() => !!this.harborName() && !this.atSea() && !this.away());
   hiringFee = computed(() => this.recruitPool()[0]?.hiringFee ?? null);
   facts = computed(() => {
     const ship = this.ship();
@@ -76,6 +82,10 @@ export class CrewComponent implements OnInit {
 
   hire(shipId: string, recruitId: string): void {
     this.store.dispatch(hireRecruit({ shipId, recruitId }));
+  }
+
+  dismiss(shipId: string, crewMemberId: string): void {
+    this.store.dispatch(dismissCrewMember({ shipId, crewMemberId }));
   }
 
   initial(name: string): string {

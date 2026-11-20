@@ -9,6 +9,7 @@ import { CrewService } from '../services/crew.service';
 import { HarborNameService } from '../../../core/harbor-name.service';
 
 const HIRE_FAILED = 'The Recruit could not be Hired';
+const DISMISS_FAILED = 'The Crew Member could not be dismissed';
 const SAVINGS_SHORT_TITLE = 'Savings do not cover';
 
 @Injectable()
@@ -55,8 +56,28 @@ export class CrewEffects {
     ),
   );
 
-  dismissCrewMember$ = createEffect(() => this.actions$.pipe(ofType(CrewActions.dismissCrewMember), map(({ crewMemberId }) => CrewActions.dismissCrewMemberSuccess({ crewMemberId }))));
-  refreshAfterDismiss$ = createEffect(() => this.actions$.pipe(ofType(CrewActions.dismissCrewMemberSuccess), map(() => ShipActions.loadShips())));
+  /** concatMap: Dismissals on one ship run one after the other, as the backend serialises them. */
+  dismissCrewMember$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(CrewActions.dismissCrewMember),
+      concatMap(({ shipId, crewMemberId }) =>
+        this.crewService.dismiss(shipId, crewMemberId).pipe(
+          map(() => CrewActions.dismissCrewMemberSuccess({ crewMemberId })),
+          catchError((error: HttpErrorResponse) =>
+            of(CrewActions.dismissCrewMemberFailure({ crewMemberId, error, refusal: error.error?.detail ?? DISMISS_FAILED })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  /** The backend owns the Crew and the pool: after a Dismiss, successful or refused, both are read back. No money moves. */
+  refreshAfterDismiss$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(CrewActions.dismissCrewMemberSuccess, CrewActions.dismissCrewMemberFailure),
+      switchMap(() => [ShipActions.loadShips(), HarborActions.loadRecruitPool()]),
+    ),
+  );
 
   loadHarborName$ = createEffect(() =>
     this.actions$.pipe(
