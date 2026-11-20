@@ -95,4 +95,7 @@ interface ShipRepositoryPort {
      * aboard it. Runs in the caller's transaction.
      */
     fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId)
+
+    /** Replaces the Crew of a ship in the fleet with [crew]; fails for a ship that is not in the fleet. Runs in the caller's transaction. */
+    fun replaceCrew(shipId: ShipId, crew: List<CrewMember>)
 }

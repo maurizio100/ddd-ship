@@ -262,6 +262,42 @@ describe('ShipsComponent (A Harbor sees ships arrive and leave as they happen)',
       ShipActions.dismissArrivalNotice({ shipId: anArrivalNotice().shipId }),
     );
   });
+
+  const crewMember = (id: number, name: string, trait: string) => ({ id: `c0ffee00-0000-4000-8000-00000000000${id}`, name, trait });
+
+  it('The Crew arrives with the ship', () => {
+    const saltyWhisker = anAvailableShip({
+      id: '5f1d7c2e-0000-4000-8000-000000000002',
+      name: 'Salty Whisker',
+      arrivedFrom: 'Port Royal',
+      crewCapacity: 4,
+      crew: [crewMember(1, 'Mittens', 'Strong Paws'), crewMember(2, 'Patch', 'Sharp Eyes')],
+    });
+    render(
+      [saltyWhisker],
+      [anArrivalNotice({ shipId: saltyWhisker.id, shipName: 'Salty Whisker', originHarbor: 'Port Royal', crew: ['Mittens', 'Patch'] })],
+    );
+
+    const notices = Array.from(statusRegion().querySelectorAll('[data-testid="ships-arrival-notice"]'));
+    expect(notices.map((notice) => notice.textContent!.trim())).toEqual([
+      'Salty Whisker arrived from Port Royal with its Crew: Mittens and Patch',
+    ]);
+    expect(all('ship-crew-count').map((count) => count.textContent!.replace(/\s+/g, ' ').trim())).toEqual(['Crew 2 / 4']);
+    expect(all('ship-crew-names').map((names) => names.textContent!.trim())).toEqual(['Mittens, Patch']);
+  });
+
+  it('A ship returning to a Harbor shows its current Crew', () => {
+    render([
+      anAvailableShip({
+        name: 'Salty Whisker',
+        arrivedFrom: 'Tortuga',
+        crewCapacity: 4,
+        crew: [crewMember(1, 'Mittens', 'Strong Paws'), crewMember(2, 'Patch', 'Sharp Eyes'), crewMember(3, 'Saffron', 'Quick Claws')],
+      }),
+    ], []);
+
+    expect(all('ship-crew-names').map((names) => names.textContent!.trim())).toEqual(['Mittens, Patch, Saffron']);
+  });
 });
 
 describe('ShipsComponent (ship card)', () => {
@@ -601,5 +637,51 @@ describe('ShipsComponent (Free an Imprisoned Ship by paying its Fine)', () => {
     );
     expect(all('ship-fine')).toEqual([]);
     expect(all('new-shipping').length).toBe(1);
+  });
+});
+
+describe('ShipsComponent (arrival text and Crew row)', () => {
+  let fixture: ComponentFixture<ShipsComponent>;
+
+  function render(ships: Ship[], arrivalNotices: ArrivalNotice[]): void {
+    TestBed.configureTestingModule({
+      imports: [ShipsComponent],
+      providers: [
+        provideRouter([]),
+        provideMockStore({ initialState: { ships: { ships, loading: false, error: null, arrivalNotices }, catains: { catains: [], loading: false, error: null } } }),
+        { provide: ShipService, useValue: jasmine.createSpyObj<ShipService>('ShipService', ['createShipping']) },
+      ],
+    });
+    spyOn(TestBed.inject(MockStore), 'dispatch');
+    fixture = TestBed.createComponent(ShipsComponent);
+    fixture.detectChanges();
+  }
+
+  const all = (testId: string): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+
+  it('A ship without Crew shows no Crew row and keeps the old notice wording', () => {
+    render([anAvailableShip({ crew: [] })], [anArrivalNotice({ crew: [] })]);
+
+    expect(all('ship-crew-row')).toEqual([]);
+    expect(all('ship-crew-count')).toEqual([]);
+    expect(all('ship-crew-names')).toEqual([]);
+    expect(all('ships-arrival-notice').map((n) => n.textContent!.trim())).toEqual(['Black Pearl arrived from Tortuga']);
+  });
+
+  it('An imprisoned Arrival with a Crew', () => {
+    render([], [anArrivalNotice({ imprisoned: true, crew: ['Mittens'] })]);
+
+    expect(all('ships-arrival-notice').map((n) => n.textContent!.trim())).toEqual([
+      'Black Pearl arrived from Tortuga, imprisoned, with its Crew: Mittens',
+    ]);
+  });
+
+  it('Three Crew Members are listed with commas and a final "and"', () => {
+    render([], [anArrivalNotice({ crew: ['Mittens', 'Patch', 'Saffron'] })]);
+
+    expect(all('ships-arrival-notice')[0].textContent!.trim()).toBe(
+      'Black Pearl arrived from Tortuga with its Crew: Mittens, Patch and Saffron',
+    );
   });
 });

@@ -142,6 +142,13 @@ class InMemoryFleet(private val catains: InMemoryCatains) :
         ships[shipId] = record.copy(crew = record.crew + crewMember)
     }
 
+    /** Like the adapter: only a ship in the fleet, and the stored Crew is replaced, not merged. */
+    @Synchronized
+    override fun replaceCrew(shipId: ShipId, crew: List<CrewMember>) {
+        val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")
+        ships[shipId] = record.copy(crew = crew)
+    }
+
     @Synchronized
     override fun removeCrewMember(shipId: ShipId, crewMemberId: CrewMemberId) {
         val record = ships[shipId]?.takeIf { it.inFleet } ?: throw IllegalStateException("Ship $shipId is not in the fleet")

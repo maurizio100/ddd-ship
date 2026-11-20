@@ -138,7 +138,7 @@ the ship is saved and in the same inbox transaction as `ship-arrived`. The credi
 `arrivals` guards, so a redelivered or re-published event credits nothing twice. Elsewhere the ship joins
 the fleet with the Earnings carried in `shipping-published` (none for an event without them).
 
-### Decided, not built yet: the Crew sails with the ship
+### The Crew sails with the ship
 
 Per [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md), `shipping-published` (6.3) also carries the ship's Crew in full, and the Destination
 transaction takes the ship into the fleet with that Crew aboard, replacing any Crew still stored for a

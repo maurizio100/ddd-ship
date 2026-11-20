@@ -101,8 +101,7 @@ Per [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idemp
 `driving-adapter` holds the **Kafka listeners** (spring-kafka) that map inbound events to the driving
 ports, and `driven-adapter` holds the **inbox adapter** that records consumed event ids and the store
 for the Known Harbors. Stock is persisted next to the Cargo catalog; Prices and Savings are persisted the same way, behind
-driven ports of the Trade concepts. A ship's Home Harbor, its Earnings and its Ship Class are persisted with the ship. Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): a ship's Crew is persisted with the
-ship, and each Harbor's Recruit Pool next to it. Per [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md): a Kafka listener for
+driven ports of the Trade concepts. A ship's Home Harbor, its Earnings, its Ship Class and its Crew are persisted with the ship, and each Harbor's Recruit Pool next to it ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)). Per [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md): a Kafka listener for
 `ship-imprisoned` on `hexagonship-coast-guard`, through the same inbox, and the imprisoned state persisted
 with the ship.
 

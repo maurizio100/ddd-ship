@@ -107,6 +107,26 @@ export class ShipsComponent implements OnInit, OnDestroy {
     return refusal?.shipId === ship.id ? refusal.message : null;
   }
 
+  /** The notice text: where the ship arrived from, whether imprisoned, and the Crew it brought. */
+  arrivalText(notice: ArrivalNotice): string {
+    let text = `${notice.shipName} arrived from ${notice.originHarbor}`;
+    if (notice.imprisoned) text += ', imprisoned';
+    const names = notice.crew ?? [];
+    if (names.length > 0) {
+      const joined = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+      text += `${notice.imprisoned ? "," : ""} with its Crew: ${joined}`;
+    }
+    return text;
+  }
+
+  crewNames(ship: Ship): string {
+    return ship.crew.map((member) => member.name).join(', ');
+  }
+
+  initial(name: string): string {
+    return name.charAt(0).toUpperCase();
+  }
+
   editShipping(ship: Ship) {
     this.router.navigate([`ships/${ship.id}/cargo`]);
   }

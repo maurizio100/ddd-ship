@@ -86,4 +86,15 @@ describe('shipReducers (A Harbor carries out an imprisonment)', () => {
     expect(shipReducers(refused, ShipActions.createShipping({ ship })).newShippingRefusal).toBeNull();
     expect(shipReducers(refused, ShipActions.loadShipsSuccess({ ships: [ship] })).newShippingRefusal).toBeNull();
   });
+
+  it('ship-arrived keeps the arriving Crew on the notice, and none when the event has none', () => {
+    const withCrew = shipReducers(initialState, ShipActions.shipArrived(anArrivalNotice({ crew: ['Mittens', 'Patch'] })));
+    const without = shipReducers(
+      initialState,
+      ShipActions.shipArrived({ ...anArrivalNotice(), crew: undefined } as unknown as ReturnType<typeof anArrivalNotice>),
+    );
+
+    expect(withCrew.arrivalNotices[0].crew).toEqual(['Mittens', 'Patch']);
+    expect(without.arrivalNotices[0].crew).toEqual([]);
+  });
 });

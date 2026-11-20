@@ -1,7 +1,9 @@
 package com.sonicdevelopment.domain.service
 
+import com.sonicdevelopment.domain.model.CrewMember
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShippingState
+import com.sonicdevelopment.domain.model.values.CrewMemberId
 import com.sonicdevelopment.domain.model.values.EventId
 import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
@@ -51,6 +53,8 @@ import org.springframework.stereotype.Service
  * A ship flagged imprisoned (sent home after a Confiscation) joins as an Imprisoned Ship at its Home Harbor only;
  * elsewhere the flag is dropped. The flag is written with the ship, behind the same guards: no write of its own.
  * The ship keeps the Ship Class carried in the Shipping Published (a Sloop when the event carries none), written the same way.
+ * The ship keeps the Crew carried in the event (none without one), replacing any Crew stored for it, behind the same
+ * guards; the Recruit Pool is untouched.
  *
  * **Origin side.** When this Harbor learns from Ship Arrived that a ship it Released has arrived, the
  * voyage ends: in one transaction with the inbox record, the Shipping becomes `DONE` and the ship leaves
@@ -108,11 +112,13 @@ class ArrivalManagementService(
             incoming = cargo.isNotEmpty(),
             earnings = shippingPublished.earnings,
             shipClass = shippingPublished.shipClass,
+            crew = shippingPublished.crew.map { CrewMember(CrewMemberId(it.id), it.name, it.trait) },
             imprisoned = shippingPublished.imprisoned && (shippingPublished.homeHarbor ?: originHarbor) == currentHarbor,
         )
         val homecoming = ship.bringEarningsHome(currentHarbor)
         if (homecoming != Money.dollars(0)) savingsRepositoryPort.receive(homecoming)
         shipRepositoryPort.saveNewShip(fromShip(ship))
+        shipRepositoryPort.replaceCrew(ship.id, ship.crew)
         shippingOutboxRepository.announceShipArrived(ship, shippingPublished.shippingId, originHarbor, currentHarbor)
         fleetEventsPort.announceShipArrived(ship, originHarbor)
     }

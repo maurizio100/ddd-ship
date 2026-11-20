@@ -30,7 +30,9 @@ decisions** — each needs a call from the project owner (fix, accept, or turn i
 - **Arrival handling** (`ArrivalManagementService.receiveShippingPublished`): it consumes an at-least-once
   Kafka event and moves money (Earnings into the Savings). Every state change must stay after the inbox and
   `arrivals` guards and inside the one transaction with the Ship Arrived outbox row; a write moved above a
-  guard credits the Savings twice on redelivery or re-publication.
+  guard credits the Savings twice on redelivery or re-publication. The Crew carried in is written by
+  `replaceCrew` after `saveNewShip`, behind the same guards; its bulk delete must run before the inserts,
+  or a returning Crew breaks `uq_crew_members_crew_member_id` and the Arrival is retried and skipped.
 - **Coast Guard counting** (`ShipWatch.record`, `ShipWatchKeeper` in ship-coast-guard): it consumes the
   at-least-once `hexagonship-shipping` and publishes `ship-imprisoned`, which every Harbor consumes to
   confiscate Cargo. The once-per-Shipping-id check and the reset after an imprisonment must stay ahead of

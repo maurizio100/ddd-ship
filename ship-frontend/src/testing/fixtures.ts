@@ -124,6 +124,7 @@ export function anArrivalNotice(overrides: Partial<ArrivalNotice> = {}): Arrival
     shipName: 'Black Pearl',
     originHarbor: 'Tortuga',
     imprisoned: false,
+    crew: [],
     ...overrides,
   };
 }

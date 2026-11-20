@@ -9,7 +9,7 @@ including the "Catain" spelling. Identity is carried by UUID value objects (`Shi
 `ShippingId`, `CatainId`); persistence entities additionally have a numeric surrogate key. Per
 [ADR-0003](../adr/0003-run-each-ship-backend-instance-as-one-harbor.md), the UUID `ShipId` is the
 ship's identity across all Harbors and travels in events; the surrogate key never leaves its Harbor.
-Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): a Crew Member's UUID identity works the same way.
+A Crew Member's UUID identity works the same way ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)).
 
 ## 8.2 Persistence
 
@@ -20,7 +20,7 @@ Decided, not built ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-rec
 - Each Harbor's **Stock** lives in its own database, in `stocks` (one row per catalog Cargo). `V7__stocks.sql` seeds the Starting Stock (3 of every Cargo); Flyway applies it once per database, i.e. when the Harbor opens for the first time. The Stock is changed only through `StockRepositoryPort`, inside the caller's transaction, and never drops below 0 (a conditional `UPDATE … WHERE stock_quantity > 0` backed by a `CHECK` constraint). It is not published.
 - Each Harbor also has an inbox of consumed event ids in `inbox_events` (`V5`, [ADR-0004](../adr/0004-consume-kafka-events-in-ship-backend-through-an-idempotent-inbox.md)) and its Known Harbors in `known_harbors` (`V6`, [ADR-0005](../adr/0005-discover-harbors-via-harbor-opened-events-on-a-compacted-topic.md)). The Cargo catalog and Catain roster stay identical seeds at every Harbor.
 - **Money** (built by STORY-024, EPIC-003, [ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)): dollars to two decimals, an exact decimal in the domain, `NUMERIC(…, 2)` in PostgreSQL and a decimal string in event JSON, never a binary float. In REST JSON money is a decimal string with two decimals, never a JSON number (see [api-design.md](../services/ship-backend/guidelines/api-design.md)). Each Harbor's **Savings** (Starting Savings 1000.00 $) change only through a port inside the caller's transaction and never drop below 0, like the Stock. **Prices** are per Harbor: rolled once when the Harbor first opens (whole dollars, 30.00 $ to 60.00 $, decided 2026-10-07, STORY-024) and kept; a Delivery Price uses the paying Harbor's Prices. A ship's Earnings and Home Harbor are stored with the ship and travel in `shipping-published`.
-- **Crew** (decided, not built, [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): each Harbor's **Recruit Pool** is runtime data filled at that Harbor, not a migration seed, and differs between Harbors by design — one of two exceptions to identical seeds, together with the Prices; the Cargo catalog and Catain roster keep that rule. A ship's Crew is stored with the ship, travels in `shipping-published`, and is replaced, not merged, when the ship arrives. The **Hiring Fee** follows the Money rules above.
+- **Crew** (built, [ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)): each Harbor's **Recruit Pool** is runtime data filled at that Harbor, not a migration seed, and differs between Harbors by design — one of two exceptions to identical seeds, together with the Prices; the Cargo catalog and Catain roster keep that rule. A ship's Crew is stored with the ship, travels in `shipping-published`, and is replaced, not merged, when the ship arrives. The **Hiring Fee** follows the Money rules above.
 - **Coast Guard** (built, [ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): it has no database: its counts live in the Kafka Streams state store `ship-watches`, backed by a changelog topic. An imprisoned ship's state is stored with the ship (`ships.ship_imprisoned`, built). Built: the **Fine** (50.00 $) follows the Money rules above and is paid at the Home Harbor only.
 
 ## 8.3 Transactions and event publication
@@ -49,8 +49,8 @@ transaction; of an unloading and a refusal of the same ship only one takes effec
 crediting Earnings at the Home Harbor happens inside the Arrival's inbox transaction ([ADR-0008](../adr/0008-carry-earnings-home-with-the-ship.md)).
 
 Built: Hiring a Recruit is one REST-driven transaction, under the ship's row lock, that takes the Hiring Fee
-from the Savings, marks the Recruit hired and adds the Crew Member together (6.8). Storing an arriving
-ship's Crew inside the Arrival's inbox transaction is decided, not built
+from the Savings, marks the Recruit hired and adds the Crew Member together (6.8). Built: storing an arriving
+ship's Crew happens inside the Arrival's inbox transaction
 ([ADR-0009](../adr/0009-carry-crew-with-the-ship-and-fill-recruit-pools-per-harbor.md)).
 
 Built ([ADR-0011](../adr/0011-imprison-contraband-runners-with-a-coast-guard-on-kafka-streams.md)): the Coast Guard writes `ship-imprisoned` to Kafka directly, the only

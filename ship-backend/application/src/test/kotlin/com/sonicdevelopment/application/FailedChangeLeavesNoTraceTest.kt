@@ -25,6 +25,7 @@ import com.sonicdevelopment.domain.ports.driving.shipping.ArrivalManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ImprisonmentManagementPort
 import com.sonicdevelopment.domain.ports.driving.shipping.ShipImprisonedDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingManagementPort
+import com.sonicdevelopment.domain.ports.driving.ship.CrewMemberDTO
 import com.sonicdevelopment.domain.ports.driving.shipping.ShippingPublishedDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborManagementPort
 import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipManagementPort
@@ -303,6 +304,7 @@ class FailedChangeLeavesNoTraceTest {
             cargoIds = listOf(CargoId(SeedData.cargoIdOf("Rum")), CargoId(SeedData.cargoIdOf("Ale"))),
             originHarbor = HarborName("Tortuga"),
             destinationHarbor = HarborName("Port Royal"),
+            crew = listOf(CrewMemberDTO(UUID.randomUUID(), "Mittens", "Strong Paws")),
         )
         failingOutbox.shipArrivedArmed = true
 
@@ -320,6 +322,7 @@ class FailedChangeLeavesNoTraceTest {
         ) shouldBe 0
         count("ships") shouldBe 0
         count("ships_cargos_aboard") shouldBe 0
+        count("crew_members") shouldBe 0
         availableShips().shouldBeEmpty()
         jdbcTemplate.queryForList("SELECT stock_quantity FROM stocks", Int::class.java)
             .forEach { it shouldBe STARTING_STOCK }

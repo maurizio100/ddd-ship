@@ -3,6 +3,9 @@ package com.sonicdevelopment.domain.service
 import com.sonicdevelopment.domain.fixtures.aCargo
 import com.sonicdevelopment.domain.fixtures.aShip
 import com.sonicdevelopment.domain.model.Catain
+import com.sonicdevelopment.domain.model.CrewMember
+import com.sonicdevelopment.domain.model.values.CrewMemberId
+import com.sonicdevelopment.domain.ports.driving.ship.CrewMemberDTO
 import com.sonicdevelopment.domain.model.Ship
 import com.sonicdevelopment.domain.model.enums.ShipClass
 import com.sonicdevelopment.domain.model.enums.ShippingState
@@ -111,6 +114,52 @@ class ArrivalManagementServiceTest {
             ships.saveNewShip(any())
             outbox.announceShipArrived(any(), blackPearl.shippingId, tortuga, portRoyal)
         }
+    }
+
+    @Test
+    fun `an arriving ship keeps the Crew carried in the event and replaces the stored one after saving the ship`() {
+        val mittens = CrewMemberDTO(UUID.randomUUID(), "Mittens", "Strong Paws")
+        val patch = CrewMemberDTO(UUID.randomUUID(), "Patch", "Sharp Eyes")
+        val expected = listOf(mittens, patch).map { CrewMember(CrewMemberId(it.id), it.name, it.trait) }
+
+        service.receiveShippingPublished(eventId, blackPearl.copy(crew = listOf(mittens, patch)))
+
+        verifyOrder {
+            ships.saveNewShip(any())
+            ships.replaceCrew(blackPearl.shipId, expected)
+            outbox.announceShipArrived(any(), blackPearl.shippingId, tortuga, portRoyal)
+        }
+    }
+
+    @Test
+    fun `an arriving ship without a Crew in the event replaces the stored Crew with none`() {
+        service.receiveShippingPublished(eventId, blackPearl)
+
+        verify(exactly = 1) { ships.replaceCrew(blackPearl.shipId, emptyList()) }
+    }
+
+    @Test
+    fun `no Crew is replaced for a consumed event, another Destination, an Arrival already recorded or a ship in the fleet not at sea`() {
+        val crew = listOf(CrewMemberDTO(UUID.randomUUID(), "Mittens", "Strong Paws"))
+        every { inbox.recordConsumedEvent(eventId) } returns false
+        service.receiveShippingPublished(eventId, blackPearl.copy(crew = crew))
+
+        val otherEventId = EventId(UUID.randomUUID())
+        every { inbox.recordConsumedEvent(otherEventId) } returns true
+        service.receiveShippingPublished(otherEventId, blackPearl.copy(destinationHarbor = HarborName("Nassau"), crew = crew))
+
+        val recordedEventId = EventId(UUID.randomUUID())
+        every { inbox.recordConsumedEvent(recordedEventId) } returns true
+        every { arrivals.recordArrival(any(), any()) } returns false
+        service.receiveShippingPublished(recordedEventId, blackPearl.copy(crew = crew))
+
+        val inFleetEventId = EventId(UUID.randomUUID())
+        every { inbox.recordConsumedEvent(inFleetEventId) } returns true
+        every { arrivals.recordArrival(any(), any()) } returns true
+        every { ships.getShipDetails(blackPearl.shipId) } returns aShip(id = blackPearl.shipId, activeShipping = null)
+        service.receiveShippingPublished(inFleetEventId, blackPearl.copy(crew = crew))
+
+        verify(exactly = 0) { ships.replaceCrew(any(), any()) }
     }
 
     @Test
