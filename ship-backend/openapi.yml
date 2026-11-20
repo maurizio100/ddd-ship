@@ -370,6 +370,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/Savings'
 
+  /web/recruits:
+    get:
+      summary: List the Recruit Pool of this Harbor
+      description: >-
+        The Recruits this Harbor offers: five, generated from the Harbor Name when the Harbor first opens and
+        kept on every later opening. Two Harbors never offer the same Recruit. Read only.
+      operationId: getRecruitPool
+      tags: [Harbors]
+      responses:
+        '200':
+          description: The Recruit Pool of this Harbor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recruit'
+
   /web/incoming-ships:
     get:
       summary: List the Incoming Ships of this Harbor
@@ -866,6 +884,20 @@ components:
           pattern: '^\d+\.\d{2}$'
           example: '1000.00'
           description: The Savings in dollars, as a decimal string with two decimals, never a JSON number
+
+    Recruit:
+      type: object
+      required: [id, name, trait]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Mittens
+        trait:
+          type: string
+          example: Fearless
 
     ProblemDetail:
       type: object

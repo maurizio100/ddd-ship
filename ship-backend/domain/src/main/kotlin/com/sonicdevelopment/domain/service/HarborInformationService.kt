@@ -4,6 +4,7 @@ import com.sonicdevelopment.domain.model.values.HarborName
 import com.sonicdevelopment.domain.model.values.Money
 import com.sonicdevelopment.domain.ports.driven.KnownHarborRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.PriceRepositoryPort
+import com.sonicdevelopment.domain.ports.driven.RecruitPoolRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.SavingsRepositoryPort
 import com.sonicdevelopment.domain.ports.driven.ShipRepositoryPort
 import com.sonicdevelopment.domain.ports.driving.cargo.CargoDTO
@@ -11,6 +12,7 @@ import com.sonicdevelopment.domain.ports.driving.harbor.ImprisonedShipDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.IncomingShipDTO
 import com.sonicdevelopment.domain.ports.driving.harbor.HarborInformationPort
 import com.sonicdevelopment.domain.ports.driving.harbor.KnownHarborsDTO
+import com.sonicdevelopment.domain.ports.driving.harbor.RecruitDTO
 import org.springframework.stereotype.Service
 
 @Service
@@ -20,6 +22,7 @@ class HarborInformationService(
     private val savingsRepositoryPort: SavingsRepositoryPort,
     private val shipRepositoryPort: ShipRepositoryPort,
     private val priceRepositoryPort: PriceRepositoryPort,
+    private val recruitPoolRepositoryPort: RecruitPoolRepositoryPort,
 ) : HarborInformationPort {
     override fun getKnownHarbors(): KnownHarborsDTO =
         KnownHarborsDTO(
@@ -28,6 +31,9 @@ class HarborInformationService(
         )
 
     override fun getSavings(): Money = savingsRepositoryPort.getSavings()
+
+    override fun getRecruitPool(): List<RecruitDTO> =
+        recruitPoolRepositoryPort.getRecruits().map { RecruitDTO(it.id.id, it.name, it.trait) }
 
     /** Delivery Prices are computed when the list is read, from this Harbor's Prices only. */
     override fun getIncomingShips(): List<IncomingShipDTO> {
