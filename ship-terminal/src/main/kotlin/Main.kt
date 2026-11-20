@@ -72,23 +72,8 @@ fun shouldAnnounce(eventType: String?, event: ShippingEvent?): Boolean {
 
 private val logger = System.getLogger("ship-terminal")
 
-fun handleRecord(record: ConsumerRecord<String, ShippingEvent?>): Boolean {
-    val eventType = eventTypeOf(record)
-    val event = record.value()
-
-    return if (shouldAnnounce(eventType, event)) {
-        printShippingEvent(event!!)
-        true
-    } else if (eventType == SHIPPING_PUBLISHED) {
-        logger.log(
-            System.Logger.Level.WARNING,
-            "Could not read $SHIPPING_PUBLISHED record at offset ${record.offset()} of ${record.topic()}-${record.partition()}"
-        )
-        false
-    } else {
-        logger.log(System.Logger.Level.DEBUG, "Skipping event type '$eventType'")
-        false
-    }
+fun handleRecord(record: ConsumerRecord<String, String?>, out: (String) -> Unit = ::println): Boolean {
+    TODO("STORY-056")
 }
 
 fun main() {
@@ -96,10 +81,10 @@ fun main() {
     config["bootstrap.servers"] = "localhost:9094"
     config["group.id"] = "ship-terminal"
     config["key.deserializer"] = StringDeserializer::class.java.name
-    config["value.deserializer"] = ShippingEventDeserializer::class.java.name
+    config["value.deserializer"] = StringDeserializer::class.java.name
     config["auto.offset.reset"] = "earliest"
 
-    val consumer = KafkaConsumer<String, ShippingEvent?>(config)
+    val consumer = KafkaConsumer<String, String?>(config)
     consumer.subscribe(listOf("hexagonship-shipping"))
 
     println("Started consuming messages...")
